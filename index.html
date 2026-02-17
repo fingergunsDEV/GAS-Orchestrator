@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GAS_ORCHESTRATOR // KERNEL_V3.1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Marked.js for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Include Styles -->
+    <?!= include('css'); ?>
+  </head>
+  <body id="main-body" class="h-screen overflow-hidden bg-black text-gray-300 font-code">
+
+    <!-- STATIC BOOT OVERLAY (Non-Vue) -->
+    <div id="static-boot-overlay" class="boot-overlay">
+      <div class="font-hud text-xl text-cyan-400 tracking-[1em] mb-4 animate-pulse">UPLINKING_SESSION</div>
+      <div id="boot-status-text" class="font-code text-[10px] text-gray-500 uppercase tracking-widest mb-8">Readying BIOS...</div>
+      
+      <!-- MANUAL OVERRIDE -->
+      <button onclick="document.getElementById('static-boot-overlay').style.display='none'; var app=document.getElementById('app'); app.style.display='flex'; app.removeAttribute('v-cloak');" class="px-4 py-2 border border-cyan-900/50 text-cyan-700 font-hud text-[10px] hover:text-cyan-400 hover:border-cyan-400 transition-all">
+        [[ FORCE_UPLINK ]]
+      </button>
+    </div>
+
+    <div id="app" v-cloak class="h-full flex flex-col" :class="['theme-' + uiTheme, {'is-processing': isProcessing}]" style="display: none;">
+
+      <!-- INFRASTRUCTURE LAYERS -->
+      <canvas id="neural-canvas"></canvas>
+      <div class="hex-overlay"></div>
+
+      <!-- MAIN INTERFACE -->
+      <div class="flex-1 flex flex-col h-full relative z-10" id="main-interface">
+
+        <!-- TOP HUD BAR -->
+        <header class="flex justify-between items-center py-1 px-4 border-b border-gray-900 bg-black/80 backdrop-blur-md">
+          <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" :class="isConnected ? 'bg-green-500' : 'bg-red-500'"></span>
+              <span class="font-hud text-[10px] text-white">ORCHESTRATOR_ID: <span :style="{color: uiColor}">0x7E3</span></span>
+            </div>
+            <div class="hidden md:block h-3 w-px bg-gray-800"></div>
+            
+            <!-- VIEW SELECTOR -->
+            <nav class="flex gap-4">
+              <button @click="currentView = 'terminal'" class="font-hud text-[10px] px-3 py-1 transition-all" :class="currentView === 'terminal' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-500 hover:text-gray-300'">
+                [[ TERMINAL_V2 ]]
+              </button>
+              <button @click="currentView = 'neural'" class="font-hud text-[10px] px-3 py-1 transition-all" :class="currentView === 'neural' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-500 hover:text-gray-300'">
+                [[ NEURAL_MONITOR ]]
+              </button>
+              <button @click="currentView = 'workstream'" class="font-hud text-[10px] px-3 py-1 transition-all" :class="currentView === 'workstream' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300'">
+                [[ WORKSTREAM_MAP ]]
+              </button>
+            </nav>
+          </div>
+          
+          <div class="flex items-center gap-6">
+            <button @click="toggleTheme" class="font-hud text-[9px] text-gray-500 hover:text-white transition-all">
+              [[ THEME_SYNC ]]
+            </button>
+            <button @click="toggleSim" class="font-hud text-[9px] px-3 py-1 border border-gray-800 hover:border-cyan-500 transition-all" :class="{'bg-cyan-500/20 text-cyan-400': simMode}">
+              [[ TOPOLOGY_VIEW ]]
+            </button>
+            <div class="font-code text-[10px] text-white">{{ currentTime }}</div>
+          </div>
+        </header>
+
+        <!-- MAIN LAYOUT -->
+        <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+          
+          <!-- SIMULATION OVERLAY -->
+          <transition name="fade">
+            <div v-if="simMode" class="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col p-8 overflow-hidden">
+              <div class="flex justify-between mb-8 border-b border-white/10 pb-4">
+                <div class="font-hud text-xl text-white tracking-[0.5em]">SYSTEM_NEURAL_TOPOLOGY</div>
+                <button @click="simMode = false" class="text-gray-500 hover:text-white font-code text-xs">[ ESC_SIM ]</button>
+              </div>
+              
+              <div class="flex-1 relative flex items-center justify-center">
+                <!-- SVG Neural Map -->
+                <svg width="100%" height="100%" class="absolute inset-0">
+                  <defs>
+                    <filter id="glow">
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                  </defs>
+                  <!-- Dynamic Connections -->
+                  <line v-for="(node, i) in teamNodes" :key="'line-'+i"
+                        x1="50%" y1="50%" 
+                        :x2="`calc(50% + ${node.x - center.x}px)`" 
+                        :y2="`calc(50% + ${node.y - center.y}px)`"
+                        stroke="rgba(0, 243, 255, 0.05)" stroke-width="1" />
+                  <line v-if="activeNode"
+                        x1="50%" y1="50%" 
+                        :x2="`calc(50% + ${(activeNode ? activeNode.x : 0) - center.x}px)`" 
+                        :y2="`calc(50% + ${(activeNode ? activeNode.y : 0) - center.y}px)`"
+                        :stroke="uiColor" stroke-width="2" filter="url(#glow)" class="animate-pulse" />
+                </svg>
+
+                <!-- Center Node (Root) -->
+                <div class="absolute w-20 h-20 rounded-full border-2 flex items-center justify-center bg-black/80 z-10"
+                     style="left: 50%; top: 50%; transform: translate(-50%, -50%);"
+                     :style="{ borderColor: uiColor, boxShadow: `0 0 20px ${uiColor}44` }">
+                  <div class="font-hud text-xs text-center leading-none text-white">ROOT<br>CORE</div>
+                </div>
+
+                <!-- Team Nodes -->
+                <div v-for="(node, i) in teamNodes" :key="i"
+                     class="absolute w-16 h-16 rounded-full border flex flex-col items-center justify-center transition-all duration-1000 bg-black/60"
+                     :class="activeState.team === node.name ? 'scale-125 z-20' : 'opacity-40 scale-90'"
+                     :style="{ 
+                        left: `calc(50% + ${node.x - center.x}px)`, 
+                        top: `calc(50% + ${node.y - center.y}px)`,
+                        transform: 'translate(-50%, -50%)',
+                        borderColor: activeState.team === node.name ? uiColor : '#333',
+                        boxShadow: activeState.team === node.name ? `0 0 30px ${uiColor}66` : 'none'
+                     }">
+                  <div class="font-hud text-[8px] text-center text-white mb-1">{{ node.name.split(' ')[0] }}</div>
+                  <div class="text-[6px] font-code text-gray-400">{{ node.role }}</div>
+                </div>
+              </div>
+
+              <!-- Sim Status Footer -->
+              <div class="mt-8 grid grid-cols-3 gap-8 font-code text-[10px] border-t border-white/10 pt-4">
+                <div><span class="text-gray-600">ACTIVE_PATHWAY:</span> <span :style="{color: uiColor}">{{ activeState.team || 'STBY' }}</span></div>
+                <div><span class="text-gray-600">THOUGHT_STREAM:</span> <span class="text-white">{{ activeState.details || 'Awaiting pulse...' }}</span></div>
+                <div><span class="text-gray-600">NEURAL_LOAD:</span> <span class="text-cyan-400">{{ (neuralBarValues[0] * 1.5).toFixed(1) }}%</span></div>
+              </div>
+            </div>
+          </transition>
+          
+          <!-- LEFT PANEL: TELEMETRY & STATUS -->
+          <aside class="w-full md:w-64 border-r border-gray-900 flex flex-col bg-black/40">
+            <!-- ACTIVE TASK -->
+            <div class="p-4 border-b border-gray-900">
+              <div class="text-[9px] text-gray-600 font-hud mb-2 tracking-[0.2em]">AGENT_STATUS</div>
+              <div class="flex gap-3 items-center">
+                <div class="avatar-glitch"></div>
+                <div class="flex-1 min-w-0">
+                  <div class="lux-panel p-2 border-l-2" :style="{ borderLeftColor: uiColor }">
+                    <div class="text-xs text-white font-bold truncate">{{ activeState.team || 'STBY' }}</div>
+                    <div class="text-[9px] text-gray-400 truncate">{{ activeState.status || 'NO_ACTIVE_TASKS' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- GAUGES -->
+            <div class="p-4 space-y-4">
+              <!-- Teams -->
+              <div>
+                <div class="flex justify-between text-[8px] text-gray-600 font-hud mb-1">
+                  <span>ACTIVE_TEAMS</span>
+                  <span>{{ activeState.metrics.teams }}</span>
+                </div>
+                <div class="h-1 bg-gray-900 overflow-hidden">
+                  <div class="h-full transition-all duration-500" :style="{ width: (activeState.metrics.teams / 12 * 100) + '%', backgroundColor: uiColor }"></div>
+                </div>
+              </div>
+              <!-- Tools -->
+              <div>
+                <div class="flex justify-between text-[8px] text-gray-600 font-hud mb-1">
+                  <span>LOADED_TOOLS</span>
+                  <span>{{ activeState.metrics.tools }}</span>
+                </div>
+                <div class="h-1 bg-gray-900 overflow-hidden">
+                  <div class="h-full transition-all duration-500" :style="{ width: (activeState.metrics.tools / 60 * 100) + '%', backgroundColor: uiColor }"></div>
+                </div>
+              </div>
+              <!-- Logs -->
+              <div>
+                <div class="flex justify-between text-[8px] text-gray-600 font-hud mb-1">
+                  <span>AUDIT_LOGS</span>
+                  <span>{{ activeState.metrics.logs }}</span>
+                </div>
+                <div class="h-1 bg-gray-900 overflow-hidden">
+                  <div class="h-full transition-all duration-500" :style="{ width: Math.min(100, activeState.metrics.logs / 1000 * 100) + '%', backgroundColor: uiColor }"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- EVENT STREAM -->
+            <div class="flex-1 flex flex-col min-h-0">
+              <div class="px-4 py-2 text-[9px] text-gray-600 font-hud border-b border-gray-900">KERNEL_EVENTS</div>
+              <div class="flex-1 overflow-y-auto p-4 font-code text-[9px] space-y-2 scrollbar-hide" ref="logBox">
+                <div v-for="(log, i) in eventLogs" :key="i" class="opacity-60 hover:opacity-100">
+                  <span :style="{color: getLogColor(log.type)}">[{{ log.source }}]</span> {{ log.message }}
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- CENTER AREA (TERMINAL OR NEURAL) -->
+          <main class="flex-1 flex flex-col bg-black/20 relative">
+            
+            <!-- VIEW: TERMINAL -->
+            <div v-if="currentView === 'terminal'" class="flex-1 flex flex-col overflow-hidden">
+              <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 font-code scrollbar-hide" ref="chatBox">
+                <div v-if="chatHistory.length === 0" class="h-full flex flex-col items-center justify-center opacity-10">
+                  <div class="text-6xl">⌬</div>
+                  <div class="text-[10px] font-hud tracking-[1em] mt-4">INITIALIZING_INTERFACE</div>
+                </div>
+
+                <div v-for="(msg, i) in chatHistory" :key="i" class="message" :class="msg.role === 'user' ? 'message-user' : 'message-model'">
+                  <div class="message-label">{{ msg.role === 'user' ? 'USR_PROMPT' : 'AGN_RESPONSE' }}</div>
+                  <div class="markdown-content" v-html="renderMarkdown(msg.text)"></div>
+                  
+                  <!-- Action Buttons for Signals -->
+                  <div v-if="msg.role === 'model' && (msg.text.includes('MISSION_CONTINUE') || msg.text.includes('SYSTEM_PAUSE'))" class="mt-4 flex gap-4">
+                    <button @click="resumeMission" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-hud text-[10px] tracking-widest flex items-center gap-2">
+                      <span class="animate-pulse">▶</span> RESUME_MISSION
+                    </button>
+                    <button v-if="msg.text.includes('SYSTEM_PAUSE')" @click="sendMessage('Cancel mission')" class="px-4 py-2 border border-red-900 text-red-500 font-hud text-[10px] tracking-widest hover:bg-red-950/20">
+                      ABORT_TASK
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="isProcessing" class="flex items-center gap-2 text-[10px] text-amber-500 animate-pulse">
+                  <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                  NEURAL_SYNAPSE_ACTIVE...
+                </div>
+              </div>
+
+              <!-- CONTEXTUAL ACTION BAR -->
+              <div v-if="contextualActions.length > 0" class="action-bar">
+                <button v-for="action in contextualActions" :key="action.label" @click="sendMessage(action.cmd)" class="action-btn">
+                  {{ action.label }}
+                </button>
+              </div>
+
+              <!-- COMMAND INPUT -->
+              <div class="p-6 border-t border-white/5 bg-gradient-to-b from-black/40 to-black/80 backdrop-blur-xl">
+                <div v-if="selectedImage" class="mb-3 px-4 py-2 text-[10px] text-cyan-400 bg-cyan-950/30 border border-cyan-500/30 flex justify-between items-center rounded-sm">
+                  <span class="flex items-center gap-3 font-hud">
+                    <span class="w-1.5 h-1.5 bg-cyan-400 animate-pulse rounded-full shadow-[0_0_8px_#00f3ff]"></span> 
+                    UPLINK_ATTACHMENT: {{ selectedImage.name }}
+                  </span>
+                  <button @click="clearImage" class="text-red-500 hover:text-white transition-colors font-hud text-[9px]">[ PURGE ]</button>
+                </div>
+                
+                <div class="lux-panel flex items-center gap-4 p-1 pl-5 border-l-2 transition-all duration-500 group focus-within:shadow-[0_0_30px_-10px_rgba(0,243,255,0.2)]" 
+                     :style="{ borderLeftColor: uiColor, backgroundColor: 'rgba(255,255,255,0.02)' }">
+                  
+                  <button @click="openFilePicker" class="text-gray-600 hover:text-white transition-all transform hover:scale-110" title="Upload Artifact">
+                    <span class="text-xl font-light">+</span>
+                  </button>
+                  <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">
+                  
+                  <div class="flex items-center gap-2">
+                    <span class="font-hud text-[10px] tracking-tighter opacity-40">DIRECTIVE</span>
+                    <span class="font-hud text-xs animate-pulse" :style="{color: uiColor}">>></span>
+                  </div>
+                  
+                  <input type="text" v-model="userInput" @keyup.enter="sendMessage()" 
+                         class="flex-1 bg-transparent border-none outline-none text-white font-code text-xs py-3 placeholder-gray-800 tracking-wider"
+                         :placeholder="isRecording ? 'CAPTURING_AUDIO_STREAM...' : 'ENTER_NEURAL_COMMAND...'">
+                  
+                  <button @click="sendMessage()" :disabled="isProcessing" 
+                          class="font-hud text-[10px] px-8 py-3 transition-all duration-300 relative overflow-hidden group/btn"
+                          :class="isProcessing ? 'text-gray-600 cursor-wait' : 'text-black font-bold cursor-pointer hover:tracking-[0.2em]'"
+                          :style="{ backgroundColor: isProcessing ? '#111' : uiColor }">
+                    <span class="relative z-10">{{ isProcessing ? 'BUSY' : 'EXECUTE' }}</span>
+                    <div v-if="!isProcessing" class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                  </button>
+                </div>
+                
+                <div class="mt-2 flex justify-between px-1">
+                  <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Kernel_Link: Stable</div>
+                  <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">System_Auth: root@orchestrator</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: NEURAL MONITOR -->
+            <div v-if="currentView === 'neural'" class="flex-1 flex flex-col p-6 overflow-hidden">
+               <div class="flex justify-between items-center mb-6">
+                 <h2 class="font-hud text-lg text-purple-400 tracking-[0.3em]">NEURAL_STREAM_ANALYSIS</h2>
+                 <div class="flex gap-4 font-code text-[10px]">
+                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span> FLOW</div>
+                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-amber-500 rounded-full"></span> THINK</div>
+                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span> ERROR</div>
+                 </div>
+               </div>
+
+               <div class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 scrollbar-hide">
+                 <!-- NEURAL LAYERS VISUALIZER -->
+                 <div class="grid grid-cols-4 gap-4 mb-8">
+                   <div v-for="layer in neuralLayers" :key="layer.id" 
+                        class="lux-panel p-4 border border-gray-800 bg-black/40 relative overflow-hidden group">
+                     <div class="absolute top-0 right-0 p-2 text-[8px] font-hud text-gray-700">{{ layer.type }}</div>
+                     <div class="font-hud text-xs text-white mb-2">{{ layer.name }}</div>
+                     <div class="h-1 w-full bg-gray-900 mb-2">
+                       <div class="h-full bg-purple-500 transition-all duration-1000" :style="{ width: layer.load + '%' }"></div>
+                     </div>
+                     <div class="text-[9px] font-code text-gray-500 group-hover:text-purple-300 transition-colors">{{ layer.status }}</div>
+                     <!-- Animated Stream Pulse -->
+                     <div v-if="isProcessing && activeState.team === layer.team" class="absolute inset-0 bg-purple-500/5 animate-pulse"></div>
+                   </div>
+                 </div>
+
+                 <!-- ERROR & BOTTLENECK ANALYSIS -->
+                 <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <!-- LIVE DATA STREAM -->
+                   <div class="flex flex-col border border-gray-900 bg-black/60 rounded p-4">
+                     <div class="font-hud text-[10px] text-gray-500 mb-4 border-b border-gray-900 pb-2">ACTIVE_DATA_STREAM</div>
+                     <div class="flex-1 font-code text-[10px] space-y-3 overflow-y-auto scrollbar-hide">
+                        <div v-for="(stream, s) in dataStreams" :key="s" class="flex gap-4 items-start">
+                          <span class="text-purple-500 opacity-50">{{ stream.time }}</span>
+                          <span class="text-blue-400">[{{ stream.origin }} &rarr; {{ stream.target }}]</span>
+                          <span class="text-gray-400 italic">{{ stream.data }}</span>
+                        </div>
+                     </div>
+                   </div>
+
+                   <!-- DIAGNOSTIC SOLUTIONS -->
+                   <div class="flex flex-col border border-red-900/30 bg-red-950/5 rounded p-4">
+                     <div class="font-hud text-[10px] text-red-500 mb-4 border-b border-red-900/30 pb-2">DIAGNOSTIC_REPORT</div>
+                     <div class="flex-1 space-y-6 overflow-y-auto scrollbar-hide">
+                        <div v-for="(issue, i) in diagnosticIssues" :key="i" class="border-l-2 border-red-600 pl-4 py-1">
+                          <div class="font-hud text-[10px] text-red-500 mb-1">ISSUE: {{ issue.title }}</div>
+                          <div class="font-code text-[10px] text-gray-400 mb-3">{{ issue.description }}</div>
+                          <div class="bg-black/40 p-3 border border-red-900/20">
+                            <div class="font-hud text-[8px] text-green-500 mb-2">PROPOSED_SOLUTION_PATH:</div>
+                            <div class="font-code text-[10px] text-green-400">{{ issue.solution }}</div>
+                          </div>
+                        </div>
+                        <div v-if="diagnosticIssues.length === 0" class="h-full flex items-center justify-center opacity-30 italic font-code text-xs">
+                          No critical bottlenecks detected in current stream.
+                        </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+            </div>
+
+            <!-- VIEW: WORKSTREAM -->
+            <div v-if="currentView === 'workstream'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-8">
+                <div>
+                  <h2 class="font-hud text-lg text-amber-400 tracking-[0.3em]">AGENTIC_WORKSTREAM_VISUALIZER</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Autonomous mission pipeline status: v2.4</div>
+                </div>
+                <div class="flex gap-6 font-hud text-[9px]">
+                  <div class="flex items-center gap-2 text-blue-400"><span class="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_blue]"></span> ROOT_CORE</div>
+                  <div class="flex items-center gap-2 text-amber-400"><span class="w-2 h-2 bg-amber-500 rounded-full shadow-[0_0_8px_amber]"></span> ACTIVE_TEAM</div>
+                  <div class="flex items-center gap-2 text-cyan-400"><span class="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_8px_cyan]"></span> TOOL_EXEC</div>
+                </div>
+              </div>
+
+              <div class="flex-1 relative border border-white/5 bg-black/40 rounded-lg overflow-hidden flex items-center justify-center">
+                <!-- SVG Flowchart -->
+                <svg width="100%" height="100%" class="absolute inset-0">
+                  <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orientation="auto">
+                      <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255,255,255,0.1)" />
+                    </marker>
+                    <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="rgba(255,170,0,0)" />
+                      <stop offset="50%" stop-color="rgba(255,170,0,0.5)" />
+                      <stop offset="100%" stop-color="rgba(255,170,0,0)" />
+                    </linearGradient>
+                  </defs>
+
+                  <!-- Connector Lines (Static) -->
+                  <path d="M 150,300 L 350,300" stroke="rgba(255,255,255,0.05)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                  <path d="M 550,300 L 750,300" stroke="rgba(255,255,255,0.05)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                  
+                  <!-- Flowing Particles (Active during processing) -->
+                  <template v-if="isProcessing">
+                    <circle r="2" fill="#fbbf24">
+                      <animateMotion dur="2s" repeatCount="indefinite" path="M 150,300 L 350,300" />
+                    </circle>
+                    <circle r="2" fill="#fbbf24" begin="1s">
+                      <animateMotion dur="2s" repeatCount="indefinite" path="M 150,300 L 350,300" />
+                    </circle>
+                    <circle v-if="activeState.status === 'EXECUTING'" r="2" fill="#22d3ee">
+                      <animateMotion dur="1.5s" repeatCount="indefinite" path="M 550,300 L 750,300" />
+                    </circle>
+                  </template>
+                </svg>
+
+                <!-- Flowchart Nodes -->
+                <div class="relative z-10 flex gap-32 items-center">
+                  
+                  <!-- NODE 1: ORCHESTRATOR -->
+                  <div class="flex flex-col items-center">
+                    <div class="w-32 h-32 rounded-full border-2 border-blue-500/30 flex items-center justify-center bg-blue-950/10 shadow-[inset_0_0_20px_rgba(59,130,246,0.1)] transition-all duration-500"
+                         :class="{'scale-110 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.3)]': isProcessing}">
+                      <div class="text-center">
+                        <div class="font-hud text-[10px] text-blue-400 mb-1">CORE</div>
+                        <div class="font-hud text-[8px] text-white tracking-widest">ORCHESTRATOR</div>
+                      </div>
+                    </div>
+                    <div class="mt-4 font-code text-[8px] text-blue-500 uppercase tracking-tighter">Status: Active</div>
+                  </div>
+
+                  <!-- NODE 2: DEPLOYED TEAM -->
+                  <div class="flex flex-col items-center">
+                    <div class="w-48 h-24 lux-panel border-l-4 flex flex-col justify-center px-6 transition-all duration-700"
+                         :style="{ borderLeftColor: activeState.team ? uiColor : 'rgba(255,255,255,0.1)' }"
+                         :class="{'translate-y-[-5px] shadow-[0_10px_30px_rgba(0,0,0,0.5)]': activeState.team}">
+                      <div class="text-[8px] font-hud text-gray-600 mb-1 uppercase tracking-widest">Active_Agent</div>
+                      <div class="font-hud text-xs text-white truncate">{{ activeState.team || 'WAITING...' }}</div>
+                      <div class="mt-2 flex items-center gap-2">
+                        <span class="w-1 h-1 rounded-full animate-ping" :style="{ backgroundColor: uiColor }" v-if="activeState.team"></span>
+                        <span class="text-[7px] font-code text-gray-500 uppercase">{{ activeState.status || 'Standby' }}</span>
+                      </div>
+                    </div>
+                    <div class="mt-4 flex flex-col items-center gap-1">
+                      <div class="h-8 w-px bg-gradient-to-b from-white/10 to-transparent"></div>
+                      <div class="font-code text-[7px] text-gray-700 uppercase">Delegation_Bridge</div>
+                    </div>
+                  </div>
+
+                  <!-- NODE 3: TOOL EXECUTION -->
+                  <div class="flex flex-col items-center">
+                    <div class="w-40 h-40 border border-dashed border-white/10 rounded-lg flex items-center justify-center relative bg-black/20 overflow-hidden group">
+                      <div v-if="activeState.status === 'EXECUTING'" class="absolute inset-0 bg-cyan-500/5 animate-pulse"></div>
+                      
+                      <div class="text-center z-10">
+                        <div class="font-hud text-[9px] text-cyan-500 mb-2 tracking-widest uppercase">Tool_Registry</div>
+                        <div class="font-code text-[10px] text-white h-12 flex items-center justify-center px-4 italic opacity-80">
+                          {{ activeState.status === 'EXECUTING' ? activeState.details : '---' }}
+                        </div>
+                      </div>
+
+                      <!-- Scanning Line Effect -->
+                      <div v-if="activeState.status === 'EXECUTING'" class="absolute top-0 left-0 w-full h-px bg-cyan-400/50 shadow-[0_0_10px_#00f3ff] animate-scan"></div>
+                    </div>
+                    <div class="mt-4 font-code text-[8px] text-cyan-600 uppercase tracking-widest">Protocol: {{ activeState.status === 'EXECUTING' ? 'LVE_EXEC' : 'IDLE' }}</div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- WORKSTREAM LOGS (Specific to mission) -->
+              <div class="mt-8 h-48 flex flex-col">
+                <div class="font-hud text-[10px] text-gray-500 mb-2 px-2 tracking-widest border-b border-white/5 pb-2">MISSION_CRITICAL_TELEMETRY</div>
+                <div class="flex-1 overflow-y-auto font-code text-[10px] space-y-2 p-2 scrollbar-hide">
+                  <div v-for="(log, i) in eventLogs.slice().reverse().filter(l => l.type === 'tool' || l.type === 'success')" :key="i" class="flex gap-4 items-center">
+                    <span class="text-amber-500/50">{{ log.time }}</span>
+                    <span class="text-gray-400">>></span>
+                    <span :class="log.type === 'success' ? 'text-green-400' : 'text-cyan-400'">{{ log.message }}</span>
+                  </div>
+                  <div v-if="!isProcessing && eventLogs.length === 0" class="h-full flex items-center justify-center opacity-20 italic">
+                    Awaiting mission initialization parameters...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+
+          <!-- RIGHT PANEL: ADVANCED CONTEXT & ANALYSIS -->
+          <aside class="w-full md:w-80 border-l border-gray-900 flex flex-col bg-black/40">
+            <div class="p-4 border-b border-gray-900">
+              <div class="text-[9px] text-gray-600 font-hud mb-2 tracking-[0.2em]">ADVANCED_CONTEXT</div>
+              <div class="bg-blue-950/10 border border-blue-900/30 p-4 rounded">
+                <div class="font-hud text-[10px] text-blue-400 mb-2">SYSTEM_CONTEXT_MAP</div>
+                <div class="font-code text-[10px] text-gray-300 space-y-2">
+                  <div class="flex justify-between"><span>SESSION_TOKEN:</span> <span class="text-blue-300">{{ sessionId ? sessionId.substring(0,8) : 'NONE' }}</span></div>
+                  <div class="flex justify-between"><span>MEMORY_LOAD:</span> <span class="text-blue-300">{{ activeState.metrics.logs }} BYTES</span></div>
+                  <div class="flex justify-between"><span>ORCH_LATENCY:</span> <span class="text-blue-300">244ms</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- DYNAMIC CONTEXT (Based on active agent) -->
+            <div class="flex-1 flex flex-col p-4 space-y-6 overflow-y-auto scrollbar-hide">
+              
+              <!-- RECENT FILES EXPLORER -->
+              <div class="space-y-4">
+                <div class="font-hud text-[9px] text-gray-600">LIVE_FILE_STREAM</div>
+                <div class="space-y-1">
+                  <div v-for="file in recentFiles" :key="file.id" @click="sendMessage('Read file: ' + file.name)" class="file-row">
+                    <div class="file-type-indicator" :style="{ backgroundColor: getFileTypeColor(file.mimeType) }"></div>
+                    <div class="flex-1 truncate">{{ file.name }}</div>
+                    <div class="text-gray-600 text-[8px] uppercase">{{ file.mimeType.split('.').pop() }}</div>
+                  </div>
+                  <div v-if="recentFiles.length === 0" class="text-[9px] text-gray-700 italic px-2">Scanning Drive for artifacts...</div>
+                </div>
+              </div>
+
+              <div v-if="activeState.team" class="space-y-4">
+                <div class="font-hud text-[9px] text-gray-600">AGENT_CAPABILITIES</div>
+                <div class="grid grid-cols-1 gap-2">
+                  <div v-for="cap in getAgentCaps(activeState.team)" :key="cap" class="bg-black/60 border border-gray-800 px-3 py-2 font-code text-[10px] text-cyan-400">
+                    &bull; {{ cap }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div class="font-hud text-[9px] text-gray-600">KNOWLEDGE_NEXUS</div>
+                
+                <!-- Core Links -->
+                <div v-if="knowledgeMeta" class="grid grid-cols-1 gap-2">
+                  <a :href="knowledgeMeta.folder.url" target="_blank" class="p-2 border border-gray-800 bg-cyan-950/20 hover:bg-cyan-900/30 flex items-center justify-between group no-underline">
+                    <div class="font-code text-[10px] text-cyan-400">KB_FOLDER</div>
+                    <div class="text-[9px] text-gray-500 group-hover:text-cyan-200">OPEN ↗</div>
+                  </a>
+                  <a :href="knowledgeMeta.truth.url" target="_blank" class="p-2 border border-gray-800 bg-purple-950/20 hover:bg-purple-900/30 flex items-center justify-between group no-underline">
+                    <div class="font-code text-[10px] text-purple-400">TRUTH_DOC</div>
+                    <div class="text-[9px] text-gray-500 group-hover:text-cyan-200">OPEN ↗</div>
+                  </a>
+                  <a :href="knowledgeMeta.memory.url" target="_blank" class="p-2 border border-gray-800 bg-green-950/20 hover:bg-green-900/30 flex items-center justify-between group no-underline">
+                    <div class="font-code text-[10px] text-green-400">MEMORY_STORE</div>
+                    <div class="text-[9px] text-gray-500 group-hover:text-green-200">OPEN ↗</div>
+                  </a>
+                </div>
+                <div v-else class="text-[9px] text-gray-600 italic">Loading Nexus uplink...</div>
+
+                <!-- Interactive Actions -->
+                <div class="space-y-2 mt-4">
+                  <div class="font-hud text-[8px] text-gray-500">QUICK_ACTIONS</div>
+                  
+                  <!-- Quick Fact -->
+                  <div class="flex gap-1">
+                    <input v-model="quickFact" @keyup.enter="ingestFact" type="text" placeholder="Add fact to memory..." class="flex-1 bg-black/50 border border-gray-800 text-[10px] text-gray-300 p-1 focus:border-cyan-500 outline-none placeholder-gray-700">
+                    <button @click="ingestFact" class="bg-cyan-900/20 border border-cyan-800 text-cyan-400 text-[10px] px-2 hover:bg-cyan-800/40">+</button>
+                  </div>
+
+                  <!-- Curate Topic -->
+                  <div class="flex gap-1">
+                    <input v-model="curateTopic" @keyup.enter="triggerCuration" type="text" placeholder="Research & curate topic..." class="flex-1 bg-black/50 border border-gray-800 text-[10px] text-gray-300 p-1 focus:border-purple-500 outline-none placeholder-gray-700">
+                    <button @click="triggerCuration" class="bg-purple-900/20 border border-purple-800 text-purple-400 text-[10px] px-2 hover:bg-purple-800/40">RUN</button>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="mt-auto pt-6 border-t border-gray-900">
+                <div class="font-hud text-[9px] text-gray-600 mb-2">TELEMETRY_RADAR</div>
+                <div class="flex justify-center py-4" :style="{ opacity: 0.3 + (activeState.metrics.load / 100) }">
+                  <div class="w-24 h-24 rounded-full border border-cyan-900 relative flex items-center justify-center overflow-hidden" :style="{ borderColor: uiColor + '33' }">
+                    <div class="absolute inset-0 border-t-2 animate-spin" :style="{ borderColor: uiColor, animationDuration: Math.max(0.5, 5 - (activeState.metrics.load / 20)) + 's' }"></div>
+                    <div class="w-1 h-1 rounded-full animate-ping" :style="{ backgroundColor: uiColor }"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-cyan-500/10" :style="{ opacity: activeState.metrics.load / 100 }"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Include JavaScript -->
+    <?!= include('js'); ?>
+
+    <!-- ABSOLUTE BOOT FAILSAFE (NON-VUE) -->
+    <script>
+      (function() {
+        var failsafe = setTimeout(function() {
+          var overlay = document.getElementById('static-boot-overlay');
+          var app = document.getElementById('app');
+          if (overlay && overlay.style.display !== 'none') {
+            console.warn('Boot timeout reached. Forcing interface visibility.');
+            overlay.style.display = 'none'; 
+            if (app) {
+              app.style.display = 'flex';
+              app.removeAttribute('v-cloak');
+            }
+          }
+        }, 12000);
+
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+          var errDisplay = document.createElement('div');
+          errDisplay.style.cssText = 'position:fixed; bottom:0; left:0; right:0; background:rgba(255,0,0,0.8); color:white; font-family:monospace; font-size:10px; padding:10px; z-index:10000; word-break:break-all;';
+          errDisplay.innerText = 'CLIENT_ERROR: ' + msg + ' (Line: ' + lineNo + ')';
+          document.body.appendChild(errDisplay);
+          return false;
+        };
+      })();
+    </script>
+  </body>
+</html>

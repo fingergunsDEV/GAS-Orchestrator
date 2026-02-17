@@ -1,0 +1,326 @@
+<script>
+(function() {
+  var { createApp, ref, onMounted, nextTick, computed } = Vue;
+
+  try {
+    var app = createApp({
+      setup: function() {
+        var booting = ref(true);
+        var bootProgress = ref(0);
+        var bootStatus = ref("Readying BIOS...");
+        
+        var userInput = ref("");
+        var chatHistory = ref([]);
+        var isProcessing = ref(false);
+        var isConnected = ref(false);
+        var sessionId = ref(null);
+        var currentTime = ref("");
+        var uiTheme = ref('cyan');
+        var currentView = ref('terminal');
+        var simMode = ref(false);
+        var isRecording = ref(false);
+
+        var activeState = ref({ 
+          team: null, 
+          agent: null, 
+          status: null, 
+          details: null,
+          metrics: { teams: 0, tools: 0, logs: 0, load: 0 }
+        });
+
+        var eventLogs = ref([]);
+        var chatBox = ref(null);
+        var logBox = ref(null);
+        var fileInput = ref(null);
+        var selectedImage = ref(null);
+        var pollInterval = null;
+
+        // NEURAL TOPOLOGY DATA
+        var center = ref({ x: 0, y: 0 });
+        var teamNodes = ref([
+          { name: "RESEARCH TEAM", role: "Intel_Builder", x: -150, y: -100 },
+          { name: "CONTENT TEAM", role: "Artifact_Gen", x: 150, y: -100 },
+          { name: "OPS TEAM", role: "Chief_of_Staff", x: -200, y: 50 },
+          { name: "SEO TEAM", role: "Tech_Auditor", x: 200, y: 50 },
+          { name: "OUTREACH TEAM", role: "Lead_Gen", x: 0, y: 180 },
+          { name: "DATA TEAM", role: "Analyst", x: -100, y: -180 },
+          { name: "COMMS TEAM", role: "Inbox_Triage", x: 100, y: -180 }
+        ]);
+
+        var activeNode = computed(function() {
+          if (!activeState.value.team) return null;
+          var teamName = activeState.value.team.toUpperCase();
+          return teamNodes.value.find(function(n) { return n.name.includes(teamName); }) || null;
+        });
+
+        var neuralBarValues = ref([65, 42, 88, 12]);
+        
+        var neuralLayers = ref([
+          { id: 1, name: 'INTENT_PARSER', type: 'Input', load: 45, status: 'Active', team: 'ROOT' },
+          { id: 2, name: 'TACTICAL_PLANNER', type: 'Processing', load: 20, status: 'Standby', team: 'ROOT' },
+          { id: 3, name: 'TOOL_DISPATCHER', type: 'Execution', load: 0, status: 'Idle', team: 'CORE' },
+          { id: 4, name: 'MEMORY_UPSERT', type: 'Storage', load: 15, status: 'Synced', team: 'PM' }
+        ]);
+
+        var dataStreams = ref([]);
+        var diagnosticIssues = ref([]);
+        var recentFiles = ref([]);
+        var knowledgeMeta = ref(null);
+        var contextualActions = ref([]);
+        var quickFact = ref("");
+        var curateTopic = ref("");
+
+        var uiColor = computed(function() {
+          if (isProcessing.value) return '#ffaa00';
+          return uiTheme.value === 'gold' ? '#d4af37' : '#00f3ff';
+        });
+
+        var toggleTheme = function() {
+          uiTheme.value = uiTheme.value === 'cyan' ? 'gold' : 'cyan';
+          addLog('SYS', 'Theme synced to ' + uiTheme.value.toUpperCase());
+        };
+
+        var toggleSim = function() { simMode.value = !simMode.value; };
+
+        var initCanvas = function() {
+          var canvas = document.getElementById('neural-canvas');
+          if(!canvas) return; 
+          var ctx = canvas.getContext('2d');
+          var w, h, pts = [];
+
+          var resize = function() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            pts = [];
+            for (var i = 0; i < 50; i++) {
+              pts.push({
+                x: Math.random() * w, y: Math.random() * h,
+                vX: (Math.random()-0.5)*0.4, vY: (Math.random()-0.5)*0.4
+              });
+            }
+          };
+          
+          var draw = function() {
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = uiColor.value;
+            ctx.strokeStyle = uiColor.value + '22';
+            pts.forEach(function(p, i) {
+              p.x += p.vX; p.y += p.vY;
+              if(p.x<0||p.x>w) p.vX*=-1; if(p.y<0||p.y>h) p.vY*=-1;
+              ctx.beginPath(); ctx.arc(p.x, p.y, 1, 0, Math.PI*2); ctx.fill();
+              for (var j = i + 1; j < pts.length; j++) {
+                var p2 = pts[j];
+                var d = Math.hypot(p.x-p2.x, p.y-p2.y);
+                if(d<180) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+              }
+            });
+            requestAnimationFrame(draw);
+          };
+          window.addEventListener('resize', resize); resize(); draw();
+        };
+
+        var runBoot = function() {
+          var logs = ["Kernel Check", "Memory Map", "Net established", "Agent Handshake", "Topology Sync"];
+          var i = 0;
+          var interval = setInterval(function() {
+            bootProgress.value += 20;
+            var statusText = logs[i++] || "Operational";
+            bootStatus.value = statusText;
+            
+            var staticStatus = document.getElementById('boot-status-text');
+            if (staticStatus) staticStatus.innerText = statusText + "...";
+
+            if(bootProgress.value >= 100) {
+              clearInterval(interval);
+              setTimeout(function() { 
+                booting.value = false; 
+                var appEl = document.getElementById('app');
+                if (appEl) {
+                  appEl.style.display = 'flex';
+                  appEl.classList.add('v-cloak-initialized');
+                }
+                var staticOverlay = document.getElementById('static-boot-overlay');
+                if (staticOverlay) staticOverlay.style.display = 'none';
+                nextTick(initCanvas); 
+              }, 600);
+            }
+          }, 300);
+        };
+
+        setInterval(function() { currentTime.value = new Date().toLocaleTimeString(); }, 1000);
+
+        var addLog = function(source, message, type) {
+          type = type || 'info';
+          var time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' });
+          eventLogs.value.push({ time: time, source: source, message: message, type: type });
+          nextTick(function() { if (logBox.value) logBox.value.scrollTop = logBox.value.scrollHeight; });
+        };
+
+        var getLogColor = function(t) { 
+          if (t === 'error') return '#ef4444';
+          if (t === 'success') return '#22c55e';
+          if (t === 'tool') return '#ffaa00';
+          return '#00f3ff';
+        };
+
+        var renderMarkdown = function(text) {
+          if (!text) return "";
+          if (typeof marked === 'undefined') return text;
+          try {
+            return marked.parse(text);
+          } catch(e) {
+            return text;
+          }
+        };
+
+        var openFilePicker = function() {
+          if (fileInput.value) fileInput.value.click();
+        };
+
+        var handleFileSelect = function(e) {
+          var f = e.target.files[0]; if (!f) return;
+          var r = new FileReader(); r.onload = function(ev) { 
+            selectedImage.value = { name: f.name, mimeType: f.type, data: ev.target.result.split(',')[1] }; 
+          };
+          r.readAsDataURL(f);
+        };
+        var clearImage = function() { selectedImage.value = null; if(fileInput.value) fileInput.value.value = ""; };
+
+        var sendMessage = function(customText) {
+          var textToSubmit = (typeof customText === 'string') ? customText : userInput.value;
+          if (!textToSubmit.trim() && !selectedImage.value) return;
+
+          var img = selectedImage.value;
+          if (typeof customText !== 'string') {
+            chatHistory.value.push({ role: 'user', text: textToSubmit + (img ? " [ATTACHED]" : "") });
+            userInput.value = "";
+            clearImage();
+          }
+
+          isProcessing.value = true; 
+          startPolling();
+
+          if (typeof google !== 'undefined' && google.script) {
+            google.script.run.withSuccessHandler(function(res) {
+              isProcessing.value = false; 
+              stopPolling(); 
+              if (res.sessionId) sessionId.value = res.sessionId;
+              chatHistory.value.push({ role: 'model', text: res.text || "COMPLETE." });
+              nextTick(function() { if(chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight; });
+            }).withFailureHandler(function(err) {
+              isProcessing.value = false; stopPolling(); addLog('ERR', err.message, 'error');
+            }).handleRequest(textToSubmit, img, sessionId.value);
+          }
+        };
+
+        var resumeMission = function() { sendMessage("Resume mission"); };
+
+        var startPolling = function() {
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = setInterval(function() {
+            if (typeof google !== 'undefined' && google.script) {
+              google.script.run.withSuccessHandler(function(s) {
+                if (s) {
+                  var oldTimestamp = activeState.value.timestamp;
+                  activeState.value = s;
+                  if (s.timestamp !== oldTimestamp) {
+                    addLog(s.agent || 'CORE', s.details || s.status, s.status === 'EXECUTING' ? 'tool' : 'info');
+                  }
+                  if (s.status === 'EXECUTING') {
+                    dataStreams.value.unshift({ 
+                      time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }),
+                      origin: 'CORE', target: s.team || 'TOOL', data: s.details || 'Processing...'
+                    });
+                    if (dataStreams.value.length > 20) dataStreams.value.pop();
+                  }
+                }
+              }).getAgentState();
+            }
+          }, 1500);
+        };
+
+        var stopPolling = function() {
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = null;
+        };
+
+        var getFileTypeColor = function(mime) {
+          if (mime.includes('spreadsheet')) return '#22c55e';
+          if (mime.includes('document')) return '#4285f4';
+          if (mime.includes('presentation')) return '#ffaa00';
+          return '#71717a';
+        };
+
+        var getAgentCaps = function(team) {
+          var caps = {
+            'RESEARCH TEAM': ['Deep Web Search', 'Company Enrichment', 'Competitor Analysis'],
+            'CONTENT TEAM': ['Slide Generation', 'Doc Creation', 'PDF Export'],
+            'OPS TEAM': ['Calendar Mgmt', 'Task Automation', 'Inbox Triage'],
+            'SEO TEAM': ['GSC Audit', 'GA4 Reporting', 'Technical Scan']
+          };
+          return caps[team] || ['Tool Dispatch', 'Neural Reasoning', 'Memory Sync'];
+        };
+
+        var ingestFact = function() {
+          if (!quickFact.value) return;
+          sendMessage('Remember that ' + quickFact.value);
+          quickFact.value = "";
+        };
+
+        var triggerCuration = function() {
+          if (!curateTopic.value) return;
+          sendMessage('Research and curate a comprehensive report on: ' + curateTopic.value);
+          curateTopic.value = "";
+        };
+
+        onMounted(function() {
+          runBoot();
+          if (typeof google !== 'undefined' && google.script) {
+            google.script.run.withSuccessHandler(function() { 
+              isConnected.value = true; 
+              addLog('NET', 'Secure uplink.', 'success'); 
+            }).verifyGeminiConnection();
+            
+            google.script.run.withSuccessHandler(function(files) { 
+              recentFiles.value = files; 
+            }).getRecentSystemFiles();
+            
+            google.script.run.withSuccessHandler(function(meta) { 
+              knowledgeMeta.value = meta; 
+            }).getKnowledgeBaseMeta();
+          } else {
+            addLog('SYS', 'Offline mode (Simulation).', 'info');
+          }
+        });
+
+        return {
+          booting: booting, bootProgress: bootProgress, bootStatus: bootStatus, 
+          userInput: userInput, chatHistory: chatHistory, isProcessing: isProcessing, 
+          isConnected: isConnected, currentTime: currentTime,
+          activeState: activeState, eventLogs: eventLogs, chatBox: chatBox, 
+          logBox: logBox, fileInput: fileInput, selectedImage: selectedImage,
+          renderMarkdown: renderMarkdown, sendMessage: sendMessage, resumeMission: resumeMission, 
+          handleFileSelect: handleFileSelect, clearImage: clearImage, getLogColor: getLogColor, 
+          uiColor: uiColor, uiTheme: uiTheme, currentView: currentView, simMode: simMode, 
+          teamNodes: teamNodes, center: center, activeNode: activeNode, 
+          neuralBarValues: neuralBarValues, neuralLayers: neuralLayers, dataStreams: dataStreams,
+          diagnosticIssues: diagnosticIssues, recentFiles: recentFiles, knowledgeMeta: knowledgeMeta, 
+          contextualActions: contextualActions, quickFact: quickFact, curateTopic: curateTopic,
+          toggleTheme: toggleTheme, toggleSim: toggleSim, getFileTypeColor: getFileTypeColor, 
+          getAgentCaps: getAgentCaps, ingestFact: ingestFact, triggerCuration: triggerCuration, 
+          openFilePicker: openFilePicker,
+          isRecording: isRecording
+        };
+      }
+    });
+    
+    app.mount('#app');
+  } catch (e) {
+    console.error('VUE_INIT_ERROR: ', e);
+    var errDiv = document.createElement('div');
+    errDiv.style.cssText = 'position:fixed; top:0; left:0; right:0; background:red; color:white; padding:20px; z-index:99999;';
+    errDiv.innerText = 'CRITICAL INITIALIZATION ERROR: ' + e.message;
+    document.body.appendChild(errDiv);
+  }
+})();
+</script>
