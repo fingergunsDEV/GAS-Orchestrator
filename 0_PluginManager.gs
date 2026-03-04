@@ -67,6 +67,12 @@ var PluginManager = (function() {
 
     getTeamDefinitions: function() {
       var defs = [];
+      // Core Teams
+      var coreTeams = (typeof CoreRegistry !== 'undefined') ? CoreRegistry.getTeams() : {};
+      for (var name in coreTeams) {
+        defs.push("- " + name + ": " + coreTeams[name].description);
+      }
+      // Plugin Teams
       for (var name in teamRegistry) {
         defs.push("- " + name + ": " + teamRegistry[name].description);
       }
@@ -74,10 +80,22 @@ var PluginManager = (function() {
     },
 
     dispatch: function(teamName, context, imageData, sessionId) {
+      // 1. Check Plugin Registry
       if (teamRegistry[teamName]) {
         var handler = teamRegistry[teamName].handler;
         if (typeof handler === 'function') {
           return handler(context, imageData, sessionId);
+        }
+      }
+      
+      // 2. Check Core Registry
+      if (typeof CoreRegistry !== 'undefined') {
+        var coreTeams = CoreRegistry.getTeams();
+        if (coreTeams[teamName]) {
+          var handler = coreTeams[teamName].handler;
+          if (typeof handler === 'function') {
+            return handler(context, imageData, sessionId);
+          }
         }
       }
       return null;

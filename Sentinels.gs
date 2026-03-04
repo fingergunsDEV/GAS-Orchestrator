@@ -6,49 +6,78 @@
 var SENTINEL_STORE = "SENTINEL_CONFIGS";
 
 /**
- * Creates a new Sentinel (Watcher).
+ * Creates or Toggles a Sentinel (Watcher).
+ * Returns the full list of sentinels for atomic UI update.
  */
 function executeCreateSentinel(args) {
   var sentinels = getSentinels();
   
-  var newSentinel = {
-    id: "sentinel_" + new Date().getTime(),
-    type: args.type, // GMAIL, SHEET, DRIVE
-    condition: args.condition, // Query or Cell Logic
-    mission: args.mission, // "Summarize and Slack me"
-    lastCheck: new Date().getTime(),
-    status: "ACTIVE"
-  };
-  
-  sentinels.push(newSentinel);
-  saveSentinels(sentinels);
-  
-  // Ensure the heartbeat trigger is running
-  setupSentinelHeartbeat();
-  
-  return "Success: Sentinel deployed. ID: " + newSentinel.id + ". Watching " + args.type + " for '" + args.condition + "'.";
-}
+  // Check if a sentinel with this label/mission already exists to toggle it
+  var existingIndex = -1;
+  for (var i = 0; i < sentinels.length; i++) {
+    if (sentinels[i].label === args.label || (sentinels[i].type === args.type && sentinels[i].condition === args.condition)) {
+      existingIndex = i;
+      break;
+    }
+  }
 
-/**
- * Lists active sentinels.
- */
-function executeListSentinels() {
-  var sentinels = getSentinels();
-  if (sentinels.length === 0) return "No active sentinels.";
-  
+  if (existingIndex !== -1) {
+    var s = sentinels[existingIndex];
+    if (!s.label && args.label) s.label = args.label;
+    s.status = (s.status === "ACTIVE") ? "DISABLED" : "ACTIVE";
+    saveSentinels(sentinels);
+    console.log("Sentinel Toggle: " + s.label + " is now " + s.status);
+  } else {
+    var newSentinel = {
+      id: "sentinel_" + new Date().getTime(),
+      label: args.label || "UNNAMED",
+      type: args.type,
+      condition: args.condition,
+      mission: args.mission, 
+      lastCheck: new Date().getTime(),
+      status: "ACTIVE"
+    };
+    sentinels.push(newSentinel);
+    saveSentinels(sentinels);
+    console.log("Sentinel Deployed: " + newSentinel.label);
+    setupSentinelHeartbeat();
+  }
+
+  // RETURN UPDATED LIST IMMEDIATELY (Mapped for UI)
   return sentinels.map(function(s) {
-    return "- [" + s.type + "] " + s.condition + " -> " + s.mission + " (Status: " + s.status + ")";
-  }).join("\n");
+    return {
+      id: s.id,
+      label: s.label || "UNNAMED",
+      type: s.type,
+      condition: s.condition,
+      mission: s.mission,
+      status: s.status,
+      lastCheck: new Date(s.lastCheck).toLocaleTimeString()
+    };
+  });
 }
 
-/**
- * The Heartbeat: Runs every 10 minutes to check all Sentinels.
- */
-function runSentinelHeartbeat() {
-  var sentinels = getSentinels();
-  if (sentinels.length === 0) return;
-  
-  console.log("Running Sentinel Heartbeat for " + sentinels.length + " watchers.");
+ /**
+  * Lists active sentinels.
+  */
+ function executeListSentinels() {
+   var sentinels = getSentinels();
+   if (sentinels.length === 0) return "No active sentinels.";
+
+   return sentinels.map(function(s) {
+     return "- [" + s.type + "] " + (s.label || s.condition) + " -> " + s.mission + " (Status: " + s.status + ")";
+   }).join("\n");
+ }
+
+ /**
+  * The Heartbeat: Runs every HOUR to check all Sentinels.
+  */
+ function runSentinelHeartbeat() {
+   var sentinels = getSentinels();
+   if (sentinels.length === 0) return;
+
+   console.log("Running Hourly Sentinel Heartbeat for " + sentinels.length + " watchers.");
+
   var triggered = [];
   
   sentinels.forEach(function(s) {
@@ -146,6 +175,24 @@ function saveSentinels(list) {
   PropertiesService.getScriptProperties().setProperty(SENTINEL_STORE, JSON.stringify(list));
 }
 
+/**
+ * Returns sentinel data for the UI dashboard.
+ */
+function getSentinelsUI() {
+  var list = getSentinels();
+  return list.map(function(s) {
+    return {
+      id: s.id,
+      label: s.label || "UNNAMED",
+      type: s.type,
+      condition: s.condition,
+      mission: s.mission,
+      status: s.status,
+      lastCheck: new Date(s.lastCheck).toLocaleTimeString()
+    };
+  });
+}
+
 function setupSentinelHeartbeat() {
   var triggers = ScriptApp.getProjectTriggers();
   var found = false;
@@ -159,7 +206,7 @@ function setupSentinelHeartbeat() {
   if (!found) {
     ScriptApp.newTrigger("runSentinelHeartbeat")
       .timeBased()
-      .everyMinutes(10)
+      .everyHours(1)
       .create();
   }
 }

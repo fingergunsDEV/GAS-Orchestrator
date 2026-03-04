@@ -608,7 +608,7 @@ function executeGa4Report(args) {
 /**
  * Skill: Create Slides
  */
-function executeSlidesCreate(args) {
+function executeSlidesCreate_OLD(args) {
   try {
     var presentation = SlidesApp.create(args.title);
     var slide = presentation.getSlides()[0];
@@ -834,7 +834,7 @@ function executeCrmManageLeads(args) {
       for (var i = 1; i < data.length; i++) {
         if (data[i][emailCol] === args.email) {
           sheet.getRange(i + 1, blackboardCol + 1).setValue(args.leadData.blackboard);
-          return "Success: Neural Blackboard state pushed to CRM for " + args.email;
+          return "Success: Campaign Knowledge Base state pushed to CRM for " + args.email;
         }
       }
       return "Error: Could not find lead with email " + args.email + " to push blackboard.";
@@ -1398,14 +1398,42 @@ function getKnowledgeBaseMeta() {
       try { memoryUrl = SpreadsheetApp.openById(memorySheetId).getUrl(); } catch(e) {}
     }
 
+    // 4. Get/Create Media Assets Folder
+    var mediaFolder;
+    var mediaFolders = folder.getFoldersByName("Media Assets");
+    if (mediaFolders.hasNext()) {
+      mediaFolder = mediaFolders.next();
+    } else {
+      mediaFolder = folder.createFolder("Media Assets");
+    }
+
     return {
       folder: { name: folder.getName(), url: folder.getUrl(), id: folder.getId() },
+      media: { name: "Media Assets", url: mediaFolder.getUrl(), id: mediaFolder.getId() },
       truth: { name: "System Source of Truth", url: truthUrl },
       memory: { name: "Vector Memory Store", url: memoryUrl }
     };
   } catch (e) {
     console.error("Error getting KB Meta: " + e.message);
     return null;
+  }
+}
+
+/**
+ * Permanently saves an asset (media) to the KB Media Assets folder.
+ */
+function saveAssetToDrive(name, mimeType, base64Data) {
+  try {
+    var meta = getKnowledgeBaseMeta();
+    if (!meta || !meta.media) return "Error: Could not locate Media Assets folder.";
+    
+    var folder = DriveApp.getFolderById(meta.media.id);
+    var blob = Utilities.newBlob(Utilities.base64Decode(base64Data), mimeType, name);
+    var file = folder.createFile(blob);
+    
+    return "Success: Asset stored in Media Assets. URL: " + file.getUrl();
+  } catch (e) {
+    return "Error saving asset: " + e.message;
   }
 }
 
@@ -1739,11 +1767,11 @@ function executeSystemStatus() {
   ];
   
   var teams = [
-    "Research Team (Builder/Validator)",
-    "Content Team (Builder/Validator)",
-    "Ops Team (Builder/Validator)",
-    "SEO Team (Builder/Validator)",
-    "Outreach Team (Builder/Validator)"
+    "Market Intelligence (Builder/Validator)",
+    "Creative Engine (Builder/Validator)",
+    "Agency Operations (Builder/Validator)",
+    "Search Visibility (Builder/Validator)",
+    "Strategic Outreach (Builder/Validator)"
   ];
 
   return JSON.stringify({
@@ -2209,7 +2237,7 @@ function getRecentSystemFiles() {
     return [];
   }
 }
-function executePatchDoc(args) {
+function executePatchDoc_OLD(args) {
   try {
     var doc = DocumentApp.openById(args.documentId);
     var body = doc.getBody();

@@ -26,6 +26,15 @@ const GEO_AUDIT_TOOL = {
       timestamp: new Date().toISOString()
     });
 
+    // Upsert to main Knowledge Base with Market Intelligence Partition
+    if (typeof executeVectorStoreUpsert !== 'undefined') {
+      executeVectorStoreUpsert({
+        content: "Market Intelligence [GEO AUDIT]: " + brandName + " (" + url + ")\nScore: " + geoAnalysis.score + "\nHook: " + (geoAnalysis.hook || "None"),
+        tags: "geo_audit, seo, " + brandName,
+        partition: "Market Intelligence"
+      });
+    }
+
     return geoAnalysis;
   },
 
@@ -42,7 +51,7 @@ const GEO_AUDIT_TOOL = {
 
   analyzeWithGemini: function(htmlContext, brand) {
     const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash:generateContent?key=${apiKey}`;
 
     const prompt = `
       Act as a Generative Engine Optimization (GEO) specialist. 

@@ -155,28 +155,41 @@ function updateSystemTruth(newContent, mode) {
  * This is used to reboot the truth if lost.
  */
 function getInitialTruthTemplate() {
-  return "# SYSTEM SOURCE OF TRUTH: GAS AGENTIC ORCHESTRATOR\n\n" +
+  return "# SYSTEM SOURCE OF TRUTH: GAS AGENTIC ORCHESTRATOR (v4.9.8)\n\n" +
     "## 1. System Overview\n" +
-    "A hierarchical multi-agent system built on Google Apps Script, utilizing Gemini 1.5/2.0 Pro/Flash. Operates via a Strategic Planner (Root) and specialized Builder/Validator teams.\n\n" +
+    "A hierarchical multi-agent command system built on Google Apps Script, utilizing Gemini 1.5/2.0. Operates via a Strategic Command Layer and specialized Builder/Validator teams with a mandatory Strategic Qualification phase between mission groups.\n\n" +
     "## 2. Core Architecture\n" +
-    "- Entry Point: Orchestrator.gs (handleRequest)\n" +
-    "- Reasoning: Agents.gs (executeTeamWorkflow)\n" +
-    "- Registry: Manifest.gs (TOOL_SCOPES)\n" +
-    "- Execution: Dispatcher.gs (TOOL_REGISTRY)\n" +
-    "- Logic: Skills.gs (Native GAS + REST APIs)\n\n" +
-    "## 3. Team Directives\n" +
-    "- Research: Web intelligence and company enrichment.\n" +
-    "- Content: Artifact creation (Docs, Slides, Images).\n" +
-    "- Ops: Administrative management (Calendar, CRM, Inbox).\n" +
-    "- Outreach: Lead generation and personalized engagement.\n" +
-    "- Data: Spreadsheet analysis and revenue forecasting.\n" +
-    "- Comms: Inbox triage and high-stakes communication.\n\n" +
-    "## 4. Operational Rules\n" +
-    "1. Never send emails without checking the Sent folder via 'gmail_check_sent_delayed'.\n" +
-    "2. Always validate parameter existence in Skills before execution.\n" +
-    "3. Use 'SYSTEM_PAUSE' for any high-stakes manual approval.\n" +
-    "4. Prioritize the CRM ID '1G02U9okIAE0-btqZes7DiggntMw0md-rDDutAltEHAI' for all lead management.\n\n" +
-    "## 5. Skill Registry\n" +
-    "Total Active Tools: 60+\n" +
-    "Key Module: Holistic Growth Engine (Lead Gen, Scoring, Outreach).";
+    "- Command: Orchestrator.gs (Mission logic & turn management)\n" +
+    "- Brain: Agents.gs (Reasoning, Team-of-Teams architecture, Strategic Qualification)\n" +
+    "- Registry: CoreRegistry.gs & Manifest.gs (Centralized tool & scope management)\n" +
+    "- Execution: Dispatcher.gs (Dynamic tool routing)\n" +
+    "- Intelligence: knowledge-base.gs & AnalyticsVectorDB.gs (Truth Doc, Memory Store, Entity Graph)\n\n" +
+    "## 3. Specialized Departments (Teams)\n" +
+    "- MARKET INTELLIGENCE: Web intelligence, competitor research, and fact-checking.\n" +
+    "- CREATIVE ENGINE: Generation of Docs, Slides, PDFs, and Multimodal assets.\n" +
+    "- AGENCY OPERATIONS: Calendar management, CRM maintenance, and task automation.\n" +
+    "- SEARCH VISIBILITY: SEO strategy, GSC performance audits, and visibility diagnostics.\n" +
+    "- ANALYTICS SCOUT: GA4 traffic analysis, user behavior tracking, and ROI reporting.\n" +
+    "- STRATEGIC OUTREACH: Lead generation, hyper-personalized icebreakers, and deal staging.\n" +
+    "- PERFORMANCE INSIGHTS: Complex data processing, spreadsheet analysis, and Python logic.\n" +
+    "- CLIENT COMMUNICATIONS: Inbox triage, email summarization, and engagement monitoring.\n" +
+    "- PROJECT GOVERNANCE: Infrastructure support, asset organization, and permission audits.\n" +
+    "- TECHNICAL R&D: Script generation, debugging, and system self-evolution.\n" +
+    "- RISK & COMPLIANCE: Legal document review and platform policy alignment.\n" +
+    "- SOCIAL ANALYTICS: Social trend scanning, profile intelligence, and posting automation.\n" +
+    "- REVENUE MANAGEMENT: Project estimation, margin calculation, and invoicing strategy.\n\n" +
+    "## 4. Skill Registry & Capabilities\n" +
+    "- WORKSPACE: Gmail (Bulk/Individual/Draft), Drive (Full Lifecycle), Calendar, Sheets, Docs, Slides, Forms, Tasks, Contacts.\n" +
+    "- INTELLIGENCE: Vector Store (RAG), Entity Knowledge Graph, Semantic Search, Recursive Summarization.\n" +
+    "- SEARCH/SEO: Google Search (API), Web Scraping (JS-Heavy), GSC/GA4 Reporting, PageSpeed, GEO Readiness.\n" +
+    "- CRM/SALES: Lead Scoring, Intent Classification, Buying Signal Monitoring, Comprehensive SEO/Business Audits.\n" +
+    "- CONTENT/MEDIA: Image Generation, Video/Music Generation, Shorts Clipper, Design Critiques.\n" +
+    "- SYSTEM: Parallel Execution, Dynamic Code Injection (Sandbox), Proactive Sentinels, Repo Sync.\n\n" +
+    "## 5. Operational Mandates & Guardrails\n" +
+    "1. STRATEGIC_REFLECTION: Every mission phase MUST be qualified by the Auditor before proceeding.\n" +
+    "2. DATA_INTEGRITY: Never wipe, purge, or clear memory, databases, or system files.\n" +
+    "3. COMMS_PROTOCOL: Never send emails or invitations without EXPLICIT user approval (via 'request_human_approval').\n" +
+    "4. FINANCIAL_SAFETY: Never run tasks exceeding $20 in API costs without confirmation.\n" +
+    "5. ASSET_PROTECTION: Never delete or overwrite files in Drive without explicit user approval.\n" +
+    "6. CRM_PRIORITY: Use ID '1G02U9okIAE0-btqZes7DiggntMw0md-rDDutAltEHAI' for all lead management operations.";
 }

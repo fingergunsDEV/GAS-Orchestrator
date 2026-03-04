@@ -4,15 +4,17 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GAS_ORCHESTRATOR // KERNEL_V3.1</title>
+    <title>AGENCY_INTEL // STRATEGIC_LAYER_V1</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Marked.js for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- Include Styles -->
     <?!= include('css'); ?>
@@ -21,12 +23,12 @@
 
     <!-- STATIC BOOT OVERLAY (Non-Vue) -->
     <div id="static-boot-overlay" class="boot-overlay">
-      <div class="font-hud text-xl text-cyan-400 tracking-[1em] mb-4 animate-pulse">UPLINKING_SESSION</div>
-      <div id="boot-status-text" class="font-code text-[10px] text-gray-500 uppercase tracking-widest mb-8">Readying BIOS...</div>
+      <div class="font-hud text-xl text-cyan-400 tracking-[1em] mb-4 animate-pulse">INTEL_SYNC_ACTIVE</div>
+      <div id="boot-status-text" class="font-code text-[10px] text-gray-500 uppercase tracking-widest mb-8">Establishing Uplink...</div>
       
       <!-- MANUAL OVERRIDE -->
       <button onclick="document.getElementById('static-boot-overlay').style.display='none'; var app=document.getElementById('app'); app.style.display='flex'; app.removeAttribute('v-cloak');" class="px-4 py-2 border border-cyan-900/50 text-cyan-700 font-hud text-[10px] hover:text-cyan-400 hover:border-cyan-400 transition-all">
-        [[ FORCE_UPLINK ]]
+        OVERRIDE_SYNC
       </button>
     </div>
 
@@ -42,98 +44,255 @@
         <!-- TOP HUD BAR -->
         <header class="flex justify-between items-center py-1 px-4 border-b border-gray-900 bg-black/80 backdrop-blur-md">
           <div class="flex items-center gap-6">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full" :class="isConnected ? 'bg-green-500' : 'bg-red-500'"></span>
-              <span class="font-hud text-[10px] text-white">ORCHESTRATOR_ID: <span :style="{color: uiColor}">0x7E3</span></span>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full" :class="isConnected ? 'bg-green-500' : 'bg-red-500'"></span>
+                <span class="font-hud text-[10px] text-white whitespace-nowrap">INTEL_CORE_ID: <span :style="{color: uiColor}">0x7E3</span></span>
+              </div>
+              <button @click="toggleTheme" class="font-hud text-[7px] px-1.5 py-0.5 border border-gray-800 text-gray-500 hover:text-white hover:border-gray-600 transition-all whitespace-nowrap">
+                STYLE_SYNC
+              </button>
             </div>
             <div class="hidden md:block h-3 w-px bg-gray-800"></div>
             
-            <!-- VIEW SELECTOR -->
-            <nav class="flex gap-4">
-              <button @click="currentView = 'terminal'" class="font-hud text-[10px] px-3 py-1 transition-all" :class="currentView === 'terminal' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-gray-500 hover:text-gray-300'">
-                [[ TERMINAL_V2 ]]
-              </button>
-              <button @click="currentView = 'neural'" class="font-hud text-[10px] px-3 py-1 transition-all" :class="currentView === 'neural' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-500 hover:text-gray-300'">
-                [[ NEURAL_MONITOR ]]
-              </button>
-              <button @click="currentView = 'workstream'" class="font-hud text-[10px] px-3 py-1 transition-all" :class="currentView === 'workstream' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-gray-500 hover:text-gray-300'">
-                [[ WORKSTREAM_MAP ]]
-              </button>
+            <!-- VIEW SELECTOR GROUPED (5 PILLARS) -->
+            <nav class="flex gap-4 whitespace-nowrap">
+              <!-- 1. COMMAND GROUP -->
+              <div class="flex flex-col gap-0.5">
+                <span class="font-hud text-[7px] text-cyan-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">COMMAND</span>
+                <div class="flex gap-1">
+                  <button @click="currentView = 'terminal'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-cyan-500/30 transition-all whitespace-nowrap" :class="currentView === 'terminal' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">
+                    TERMINAL
+                  </button>
+                  <button @click="currentView = 'neural'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-purple-500/30 transition-all whitespace-nowrap" :class="currentView === 'neural' ? 'active text-purple-400 bg-purple-400/5' : 'text-gray-500'">
+                    STREAM
+                  </button>
+                  <button @click="currentView = 'sentinels'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-blue-500/30 transition-all whitespace-nowrap" :class="currentView === 'sentinels' ? 'active text-blue-400 bg-blue-400/5' : 'text-gray-500'">
+                    SENTINELS
+                  </button>
+                </div>
+              </div>
+
+              <div class="w-px h-8 bg-gray-800 self-end"></div>
+
+              <!-- 2. OPERATIONS GROUP -->
+              <div class="flex flex-col gap-0.5">
+                <span class="font-hud text-[7px] text-orange-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">OPERATIONS</span>
+                <div class="flex gap-1">
+                  <button @click="currentView = 'leads'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-orange-500/30 transition-all whitespace-nowrap" :class="currentView === 'leads' ? 'active text-orange-400 bg-orange-400/5' : 'text-gray-500'">
+                    LEADS
+                  </button>
+                  <button @click="currentView = 'workstream'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-amber-500/30 transition-all whitespace-nowrap" :class="currentView === 'workstream' ? 'active text-amber-400 bg-amber-400/5' : 'text-gray-500'">
+                    CAMPAIGNS
+                  </button>
+                  <button @click="currentView = 'pulse'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-green-500/30 transition-all whitespace-nowrap" :class="currentView === 'pulse' ? 'active text-green-400 bg-green-400/5' : 'text-gray-500'">
+                    PULSE
+                  </button>
+                </div>
+              </div>
+
+              <div class="w-px h-8 bg-gray-800 self-end"></div>
+
+              <!-- 3. FACTORY GROUP -->
+              <div class="flex flex-col gap-0.5">
+                <span class="font-hud text-[7px] text-pink-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">FACTORY</span>
+                <div class="flex gap-1">
+                  <button @click="currentView = 'creative'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-pink-500/30 transition-all whitespace-nowrap" :class="currentView === 'creative' ? 'active text-pink-400 bg-pink-400/5' : 'text-gray-500'">
+                    CREATIVE
+                  </button>
+                  <button @click="currentView = 'proposals'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-indigo-500/30 transition-all whitespace-nowrap" :class="currentView === 'proposals' ? 'active text-indigo-400 bg-indigo-400/5' : 'text-gray-500'">
+                    PROPOSALS
+                  </button>
+                  <button @click="currentView = 'articles'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-teal-500/30 transition-all whitespace-nowrap" :class="currentView === 'articles' ? 'active text-teal-400 bg-teal-400/5' : 'text-gray-500'">
+                    ARTICLES
+                  </button>
+                </div>
+              </div>
+
+              <div class="w-px h-8 bg-gray-800 self-end"></div>
+
+              <!-- 4. INTELLIGENCE GROUP -->
+              <div class="flex flex-col gap-0.5">
+                <span class="font-hud text-[7px] text-purple-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">INTELLIGENCE</span>
+                <div class="flex gap-1">
+                  <button @click="currentView = 'research'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-purple-500/30 transition-all whitespace-nowrap" :class="currentView === 'research' ? 'active text-purple-400 bg-purple-400/5' : 'text-gray-500'">
+                    RESEARCH
+                  </button>
+                  <button @click="currentView = 'vault'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-indigo-500/30 transition-all whitespace-nowrap" :class="currentView === 'vault' ? 'active text-indigo-400 bg-indigo-400/5' : 'text-gray-500'">
+                    VAULT
+                  </button>
+                </div>
+              </div>
+
+              <div class="w-px h-8 bg-gray-800 self-end"></div>
+
+              <!-- 5. DEVELOPMENT GROUP -->
+              <div class="flex flex-col gap-0.5">
+                <span class="font-hud text-[7px] text-yellow-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">DEVELOPMENT</span>
+                <div class="flex gap-1">
+                  <button @click="currentView = 'coding'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-yellow-500/30 transition-all whitespace-nowrap" :class="currentView === 'coding' ? 'active text-yellow-400 bg-yellow-400/5' : 'text-gray-500'">
+                    CODING
+                  </button>
+                </div>
+              </div>
+
+              <div class="w-px h-8 bg-gray-800 self-end"></div>
+
+              <!-- 6. SYSTEM GROUP -->
+              <div class="flex flex-col gap-0.5">
+                <span class="font-hud text-[7px] text-rose-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">SYSTEM</span>
+                <div class="flex gap-1">
+                  <button @click="currentView = 'settings'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-rose-500/30 transition-all whitespace-nowrap" :class="currentView === 'settings' ? 'active text-rose-400 bg-rose-400/5' : 'text-gray-500'">
+                    CONFIG
+                  </button>
+                  <button @click="currentView = 'finance'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-emerald-500/30 transition-all whitespace-nowrap" :class="currentView === 'finance' ? 'active text-emerald-400 bg-emerald-400/5' : 'text-gray-500'">
+                    FINANCE
+                  </button>
+                </div>
+              </div>
             </nav>
           </div>
           
           <div class="flex items-center gap-6">
-            <button @click="toggleTheme" class="font-hud text-[9px] text-gray-500 hover:text-white transition-all">
-              [[ THEME_SYNC ]]
+            <button @click="toggleSim" class="font-hud text-[9px] px-3 py-1.5 nav-tab whitespace-nowrap" :class="simMode ? 'active text-cyan-400' : 'text-gray-500 hover:text-gray-300'">
+              INTELLIGENCE_MAP
             </button>
-            <button @click="toggleSim" class="font-hud text-[9px] px-3 py-1 border border-gray-800 hover:border-cyan-500 transition-all" :class="{'bg-cyan-500/20 text-cyan-400': simMode}">
-              [[ TOPOLOGY_VIEW ]]
-            </button>
-            <div class="font-code text-[10px] text-white">{{ currentTime }}</div>
+            <div class="font-code text-[10px] text-white whitespace-nowrap">{{ currentTime }}</div>
           </div>
         </header>
+
 
         <!-- MAIN LAYOUT -->
         <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
           
           <!-- SIMULATION OVERLAY -->
           <transition name="fade">
-            <div v-if="simMode" class="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col p-8 overflow-hidden">
-              <div class="flex justify-between mb-8 border-b border-white/10 pb-4">
-                <div class="font-hud text-xl text-white tracking-[0.5em]">SYSTEM_NEURAL_TOPOLOGY</div>
-                <button @click="simMode = false" class="text-gray-500 hover:text-white font-code text-xs">[ ESC_SIM ]</button>
+            <div v-if="simMode" class="absolute inset-0 z-50 bg-[#020406]/95 backdrop-blur-xl flex flex-col p-8 overflow-hidden">
+              <div class="flex justify-between mb-8 border-b border-white/5 pb-6">
+                <div>
+                  <div class="font-hud text-xl text-white tracking-[0.5em] mb-1">INTELLIGENCE_ECOSYSTEM_TOPOLOGY</div>
+                  <div class="text-[9px] text-gray-600 font-code uppercase tracking-widest">Active Neural Mapping & Resource Allocation</div>
+                </div>
+                
+                <!-- TOP VITALITY WIDGETS -->
+                <div class="flex gap-8">
+                  <div class="flex flex-col gap-1 w-32">
+                    <div class="flex justify-between font-hud text-[8px] text-gray-500"><span>MEMORY_ALLOC</span> <span class="text-cyan-400">4.2GB</span></div>
+                    <div class="vitality-bar-wrap"><div class="vitality-bar-fill text-cyan-500" :style="{ width: '65%' }"></div></div>
+                  </div>
+                  <div class="flex flex-col gap-1 w-32">
+                    <div class="flex justify-between font-hud text-[8px] text-gray-500"><span>NEURAL_LOAD</span> <span class="text-purple-400">{{ (neuralBarValues[0] * 1.5).toFixed(1) }}%</span></div>
+                    <div class="vitality-bar-wrap"><div class="vitality-bar-fill text-purple-500" :style="{ width: (neuralBarValues[0] * 1.5) + '%' }"></div></div>
+                  </div>
+                  <button @click="simMode = false" class="px-4 py-2 border border-gray-800 text-gray-500 hover:text-white hover:border-white transition-all font-hud text-[10px] tracking-widest self-center">
+                    [ DISCONNECT ]
+                  </button>
+                </div>
               </div>
               
               <div class="flex-1 relative flex items-center justify-center">
-                <!-- SVG Neural Map -->
-                <svg width="100%" height="100%" class="absolute inset-0">
+                <!-- SVG Neural Map with Centered ViewBox -->
+                <svg viewBox="-500 -500 1000 1000" class="absolute inset-0 pointer-events-none w-full h-full">
                   <defs>
                     <filter id="glow">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
                       <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
                     </filter>
                   </defs>
-                  <!-- Dynamic Connections -->
-                  <line v-for="(node, i) in teamNodes" :key="'line-'+i"
-                        x1="50%" y1="50%" 
-                        :x2="`calc(50% + ${node.x - center.x}px)`" 
-                        :y2="`calc(50% + ${node.y - center.y}px)`"
-                        stroke="rgba(0, 243, 255, 0.05)" stroke-width="1" />
-                  <line v-if="activeNode"
-                        x1="50%" y1="50%" 
-                        :x2="`calc(50% + ${(activeNode ? activeNode.x : 0) - center.x}px)`" 
-                        :y2="`calc(50% + ${(activeNode ? activeNode.y : 0) - center.y}px)`"
-                        :stroke="uiColor" stroke-width="2" filter="url(#glow)" class="animate-pulse" />
+                  
+                  <!-- Dynamic Connections (Background) -->
+                  <g>
+                    <line v-for="(node, i) in teamNodes" :key="'bg-line-'+i"
+                          x1="0" y1="0" 
+                          :x2="node.x" :y2="node.y"
+                          stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" />
+                  </g>
+                  
+                  <!-- Active Data Streams (Foreground) -->
+                  <g v-if="activeNode">
+                    <!-- Stream Path -->
+                    <line x1="0" y1="0" 
+                          :x2="activeNode.x" :y2="activeNode.y"
+                          :stroke="uiColor" stroke-width="2" class="data-stream-line" filter="url(#glow)" />
+                    
+                    <!-- Animated Pulse -->
+                    <circle r="4" fill="#fff" filter="url(#glow)">
+                      <animateMotion :path="`M 0 0 L ${activeNode.x} ${activeNode.y}`" dur="1.2s" repeatCount="indefinite" />
+                    </circle>
+                  </g>
                 </svg>
 
-                <!-- Center Node (Root) -->
-                <div class="absolute w-20 h-20 rounded-full border-2 flex items-center justify-center bg-black/80 z-10"
-                     style="left: 50%; top: 50%; transform: translate(-50%, -50%);"
-                     :style="{ borderColor: uiColor, boxShadow: `0 0 20px ${uiColor}44` }">
-                  <div class="font-hud text-xs text-center leading-none text-white">ROOT<br>CORE</div>
+                <!-- Center Node (Root Core) -->
+                <div class="absolute w-28 h-28 z-10"
+                     style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+                  <div class="core-ring core-ring-1"></div>
+                  <div class="core-ring core-ring-2"></div>
+                  <div class="core-ring core-ring-3"></div>
+                  <div class="absolute inset-0 rounded-full border-2 flex items-center justify-center bg-black/90 shadow-[0_0_40px_rgba(0,243,255,0.1)] core-center-inner"
+                       :style="{ borderColor: uiColor }">
+                    <div class="font-hud text-[11px] text-center leading-tight text-white">
+                      STRATEGIC<br><span :style="{color: uiColor}" class="animate-pulse">CORE_v4</span>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Team Nodes -->
                 <div v-for="(node, i) in teamNodes" :key="i"
-                     class="absolute w-16 h-16 rounded-full border flex flex-col items-center justify-center transition-all duration-1000 bg-black/60"
-                     :class="activeState.team === node.name ? 'scale-125 z-20' : 'opacity-40 scale-90'"
+                     class="absolute w-20 h-20 map-node"
+                     :class="{ 'active': activeState.team && activeState.team.toUpperCase() === node.name.toUpperCase() }"
                      :style="{ 
-                        left: `calc(50% + ${node.x - center.x}px)`, 
-                        top: `calc(50% + ${node.y - center.y}px)`,
+                        left: `calc(50% + ${node.x}px)`, 
+                        top: `calc(50% + ${node.y}px)`,
                         transform: 'translate(-50%, -50%)',
-                        borderColor: activeState.team === node.name ? uiColor : '#333',
-                        boxShadow: activeState.team === node.name ? `0 0 30px ${uiColor}66` : 'none'
+                        color: activeState.team && activeState.team.toUpperCase() === node.name.toUpperCase() ? uiColor : 'rgba(255,255,255,0.4)'
                      }">
-                  <div class="font-hud text-[8px] text-center text-white mb-1">{{ node.name.split(' ')[0] }}</div>
-                  <div class="text-[6px] font-code text-gray-400">{{ node.role }}</div>
+                  <div class="node-orbit"></div>
+                  <div class="map-node-inner">
+                    <div class="font-hud text-[8px] text-center text-white mb-1 px-1 tracking-tighter">{{ node.name }}</div>
+                    <div class="text-[6px] font-code text-gray-500 uppercase tracking-widest">{{ node.role }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SYSTEM SIDEBAR STATS -->
+              <div class="absolute bottom-12 right-12 w-64 flex flex-col gap-6">
+                <div class="lux-panel p-4 border-l-2" :style="{ borderLeftColor: uiColor }">
+                  <div class="font-hud text-[9px] text-gray-500 mb-3 tracking-widest">LAYER_STATUS_REPORT</div>
+                  <div class="space-y-3">
+                    <div v-for="layer in neuralLayers.slice(0,4)" :key="layer.id" class="flex flex-col gap-1">
+                      <div class="flex justify-between text-[7px] font-code">
+                        <span class="text-gray-400">{{ layer.name }}</span>
+                        <span :class="layer.load > 80 ? 'text-red-500' : 'text-green-500'">{{ layer.status }}</span>
+                      </div>
+                      <div class="h-0.5 bg-gray-900 w-full"><div class="h-full bg-white opacity-20" :style="{ width: layer.load + '%' }"></div></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="flex flex-col gap-2 font-code text-[9px]">
+                  <div class="flex justify-between"><span class="text-gray-600">UPTIME:</span> <span class="text-white">12:44:02:11</span></div>
+                  <div class="flex justify-between"><span class="text-gray-600">THROUGHPUT:</span> <span class="text-cyan-400">1.2 MB/s</span></div>
+                  <div class="flex justify-between"><span class="text-gray-600">GATEWAY:</span> <span class="text-green-500">STABLE</span></div>
                 </div>
               </div>
 
               <!-- Sim Status Footer -->
-              <div class="mt-8 grid grid-cols-3 gap-8 font-code text-[10px] border-t border-white/10 pt-4">
-                <div><span class="text-gray-600">ACTIVE_PATHWAY:</span> <span :style="{color: uiColor}">{{ activeState.team || 'STBY' }}</span></div>
-                <div><span class="text-gray-600">THOUGHT_STREAM:</span> <span class="text-white">{{ activeState.details || 'Awaiting pulse...' }}</span></div>
-                <div><span class="text-gray-600">NEURAL_LOAD:</span> <span class="text-cyan-400">{{ (neuralBarValues[0] * 1.5).toFixed(1) }}%</span></div>
+              <div class="mt-8 grid grid-cols-3 gap-8 font-code text-[10px] border-t border-white/5 pt-6">
+                <div class="flex flex-col gap-1">
+                  <span class="text-gray-600 uppercase tracking-widest text-[8px] font-hud">Active_Pathway</span>
+                  <span :style="{color: uiColor}" class="text-sm font-bold">{{ activeState.team || 'STANDBY' }}</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <span class="text-gray-600 uppercase tracking-widest text-[8px] font-hud">Intel_Thought_Stream</span>
+                  <span class="text-white truncate">{{ activeState.details || 'Awaiting synchronization...' }}</span>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <span class="text-gray-600 uppercase tracking-widest text-[8px] font-hud">Node_Saturation</span>
+                  <div class="flex items-center gap-3">
+                    <div class="flex-1 h-1 bg-gray-900"><div class="h-full bg-cyan-500" :style="{ width: (neuralBarValues[0] * 1.5) + '%' }"></div></div>
+                    <span class="text-cyan-400">{{ (neuralBarValues[0] * 1.5).toFixed(1) }}%</span>
+                  </div>
+                </div>
               </div>
             </div>
           </transition>
@@ -142,13 +301,13 @@
           <aside class="w-full md:w-64 border-r border-gray-900 flex flex-col bg-black/40">
             <!-- ACTIVE TASK -->
             <div class="p-4 border-b border-gray-900">
-              <div class="text-[9px] text-gray-600 font-hud mb-2 tracking-[0.2em]">AGENT_STATUS</div>
+              <div class="text-[9px] text-gray-600 font-hud mb-2 tracking-[0.2em]">INTEL_STATUS</div>
               <div class="flex gap-3 items-center">
                 <div class="avatar-glitch"></div>
                 <div class="flex-1 min-w-0">
                   <div class="lux-panel p-2 border-l-2" :style="{ borderLeftColor: uiColor }">
                     <div class="text-xs text-white font-bold truncate">{{ activeState.team || 'STBY' }}</div>
-                    <div class="text-[9px] text-gray-400 truncate">{{ activeState.status || 'NO_ACTIVE_TASKS' }}</div>
+                    <div class="text-[9px] text-gray-400 truncate">{{ activeState.status || 'NO_ACTIVE_MISSIONS' }}</div>
                   </div>
                 </div>
               </div>
@@ -156,20 +315,20 @@
 
             <!-- GAUGES -->
             <div class="p-4 space-y-4">
-              <!-- Teams -->
+              <!-- Departments -->
               <div>
                 <div class="flex justify-between text-[8px] text-gray-600 font-hud mb-1">
-                  <span>ACTIVE_TEAMS</span>
-                  <span>{{ activeState.metrics.teams }}</span>
+                  <span>ACTIVE_DEPARTMENTS</span>
+                  <span>{{ activeState.metrics.departments }}</span>
                 </div>
                 <div class="h-1 bg-gray-900 overflow-hidden">
-                  <div class="h-full transition-all duration-500" :style="{ width: (activeState.metrics.teams / 12 * 100) + '%', backgroundColor: uiColor }"></div>
+                  <div class="h-full transition-all duration-500" :style="{ width: (activeState.metrics.departments / 12 * 100) + '%', backgroundColor: uiColor }"></div>
                 </div>
               </div>
               <!-- Tools -->
               <div>
                 <div class="flex justify-between text-[8px] text-gray-600 font-hud mb-1">
-                  <span>LOADED_TOOLS</span>
+                  <span>ACTIVE_CAPABILITIES</span>
                   <span>{{ activeState.metrics.tools }}</span>
                 </div>
                 <div class="h-1 bg-gray-900 overflow-hidden">
@@ -179,7 +338,7 @@
               <!-- Logs -->
               <div>
                 <div class="flex justify-between text-[8px] text-gray-600 font-hud mb-1">
-                  <span>AUDIT_LOGS</span>
+                  <span>ACTIVITY_LOGS</span>
                   <span>{{ activeState.metrics.logs }}</span>
                 </div>
                 <div class="h-1 bg-gray-900 overflow-hidden">
@@ -190,7 +349,7 @@
 
             <!-- EVENT STREAM -->
             <div class="flex-1 flex flex-col min-h-0">
-              <div class="px-4 py-2 text-[9px] text-gray-600 font-hud border-b border-gray-900">KERNEL_EVENTS</div>
+              <div class="px-4 py-2 text-[9px] text-gray-600 font-hud border-b border-gray-900">SYSTEM_EVENTS</div>
               <div class="flex-1 overflow-y-auto p-4 font-code text-[9px] space-y-2 scrollbar-hide" ref="logBox">
                 <div v-for="(log, i) in eventLogs" :key="i" class="opacity-60 hover:opacity-100">
                   <span :style="{color: getLogColor(log.type)}">[{{ log.source }}]</span> {{ log.message }}
@@ -199,96 +358,54 @@
             </div>
           </aside>
 
-          <!-- CENTER AREA (TERMINAL OR NEURAL) -->
+          <!-- CENTER AREA -->
           <main class="flex-1 flex flex-col bg-black/20 relative">
             
             <!-- VIEW: TERMINAL -->
             <div v-if="currentView === 'terminal'" class="flex-1 flex flex-col overflow-hidden">
               <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 font-code scrollbar-hide" ref="chatBox">
-                <div v-if="chatHistory.length === 0" class="h-full flex flex-col items-center justify-center opacity-10">
-                  <div class="text-6xl">⌬</div>
-                  <div class="text-[10px] font-hud tracking-[1em] mt-4">INITIALIZING_INTERFACE</div>
+                <div v-if="(chatHistory || []).length === 0" class="h-full flex flex-col items-center justify-center opacity-10">
+                  <div class="text-6xl">&#x232C;</div>
+                  <div class="text-[10px] font-hud tracking-[1em] mt-4">INITIALIZING_INTELLIGENCE_LAYER</div>
                 </div>
 
                 <div v-for="(msg, i) in chatHistory" :key="i" class="message" :class="msg.role === 'user' ? 'message-user' : 'message-model'">
-                  <div class="message-label">{{ msg.role === 'user' ? 'USR_PROMPT' : 'AGN_RESPONSE' }}</div>
+                  <div class="message-label">{{ msg.role === 'user' ? 'CLIENT_REQUEST' : 'AGENCY_INSIGHT' }}</div>
                   <div class="markdown-content" v-html="renderMarkdown(msg.text)"></div>
                   
                   <!-- Action Buttons for Signals -->
                   <div v-if="msg.role === 'model' && (msg.text.includes('MISSION_CONTINUE') || msg.text.includes('SYSTEM_PAUSE'))" class="mt-4 flex gap-4">
                     <button @click="resumeMission" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-hud text-[10px] tracking-widest flex items-center gap-2">
-                      <span class="animate-pulse">▶</span> RESUME_MISSION
+                      <span class="animate-pulse">></span> RESUME_MISSION
                     </button>
                     <button v-if="msg.text.includes('SYSTEM_PAUSE')" @click="sendMessage('Cancel mission')" class="px-4 py-2 border border-red-900 text-red-500 font-hud text-[10px] tracking-widest hover:bg-red-950/20">
-                      ABORT_TASK
+                      ABORT_MISSION
                     </button>
                   </div>
                 </div>
 
                 <div v-if="isProcessing" class="flex items-center gap-2 text-[10px] text-amber-500 animate-pulse">
                   <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
-                  NEURAL_SYNAPSE_ACTIVE...
+                  ANALYZING_MARKET_DATA...
                 </div>
               </div>
 
               <!-- CONTEXTUAL ACTION BAR -->
-              <div v-if="contextualActions.length > 0" class="action-bar">
+              <div v-if="(contextualActions || []).length > 0" class="action-bar">
                 <button v-for="action in contextualActions" :key="action.label" @click="sendMessage(action.cmd)" class="action-btn">
                   {{ action.label }}
                 </button>
-              </div>
-
-              <!-- COMMAND INPUT -->
-              <div class="p-6 border-t border-white/5 bg-gradient-to-b from-black/40 to-black/80 backdrop-blur-xl">
-                <div v-if="selectedImage" class="mb-3 px-4 py-2 text-[10px] text-cyan-400 bg-cyan-950/30 border border-cyan-500/30 flex justify-between items-center rounded-sm">
-                  <span class="flex items-center gap-3 font-hud">
-                    <span class="w-1.5 h-1.5 bg-cyan-400 animate-pulse rounded-full shadow-[0_0_8px_#00f3ff]"></span> 
-                    UPLINK_ATTACHMENT: {{ selectedImage.name }}
-                  </span>
-                  <button @click="clearImage" class="text-red-500 hover:text-white transition-colors font-hud text-[9px]">[ PURGE ]</button>
-                </div>
-                
-                <div class="lux-panel flex items-center gap-4 p-1 pl-5 border-l-2 transition-all duration-500 group focus-within:shadow-[0_0_30px_-10px_rgba(0,243,255,0.2)]" 
-                     :style="{ borderLeftColor: uiColor, backgroundColor: 'rgba(255,255,255,0.02)' }">
-                  
-                  <button @click="openFilePicker" class="text-gray-600 hover:text-white transition-all transform hover:scale-110" title="Upload Artifact">
-                    <span class="text-xl font-light">+</span>
-                  </button>
-                  <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">
-                  
-                  <div class="flex items-center gap-2">
-                    <span class="font-hud text-[10px] tracking-tighter opacity-40">DIRECTIVE</span>
-                    <span class="font-hud text-xs animate-pulse" :style="{color: uiColor}">>></span>
-                  </div>
-                  
-                  <input type="text" v-model="userInput" @keyup.enter="sendMessage()" 
-                         class="flex-1 bg-transparent border-none outline-none text-white font-code text-xs py-3 placeholder-gray-800 tracking-wider"
-                         :placeholder="isRecording ? 'CAPTURING_AUDIO_STREAM...' : 'ENTER_NEURAL_COMMAND...'">
-                  
-                  <button @click="sendMessage()" :disabled="isProcessing" 
-                          class="font-hud text-[10px] px-8 py-3 transition-all duration-300 relative overflow-hidden group/btn"
-                          :class="isProcessing ? 'text-gray-600 cursor-wait' : 'text-black font-bold cursor-pointer hover:tracking-[0.2em]'"
-                          :style="{ backgroundColor: isProcessing ? '#111' : uiColor }">
-                    <span class="relative z-10">{{ isProcessing ? 'BUSY' : 'EXECUTE' }}</span>
-                    <div v-if="!isProcessing" class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
-                  </button>
-                </div>
-                
-                <div class="mt-2 flex justify-between px-1">
-                  <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Kernel_Link: Stable</div>
-                  <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">System_Auth: root@orchestrator</div>
-                </div>
               </div>
             </div>
 
             <!-- VIEW: NEURAL MONITOR -->
             <div v-if="currentView === 'neural'" class="flex-1 flex flex-col p-6 overflow-hidden">
                <div class="flex justify-between items-center mb-6">
-                 <h2 class="font-hud text-lg text-purple-400 tracking-[0.3em]">NEURAL_STREAM_ANALYSIS</h2>
+                 <h2 class="font-hud text-lg text-purple-400 tracking-[0.3em]">MARKET_INTELLIGENCE_STREAM</h2>
                  <div class="flex gap-4 font-code text-[10px]">
-                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span> FLOW</div>
-                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-amber-500 rounded-full"></span> THINK</div>
-                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span> ERROR</div>
+                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-blue-500 rounded-full"></span> DATA</div>
+                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-amber-500 rounded-full"></span> INTEL</div>
+                   <div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full animate-ping"></span> ANOMALY</div>
                  </div>
                </div>
 
@@ -312,7 +429,7 @@
                  <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                    <!-- LIVE DATA STREAM -->
                    <div class="flex flex-col border border-gray-900 bg-black/60 rounded p-4">
-                     <div class="font-hud text-[10px] text-gray-500 mb-4 border-b border-gray-900 pb-2">ACTIVE_DATA_STREAM</div>
+                     <div class="font-hud text-[10px] text-gray-500 mb-4 border-b border-gray-900 pb-2">LIVE_MARKET_FEED</div>
                      <div class="flex-1 font-code text-[10px] space-y-3 overflow-y-auto scrollbar-hide">
                         <div v-for="(stream, s) in dataStreams" :key="s" class="flex gap-4 items-start">
                           <span class="text-purple-500 opacity-50">{{ stream.time }}</span>
@@ -324,18 +441,18 @@
 
                    <!-- DIAGNOSTIC SOLUTIONS -->
                    <div class="flex flex-col border border-red-900/30 bg-red-950/5 rounded p-4">
-                     <div class="font-hud text-[10px] text-red-500 mb-4 border-b border-red-900/30 pb-2">DIAGNOSTIC_REPORT</div>
+                     <div class="font-hud text-[10px] text-red-500 mb-4 border-b border-red-900/30 pb-2">PERFORMANCE_AUDIT</div>
                      <div class="flex-1 space-y-6 overflow-y-auto scrollbar-hide">
                         <div v-for="(issue, i) in diagnosticIssues" :key="i" class="border-l-2 border-red-600 pl-4 py-1">
-                          <div class="font-hud text-[10px] text-red-500 mb-1">ISSUE: {{ issue.title }}</div>
+                          <div class="font-hud text-[10px] text-red-500 mb-1">ANOMALY: {{ issue.title }}</div>
                           <div class="font-code text-[10px] text-gray-400 mb-3">{{ issue.description }}</div>
                           <div class="bg-black/40 p-3 border border-red-900/20">
-                            <div class="font-hud text-[8px] text-green-500 mb-2">PROPOSED_SOLUTION_PATH:</div>
+                            <div class="font-hud text-[8px] text-green-500 mb-2">OPTIMIZATION_STRATEGY:</div>
                             <div class="font-code text-[10px] text-green-400">{{ issue.solution }}</div>
                           </div>
                         </div>
                         <div v-if="diagnosticIssues.length === 0" class="h-full flex items-center justify-center opacity-30 italic font-code text-xs">
-                          No critical bottlenecks detected in current stream.
+                          No performance anomalies detected in current feed.
                         </div>
                      </div>
                    </div>
@@ -345,117 +462,1279 @@
 
             <!-- VIEW: WORKSTREAM -->
             <div v-if="currentView === 'workstream'" class="flex-1 flex flex-col p-6 overflow-hidden">
-              <div class="flex justify-between items-center mb-8">
+              <div class="flex justify-between items-center mb-6">
                 <div>
-                  <h2 class="font-hud text-lg text-amber-400 tracking-[0.3em]">AGENTIC_WORKSTREAM_VISUALIZER</h2>
-                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Autonomous mission pipeline status: v2.4</div>
+                  <h2 class="font-hud text-lg text-amber-400 tracking-[0.3em]">CAMPAIGN_STRATEGIST</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Autonomous Campaign Pipeline & Data State</div>
                 </div>
-                <div class="flex gap-6 font-hud text-[9px]">
-                  <div class="flex items-center gap-2 text-blue-400"><span class="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_blue]"></span> ROOT_CORE</div>
-                  <div class="flex items-center gap-2 text-amber-400"><span class="w-2 h-2 bg-amber-500 rounded-full shadow-[0_0_8px_amber]"></span> ACTIVE_TEAM</div>
-                  <div class="flex items-center gap-2 text-cyan-400"><span class="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_8px_cyan]"></span> TOOL_EXEC</div>
+                <div v-if="activeState.mission && activeState.mission.groups" class="font-hud text-[10px] text-white bg-amber-500/20 px-4 py-1 border border-amber-500/30">
+                  PHASE: {{ activeState.mission.currentIndex + 1 }} / {{ activeState.mission.groups.length }}
                 </div>
               </div>
 
-              <div class="flex-1 relative border border-white/5 bg-black/40 rounded-lg overflow-hidden flex items-center justify-center">
-                <!-- SVG Flowchart -->
-                <svg width="100%" height="100%" class="absolute inset-0">
-                  <defs>
-                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orientation="auto">
-                      <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255,255,255,0.1)" />
-                    </marker>
-                    <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stop-color="rgba(255,170,0,0)" />
-                      <stop offset="50%" stop-color="rgba(255,170,0,0.5)" />
-                      <stop offset="100%" stop-color="rgba(255,170,0,0)" />
-                    </linearGradient>
-                  </defs>
-
-                  <!-- Connector Lines (Static) -->
-                  <path d="M 150,300 L 350,300" stroke="rgba(255,255,255,0.05)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
-                  <path d="M 550,300 L 750,300" stroke="rgba(255,255,255,0.05)" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
-                  
-                  <!-- Flowing Particles (Active during processing) -->
-                  <template v-if="isProcessing">
-                    <circle r="2" fill="#fbbf24">
-                      <animateMotion dur="2s" repeatCount="indefinite" path="M 150,300 L 350,300" />
-                    </circle>
-                    <circle r="2" fill="#fbbf24" begin="1s">
-                      <animateMotion dur="2s" repeatCount="indefinite" path="M 150,300 L 350,300" />
-                    </circle>
-                    <circle v-if="activeState.status === 'EXECUTING'" r="2" fill="#22d3ee">
-                      <animateMotion dur="1.5s" repeatCount="indefinite" path="M 550,300 L 750,300" />
-                    </circle>
-                  </template>
-                </svg>
-
-                <!-- Flowchart Nodes -->
-                <div class="relative z-10 flex gap-32 items-center">
-                  
-                  <!-- NODE 1: ORCHESTRATOR -->
-                  <div class="flex flex-col items-center">
-                    <div class="w-32 h-32 rounded-full border-2 border-blue-500/30 flex items-center justify-center bg-blue-950/10 shadow-[inset_0_0_20px_rgba(59,130,246,0.1)] transition-all duration-500"
-                         :class="{'scale-110 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.3)]': isProcessing}">
-                      <div class="text-center">
-                        <div class="font-hud text-[10px] text-blue-400 mb-1">CORE</div>
-                        <div class="font-hud text-[8px] text-white tracking-widest">ORCHESTRATOR</div>
-                      </div>
-                    </div>
-                    <div class="mt-4 font-code text-[8px] text-blue-500 uppercase tracking-tighter">Status: Active</div>
+              <div class="flex-1 flex gap-6 overflow-hidden">
+                
+                <!-- LEFT: MISSION PIPELINE -->
+                <div class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2 scrollbar-hide">
+                  <div v-if="!activeState.mission" class="flex-1 flex flex-col items-center justify-center opacity-20 italic">
+                    <div class="text-4xl mb-4">&#x2B19;</div>
+                    <div class="text-[10px]">No active campaign pipeline detected.</div>
                   </div>
 
-                  <!-- NODE 2: DEPLOYED TEAM -->
-                  <div class="flex flex-col items-center">
-                    <div class="w-48 h-24 lux-panel border-l-4 flex flex-col justify-center px-6 transition-all duration-700"
-                         :style="{ borderLeftColor: activeState.team ? uiColor : 'rgba(255,255,255,0.1)' }"
-                         :class="{'translate-y-[-5px] shadow-[0_10px_30px_rgba(0,0,0,0.5)]': activeState.team}">
-                      <div class="text-[8px] font-hud text-gray-600 mb-1 uppercase tracking-widest">Active_Agent</div>
-                      <div class="font-hud text-xs text-white truncate">{{ activeState.team || 'WAITING...' }}</div>
-                      <div class="mt-2 flex items-center gap-2">
-                        <span class="w-1 h-1 rounded-full animate-ping" :style="{ backgroundColor: uiColor }" v-if="activeState.team"></span>
-                        <span class="text-[7px] font-code text-gray-500 uppercase">{{ activeState.status || 'Standby' }}</span>
+                  <div v-else v-for="(group, gIndex) in activeState.mission.groups" :key="gIndex" 
+                       class="lux-panel p-4 border transition-all duration-500"
+                       :class="activeState.mission.currentIndex === gIndex ? 'border-amber-500/50 bg-amber-500/5 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : 'border-gray-900 opacity-40'">
+                    
+                    <div class="flex justify-between items-center mb-4">
+                      <div class="font-hud text-xs" :class="activeState.mission.currentIndex === gIndex ? 'text-amber-400' : 'text-gray-500'">
+                        PHASE_0{{ group.group }}
+                      </div>
+                      <div class="text-[8px] font-code px-2 py-0.5 rounded border" 
+                           :class="activeState.mission.currentIndex === gIndex ? 'border-amber-500 text-amber-500 animate-pulse' : 'border-gray-800 text-gray-700'">
+                        {{ activeState.mission.currentIndex === gIndex ? 'ACTIVE' : (activeState.mission.currentIndex > gIndex ? 'COMPLETE' : 'QUEUED') }}
                       </div>
                     </div>
-                    <div class="mt-4 flex flex-col items-center gap-1">
-                      <div class="h-8 w-px bg-gradient-to-b from-white/10 to-transparent"></div>
-                      <div class="font-code text-[7px] text-gray-700 uppercase">Delegation_Bridge</div>
-                    </div>
-                  </div>
 
-                  <!-- NODE 3: TOOL EXECUTION -->
-                  <div class="flex flex-col items-center">
-                    <div class="w-40 h-40 border border-dashed border-white/10 rounded-lg flex items-center justify-center relative bg-black/20 overflow-hidden group">
-                      <div v-if="activeState.status === 'EXECUTING'" class="absolute inset-0 bg-cyan-500/5 animate-pulse"></div>
-                      
-                      <div class="text-center z-10">
-                        <div class="font-hud text-[9px] text-cyan-500 mb-2 tracking-widest uppercase">Tool_Registry</div>
-                        <div class="font-code text-[10px] text-white h-12 flex items-center justify-center px-4 italic opacity-80">
-                          {{ activeState.status === 'EXECUTING' ? activeState.details : '---' }}
+                    <div class="space-y-3">
+                      <div v-for="(task, tIndex) in group.tasks" :key="tIndex" 
+                           class="flex gap-4 items-start p-2 bg-black/40 border border-white/5 rounded-sm">
+                        <div class="w-1.5 h-1.5 rounded-full mt-1.5 shadow-[0_0_5px_currentColor]" :style="{ backgroundColor: uiColor, color: uiColor }"></div>
+                        <div class="flex-1 min-w-0">
+                          <div class="font-hud text-[9px] text-white mb-1">{{ task.team }}</div>
+                          <div class="font-code text-[10px] text-gray-400 leading-relaxed">{{ task.instruction }}</div>
                         </div>
                       </div>
-
-                      <!-- Scanning Line Effect -->
-                      <div v-if="activeState.status === 'EXECUTING'" class="absolute top-0 left-0 w-full h-px bg-cyan-400/50 shadow-[0_0_10px_#00f3ff] animate-scan"></div>
                     </div>
-                    <div class="mt-4 font-code text-[8px] text-cyan-600 uppercase tracking-widest">Protocol: {{ activeState.status === 'EXECUTING' ? 'LVE_EXEC' : 'IDLE' }}</div>
                   </div>
+                </div>
 
+                <!-- RIGHT: CAMPAIGN KNOWLEDGE BASE -->
+                <div class="w-80 flex flex-col bg-black/40 border border-white/5 rounded-lg p-4 overflow-hidden">
+                  <div class="font-hud text-[10px] text-cyan-400 tracking-widest border-b border-cyan-900/30 pb-2 mb-4 flex justify-between">
+                    <span>CAMPAIGN_KNOWLEDGE_BASE</span>
+                    <span class="animate-pulse">●</span>
+                  </div>
+                  
+                  <div class="flex-1 overflow-y-auto font-code text-[10px] scrollbar-hide">
+                    <div v-if="!activeState.mission || !activeState.mission.blackboard || Object.keys(activeState.mission.blackboard).length === 0" class="h-full flex items-center justify-center opacity-20 italic text-center px-4">
+                      Knowledge base will populate as intel is gathered...
+                    </div>
+                    
+                    <div v-else class="space-y-6">
+                      <div v-for="(val, key) in activeState.mission.blackboard" :key="key" class="space-y-2">
+                        <div class="flex items-center gap-2">
+                          <div class="h-px flex-1 bg-white/10"></div>
+                          <div class="text-[8px] text-cyan-500 font-hud uppercase tracking-tighter">{{ key }}</div>
+                          <div class="h-px flex-1 bg-white/10"></div>
+                        </div>
+                        <pre class="bg-blue-950/10 border border-blue-900/20 p-2 rounded-sm text-blue-100 text-[9px] overflow-x-auto whitespace-pre-wrap">{{ typeof val === 'object' ? JSON.stringify(val, null, 2) : val }}</pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: GEOGRAPHIC PULSE -->
+            <div v-if="currentView === 'pulse'" class="flex-1 flex flex-col p-6 overflow-hidden relative">
+              <div class="flex items-center gap-8 mb-6 relative z-20">
+                <div class="shrink-0">
+                  <h2 class="font-hud text-lg text-green-400 tracking-[0.3em]">GEOGRAPHIC_PULSE</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Live Visitor Telemetry</div>
+                </div>
+                
+                <div class="flex-1 flex gap-2">
+                   <button @click="fetchGeoPulseData" class="text-[9px] font-hud text-green-500 border border-green-900/30 px-3 py-2 hover:bg-green-950/20 self-center mr-2">FORCE_SYNC</button>
+                   
+                   <div class="flex-1 lux-panel px-6 py-3 border border-green-900/30 bg-green-950/10">
+                      <div class="text-[8px] text-green-500/60 font-hud uppercase tracking-tighter mb-1">Active_Nodes</div>
+                      <div class="text-2xl font-hud text-green-400">{{ geoPulseData.totalRealtime }}</div>
+                   </div>
+                   
+                   <div class="flex-1 lux-panel px-6 py-3 border border-blue-900/30 bg-blue-950/10">
+                      <div class="text-[8px] text-blue-500/60 font-hud uppercase tracking-tighter mb-1">Total_Sessions</div>
+                      <div class="text-2xl font-hud text-blue-400">{{ totalHistoricalSessions }}</div>
+                   </div>
+                   
+                   <div class="flex-1 lux-panel px-6 py-3 border border-purple-900/30 bg-purple-950/10">
+                      <div class="text-[8px] text-purple-500/60 font-hud uppercase tracking-tighter mb-1">Unique_Users</div>
+                      <div class="text-2xl font-hud text-purple-400">{{ geoPulseData.total7DUsers || 0 }}</div>
+                   </div>
+                   
+                   <div class="flex-1 lux-panel px-6 py-3 border border-amber-900/30 bg-amber-950/10">
+                      <div class="text-[8px] text-amber-500/60 font-hud uppercase tracking-tighter mb-1">Engagement_Rate</div>
+                      <div class="text-2xl font-hud text-amber-400">{{ geoPulseData.avgEngagementRate || '0%' }}</div>
+                   </div>
+                   
+                   <div class="flex-1 lux-panel px-6 py-3 border border-rose-900/30 bg-rose-950/10">
+                      <div class="text-[8px] text-rose-500/60 font-hud uppercase tracking-tighter mb-1">Page_Views</div>
+                      <div class="text-2xl font-hud text-rose-400">{{ geoPulseData.total7DViews || 0 }}</div>
+                   </div>
                 </div>
               </div>
 
-              <!-- WORKSTREAM LOGS (Specific to mission) -->
-              <div class="mt-8 h-48 flex flex-col">
-                <div class="font-hud text-[10px] text-gray-500 mb-2 px-2 tracking-widest border-b border-white/5 pb-2">MISSION_CRITICAL_TELEMETRY</div>
-                <div class="flex-1 overflow-y-auto font-code text-[10px] space-y-2 p-2 scrollbar-hide">
-                  <div v-for="(log, i) in eventLogs.slice().reverse().filter(l => l.type === 'tool' || l.type === 'success')" :key="i" class="flex gap-4 items-center">
-                    <span class="text-amber-500/50">{{ log.time }}</span>
-                    <span class="text-gray-400">>></span>
-                    <span :class="log.type === 'success' ? 'text-green-400' : 'text-cyan-400'">{{ log.message }}</span>
+              <div class="flex-1 flex gap-6 overflow-hidden">
+                <!-- MAP CONTAINER (LEFT) -->
+                <div class="flex-[1.5] relative flex items-center justify-center bg-black/40 border border-gray-900 rounded-lg overflow-hidden group min-h-0">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg" 
+                       class="w-[90%] h-[90%] opacity-20 filter drop-shadow-[0_0_15px_rgba(0,255,136,0.2)] pointer-events-none grayscale invert transition-all duration-1000 group-hover:opacity-30 object-contain" 
+                       alt="Global Map">
+                  
+                  <div id="geo-ping-layer" class="absolute inset-0 pointer-events-none">
+                    <div v-for="ping in activePings" :key="ping.id" 
+                         class="absolute w-2 h-2 rounded-full shadow-[0_0_15px_#00ff88] animate-ping-fade"
+                         :class="ping.type === 'ghost' ? 'bg-blue-500/40 shadow-blue-500/20' : 'bg-white shadow-[#00ff88]'"
+                         :style="{ left: ping.x + '%', top: ping.y + '%' }"></div>
                   </div>
-                  <div v-if="!isProcessing && eventLogs.length === 0" class="h-full flex items-center justify-center opacity-20 italic">
-                    Awaiting mission initialization parameters...
+
+                  <div class="absolute bottom-4 left-4 font-code text-[8px] text-gray-600 space-y-1">
+                     <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500"></span> LIVE</div>
+                     <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500/30"></span> HIST</div>
+                  </div>
+
+                  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-green-500/5 to-transparent h-20 w-full animate-scan-slow pointer-events-none"></div>
+                </div>
+
+                <!-- DATA BREAKDOWN (RIGHT) -->
+                <div class="w-80 flex flex-col overflow-hidden border-l border-gray-900 pl-6">
+                   <div class="flex gap-4 border-b border-gray-900 mb-4 px-2">
+                      <button @click="pulseSubTab = 'geo'" class="font-hud text-[9px] pb-2 transition-all" :class="pulseSubTab === 'geo' ? 'text-green-400 border-b-2 border-green-400' : 'text-gray-600 hover:text-gray-300'">LOCATIONS</button>
+                      <button @click="pulseSubTab = 'live'" class="font-hud text-[9px] pb-2 transition-all" :class="pulseSubTab === 'live' ? 'text-green-400 border-b-2 border-green-400' : 'text-gray-600 hover:text-gray-300'">CONTENT</button>
+                      <button @click="pulseSubTab = 'hist'" class="font-hud text-[9px] pb-2 transition-all" :class="pulseSubTab === 'hist' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-600 hover:text-gray-300'">7D_DATA</button>
+                      <button @click="pulseSubTab = 'chart'" class="font-hud text-[9px] pb-2 transition-all" :class="pulseSubTab === 'chart' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-600 hover:text-gray-300'">TRENDS</button>
+                   </div>
+
+                   <div class="flex-1 overflow-y-auto scrollbar-hide relative">
+                      <!-- LOADING OVERLAY -->
+                      <div v-if="isProcessing" class="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm flex items-center justify-center font-hud text-[8px] text-purple-400 tracking-[0.3em] animate-pulse">
+                         SYNCHRONIZING_TREND_DATA...
+                      </div>
+
+                      <div v-if="pulseSubTab === 'chart'" class="h-full flex flex-col gap-6">
+                         <div class="flex flex-col">
+                            <div class="flex justify-between items-center mb-2">
+                               <div class="font-hud text-[9px] text-blue-500 uppercase tracking-tighter">TRAFFIC_VOLUME_TREND</div>
+                               <select v-model="pulseDateRange" class="bg-black/60 border border-blue-900/30 text-[8px] font-hud text-blue-400 outline-none px-1 py-0.5">
+                                  <option value="24h">24H</option>
+                                  <option value="7d">7D</option>
+                                  <option value="28d">28D</option>
+                                  <option value="3m">3M</option>
+                               </select>
+                            </div>
+                            <div class="relative w-full h-32"><canvas id="volumeChart"></canvas></div>
+                         </div>
+
+                         <div class="flex flex-col">
+                            <div class="font-hud text-[9px] text-purple-500 mb-2 uppercase tracking-tighter">SEARCH_PERFORMANCE_TOP_10</div>
+                            <div class="relative w-full h-32"><canvas id="pulseChart"></canvas></div>
+                         </div>
+
+                         <div class="flex flex-col flex-1">
+                            <div class="font-hud text-[9px] text-green-500 mb-2 uppercase tracking-tighter">ENGAGEMENT_PER_SESSION</div>
+                            <div class="flex-1 relative w-full min-h-[120px]"><canvas id="engagementChart"></canvas></div>
+                         </div>
+                      </div>
+                      <div v-if="pulseSubTab === 'geo'" class="space-y-6">
+                         <div class="bg-black/60 border border-green-900/20 rounded p-4">
+                           <div class="font-hud text-[10px] text-green-500 mb-3 border-b border-green-900/20 pb-2 uppercase">LIVE_NODES</div>
+                           <div class="space-y-2">
+                              <div v-for="(row, r) in geoPulseData.realtime" :key="'rt-loc-'+r" class="flex justify-between items-center text-[10px] font-code">
+                                <span class="text-gray-400">{{ row.city }}, {{ row.country }}</span>
+                                <span class="text-green-400">{{ row.users }}</span>
+                              </div>
+                              <div v-if="!geoPulseData.realtime || geoPulseData.realtime.length === 0" class="text-center italic opacity-30 text-[9px]">No live nodes...</div>
+                           </div>
+                         </div>
+                         <div class="bg-black/60 border border-blue-900/20 rounded p-4">
+                           <div class="font-hud text-[10px] text-blue-500 mb-3 border-b border-blue-900/20 pb-2 uppercase">7D_ENGAGEMENT</div>
+                           <div class="space-y-2">
+                              <div v-for="(row, h) in geoPulseData.historical.slice(0, 10)" :key="'hist-loc-'+h" class="flex justify-between items-center text-[10px] font-code">
+                                <span class="text-gray-400">{{ row.city }}</span>
+                                <span class="text-blue-400">{{ row.sessions }}</span>
+                              </div>
+                           </div>
+                         </div>
+                      </div>
+
+                      <div v-if="pulseSubTab === 'live'" class="space-y-3">
+                          <div v-for="(row, l) in geoPulseData.realtime" :key="'live-act-'+l" class="flex gap-4 items-center p-2 bg-green-950/10 border border-green-900/10">
+                            <div class="w-1 h-1 rounded-full bg-green-500 animate-pulse"></div>
+                            <div class="flex-1 truncate">
+                               <div class="text-[10px] text-white font-hud truncate">{{ row.pageTitle }}</div>
+                               <div class="text-[8px] text-green-500/60 font-code truncate">{{ row.pagePath }}</div>
+                            </div>
+                            <div class="text-right">
+                               <div class="text-[10px] text-green-400 font-bold">{{ row.users }}</div>
+                            </div>
+                          </div>
+                          <div v-if="!geoPulseData.realtime || geoPulseData.realtime.length === 0" class="text-center italic opacity-30 text-[9px] py-8">No live interactions...</div>
+                      </div>
+
+                      <div v-if="pulseSubTab === 'hist'" class="h-full">
+                         <table class="w-full text-left font-code text-[10px]">
+                            <thead class="text-gray-600 uppercase text-[8px] font-hud">
+                               <tr>
+                                  <th class="pb-2">PAGE</th>
+                                  <th class="pb-2 text-center">SES</th>
+                                  <th class="pb-2 text-right">STAY</th>
+                               </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-900/30">
+                               <tr v-for="(row, p) in geoPulseData.historical.slice(0, 15)" :key="'hist-page-'+p" class="hover:bg-blue-900/5 transition-colors">
+                                  <td class="py-2 truncate max-w-[150px] text-gray-400">{{ row.pageTitle || row.pagePath }}</td>
+                                  <td class="py-2 text-center text-blue-400">{{ row.sessions }}</td>
+                                  <td class="py-2 text-right text-gray-500">{{ (row.duration / 60).toFixed(1) }}m</td>
+                               </tr>
+                            </tbody>
+                         </table>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: COMMAND VAULT -->
+            <div v-if="currentView === 'vault'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-indigo-400 tracking-[0.3em]">COMMAND_VAULT</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Proprietary Mission Templates & Strategic Prompt Library</div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto pr-2 scrollbar-hide">
+                <!-- MEMORY_INGESTION_MODULE -->
+                <div class="flex flex-col gap-3">
+                  <div class="font-hud text-[10px] text-cyan-500/60 border-b border-cyan-900/30 pb-2 uppercase tracking-tighter">MEMORY_INGESTION</div>
+                  <div class="lux-panel p-4 border border-cyan-900/30 bg-cyan-950/5 space-y-3">
+                    <div class="text-[8px] font-code text-gray-500 italic mb-2">Sync a specific data point to long-term memory.</div>
+                    <textarea v-model="quickFact" placeholder="Enter fact or insight..." rows="3" class="w-full bg-black/60 border border-cyan-900/30 p-2 text-[10px] font-code text-cyan-200 focus:border-cyan-400 outline-none resize-none"></textarea>
+                    <button @click="ingestFact" class="w-full bg-cyan-900/20 border border-cyan-800 text-cyan-400 font-hud text-[10px] py-2 hover:bg-cyan-800/40">COMMITT_TO_MEMORY</button>
                   </div>
                 </div>
+
+                <div v-for="category in promptLibrary" :key="category.name" class="flex flex-col gap-3">
+                  <div class="font-hud text-[10px] text-indigo-500/60 border-b border-indigo-900/30 pb-2 uppercase tracking-tighter">{{ category.name }}</div>
+                  <button v-for="prompt in category.prompts" :key="prompt.label" 
+                          @click="userInput = prompt.cmd; currentView = 'terminal'"
+                          class="lux-panel p-3 text-left hover:border-indigo-500/50 transition-all group">
+                    <div class="text-[10px] font-hud text-indigo-300 mb-1 group-hover:text-indigo-100">{{ prompt.label }}</div>
+                    <div class="text-[8px] font-code text-gray-500 leading-tight">{{ prompt.desc }}</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: CREATIVE ENGINE -->
+            <div v-if="currentView === 'creative'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-pink-400 tracking-[0.3em]">CREATIVE_SYNTHESIS</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Multi-Channel Narrative Generation & Outreach</div>
+                </div>
+                <!-- SUB-TABS -->
+                <div class="flex gap-2">
+                  <button @click="engineSubTab = 'social'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="engineSubTab === 'social' ? 'border-pink-500 text-pink-400 bg-pink-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">SOCIAL</button>
+                  <button @click="engineSubTab = 'emails'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="engineSubTab === 'emails' ? 'border-pink-500 text-pink-400 bg-pink-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">EMAILS</button>
+                </div>
+              </div>
+
+              <div class="flex-1 bg-black/40 border border-gray-900 rounded p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                <!-- Background Decorative -->
+                <div class="absolute inset-0 pointer-events-none opacity-5">
+                  <div class="text-[200px] font-hud text-pink-500 absolute -bottom-20 -right-20 rotate-12">CREATE</div>
+                </div>
+
+                <div class="w-full max-w-4xl z-10 space-y-8 overflow-y-auto scrollbar-hide">
+                  <!-- SOCIAL SUB-TAB -->
+                  <div v-if="engineSubTab === 'social'" class="space-y-6">
+                    <div class="text-center">
+                      <div class="font-hud text-xs text-pink-500 mb-2">GENERATING_SOCIAL_NARRATIVE</div>
+                      <p class="text-[10px] text-gray-500 uppercase tracking-widest">Select target platforms and primary topic</p>
+                    </div>
+                    <div class="space-y-4">
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">TOPIC_OR_URL</label>
+                          <input v-model="engineData.topic" type="text" placeholder="e.g. The future of AI" class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-pink-500 outline-none">
+                        </div>
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">TARGET_PLATFORM</label>
+                          <select v-model="engineData.platform" class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-pink-500 outline-none appearance-none">
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Twitter/X">Twitter / X</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Multi-Channel">Multi-Channel Deployment</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">TONE_SPECIFICATION</label>
+                        <div class="flex gap-2 flex-wrap">
+                          <button v-for="tone in ['Professional', 'Futuristic', 'Casual', 'Provocative', 'Educational']" :key="tone" 
+                                  @click="engineData.tone = tone"
+                                  class="text-[9px] font-code px-3 py-1 border transition-all"
+                                  :class="engineData.tone === tone ? 'border-pink-500 text-pink-400 bg-pink-500/10' : 'border-gray-800 text-gray-600'">
+                            {{ tone }}
+                          </button>
+                        </div>
+                      </div>
+                      <button @click="generateContent('social')" class="w-full bg-pink-950/20 border border-pink-500/50 text-pink-400 font-hud text-[11px] py-4 hover:bg-pink-500 hover:text-black transition-all tracking-[0.3em] group">
+                        EXECUTE_GENERATION <span class="group-hover:translate-x-2 transition-transform inline-block">-></span>
+                      </button>
+                    </div>
+
+                    <!-- GENERATED RESULT -->
+                    <div v-if="engineData.isGenerating || engineData.generatedResult" class="mt-6 space-y-4 animate-fade-in">
+                      <div class="flex justify-between items-center">
+                        <div class="font-hud text-[9px] text-pink-500 tracking-widest uppercase">GENERATED_SOCIAL_POST</div>
+                        <button v-if="engineData.generatedResult" @click="copyToClipboard(engineData.generatedResult)" class="text-[8px] text-gray-500 hover:text-pink-400">[ COPY_TO_CLIPBOARD ]</button>
+                      </div>
+                      <div class="relative">
+                        <textarea v-model="engineData.generatedResult" rows="8" class="w-full bg-black/80 border border-pink-900/30 p-4 font-code text-[11px] text-gray-300 outline-none focus:border-pink-500" :placeholder="engineData.isGenerating ? 'AGENT_IS_SYNTHESIZING_CONTENT...' : ''"></textarea>
+                        <div v-if="engineData.isGenerating" class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                          <div class="flex gap-1">
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce"></div>
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce [animation-delay:0.2s]"></div>
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce [animation-delay:0.4s]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- EMAILS SUB-TAB -->
+                  <div v-if="engineSubTab === 'emails'" class="space-y-6">
+                    <div class="text-center">
+                      <div class="font-hud text-xs text-pink-500 mb-2">COLD_OUTREACH_SYNTHESIS</div>
+                      <p class="text-[10px] text-gray-500 uppercase tracking-widest">Define prospect and outreach objective</p>
+                    </div>
+                    <div class="space-y-4">
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">SELECT_RECIPIENT</label>
+                          <select v-model="engineData.recipientEmail" @change="onRecipientSelect($event)" class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-pink-500 outline-none appearance-none">
+                            <option value="">-- SELECT_CONTACT --</option>
+                            <option v-for="r in recentRecipients" :key="r.email" :value="r.email">
+                              {{ r.name }}
+                            </option>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">OUTREACH_GOAL</label>
+                          <select v-model="engineData.goal" class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-pink-500 outline-none appearance-none">
+                            <option value="Meeting Request">Meeting Request</option>
+                            <option value="Introduction">Introduction</option>
+                            <option value="Follow-up">Follow-up</option>
+                            <option value="Value Gift">Value Gift (Lead Magnet)</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">PERSONALIZATION_INTEL</label>
+                        <textarea v-model="engineData.intel" rows="3" placeholder="Recent news about them, shared interests, or specific observations..." class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-pink-500 outline-none resize-none"></textarea>
+                      </div>
+                      <div class="flex gap-4">
+                        <button @click="generateContent('email')" class="flex-1 bg-pink-950/20 border border-pink-500/50 text-pink-400 font-hud text-[11px] py-4 hover:bg-pink-500 hover:text-black transition-all tracking-[0.3em] group">
+                          SYNTHESIZE_OUTREACH <span class="group-hover:translate-x-2 transition-transform inline-block">-></span>
+                        </button>
+                        <button v-if="engineData.intel && engineData.intel.length > 10" @click="sendEngineContent" class="px-6 bg-blue-900/20 border border-blue-500/50 text-blue-400 font-hud text-[10px] hover:bg-blue-500 hover:text-black transition-all">
+                          SEND_VIA_GMAIL
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- GENERATED RESULT -->
+                    <div v-if="engineData.isGenerating || engineData.generatedResult" class="mt-6 space-y-4 animate-fade-in">
+                      <div class="flex justify-between items-center">
+                        <div class="font-hud text-[9px] text-pink-500 tracking-widest uppercase">GENERATED_EMAIL_DRAFT</div>
+                        <button v-if="engineData.generatedResult" @click="copyToClipboard(engineData.generatedResult)" class="text-[8px] text-gray-500 hover:text-pink-400">[ COPY_TO_CLIPBOARD ]</button>
+                      </div>
+                      <div class="relative">
+                        <textarea v-model="engineData.generatedResult" rows="8" class="w-full bg-black/80 border border-pink-900/30 p-4 font-code text-[11px] text-gray-300 outline-none focus:border-pink-500" :placeholder="engineData.isGenerating ? 'AGENT_IS_SYNTHESIZING_EMAIL...' : ''"></textarea>
+                        <div v-if="engineData.isGenerating" class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                          <div class="flex gap-1">
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce"></div>
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce [animation-delay:0.2s]"></div>
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce [animation-delay:0.4s]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: PROPOSALS -->
+            <div v-if="currentView === 'proposals'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-indigo-400 tracking-[0.3em]">STRATEGIC_PROPOSALS</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">CRM Integration & Deal Structuring</div>
+                </div>
+              </div>
+
+              <div class="flex-1 bg-black/40 border border-gray-900 rounded p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                <!-- Background Decorative -->
+                <div class="absolute inset-0 pointer-events-none opacity-5">
+                  <div class="text-[200px] font-hud text-indigo-500 absolute -bottom-20 -right-20 rotate-12">DEAL</div>
+                </div>
+
+                <div class="w-full max-w-4xl z-10 space-y-8 overflow-y-auto scrollbar-hide">
+                  <div class="space-y-6">
+                    <div class="text-center">
+                      <div class="font-hud text-xs text-indigo-500 mb-2">PROPOSAL_CONSTRUCTION</div>
+                      <p class="text-[10px] text-gray-500 uppercase tracking-widest">Outline client needs and service offering</p>
+                    </div>
+                    <div class="space-y-4">
+                      <!-- CRM INTEGRATION -->
+                      <div class="bg-indigo-950/10 border border-indigo-900/20 p-4 rounded-sm mb-4">
+                        <label class="block font-hud text-[8px] text-indigo-500/60 mb-2 tracking-widest">IMPORT_CRM_AUDIT_DATA</label>
+                        <select @change="onLeadSelect($event)" class="w-full bg-black/60 border border-indigo-900/30 p-2 text-[10px] font-code text-indigo-200 focus:border-indigo-500 outline-none">
+                          <option value="">-- SELECT_LEAD_TO_IMPORT_AUDIT --</option>
+                          <option v-for="lead in leads" :key="lead.lead_id" :value="lead.lead_id">
+                            {{ lead.company }} ({{ lead.status }})
+                          </option>
+                        </select>
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-4">
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">CLIENT_IDENTITY</label>
+                          <input v-model="engineData.client" type="text" placeholder="e.g. Acme Corp" class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-indigo-500 outline-none">
+                        </div>
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">OFFERING_TYPE</label>
+                          <input v-model="engineData.service" type="text" placeholder="e.g. SEO Audit" class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-indigo-500 outline-none">
+                        </div>
+                      </div>
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">PAIN_POINTS_CONTEXT</label>
+                        <textarea v-model="engineData.context" rows="3" placeholder="Describe the client's current situation and why they need this service..." class="w-full bg-black/60 border border-gray-800 p-3 text-[11px] font-code text-white focus:border-indigo-500 outline-none resize-none"></textarea>
+                      </div>
+                      
+                      <div class="flex gap-4">
+                        <button @click="generateContent('proposal')" class="flex-1 bg-indigo-950/20 border border-indigo-500/50 text-indigo-400 font-hud text-[11px] py-4 hover:bg-indigo-500 hover:text-black transition-all tracking-[0.3em] group">
+                          CONSTRUCT_PROPOSAL <span class="group-hover:translate-x-2 transition-transform inline-block">-></span>
+                        </button>
+                        <button v-if="engineData.context.length > 20" @click="sendEngineContent" class="px-6 bg-blue-900/20 border border-blue-500/50 text-blue-400 font-hud text-[10px] hover:bg-blue-500 hover:text-black transition-all">
+                          SEND_VIA_GMAIL
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- GENERATED RESULT -->
+                    <div v-if="engineData.isGenerating || engineData.generatedResult" class="mt-6 space-y-4 animate-fade-in">
+                      <div class="flex justify-between items-center">
+                        <div class="font-hud text-[9px] text-indigo-500 tracking-widest uppercase">GENERATED_PROPOSAL_OUTLINE</div>
+                        <button v-if="engineData.generatedResult" @click="copyToClipboard(engineData.generatedResult)" class="text-[8px] text-gray-500 hover:text-indigo-400">[ COPY_TO_CLIPBOARD ]</button>
+                      </div>
+                      <div class="relative">
+                        <textarea v-model="engineData.generatedResult" rows="8" class="w-full bg-black/80 border border-indigo-900/30 p-4 font-code text-[11px] text-gray-300 outline-none focus:border-indigo-500" :placeholder="engineData.isGenerating ? 'AGENT_IS_CONSTRUCTING_PROPOSAL...' : ''"></textarea>
+                        <div v-if="engineData.isGenerating" class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                          <div class="flex gap-1">
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce"></div>
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce [animation-delay:0.2s]"></div>
+                            <div class="w-1.5 h-1.5 bg-pink-500 animate-bounce [animation-delay:0.4s]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: ARTICLES -->
+            <div v-if="currentView === 'articles'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-teal-400 tracking-[0.3em]">CONTENT_DATABASE</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Long-Term Storage & Performance Tracking</div>
+                </div>
+                <div class="flex gap-2">
+                  <a v-if="articlesSourceUrl" :href="articlesSourceUrl" target="_blank" class="text-[10px] font-hud text-teal-500 border border-teal-900/30 px-3 py-1.5 hover:bg-teal-950/20 no-underline flex items-center">
+                    [ OPEN_SOURCE_SHEET ]
+                  </a>
+                </div>
+              </div>
+
+              <div class="flex-1 bg-black/40 border border-gray-900 rounded p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                <!-- Background Decorative -->
+                <div class="absolute inset-0 pointer-events-none opacity-5">
+                  <div class="text-[200px] font-hud text-teal-500 absolute -bottom-20 -right-20 rotate-12">STORE</div>
+                </div>
+
+                <div class="w-full max-w-4xl z-10 space-y-8 overflow-y-auto scrollbar-hide">
+                  <div class="space-y-6">
+                    <div class="text-center">
+                      <div class="font-hud text-xs text-teal-500 mb-2">ARTICLE_MANAGEMENT</div>
+                      <p class="text-[10px] text-gray-500 uppercase tracking-widest">Store and track article performance</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <!-- ADD/EDIT ARTICLE FORM -->
+                      <div class="col-span-1 space-y-4 bg-teal-950/5 border border-teal-900/20 p-4 rounded">
+                        <div class="font-hud text-[10px] text-teal-400 mb-2 border-b border-teal-900/20 pb-2 flex justify-between">
+                          <span>{{ newArticle.id ? 'EDIT_ARTICLE' : 'ADD_NEW_ARTICLE' }}</span>
+                          <button v-if="newArticle.id" @click="cancelEditArticle" class="text-gray-600 hover:text-white text-[8px]">[ CANCEL ]</button>
+                        </div>
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">TITLE</label>
+                          <input v-model="newArticle.title" type="text" placeholder="Article Title" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-teal-500">
+                        </div>
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">GOOGLE_DOC_URL</label>
+                          <input v-model="newArticle.docUrl" type="text" placeholder="https://docs.google.com/..." class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-teal-500">
+                        </div>
+                        <div>
+                          <label class="block font-hud text-[8px] text-gray-600 mb-1">PUBLISHED_URL</label>
+                          <input v-model="newArticle.publishedUrl" type="text" placeholder="https://yoursite.com/article" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-teal-500">
+                        </div>
+                        <button @click="executeSaveArticle" class="w-full bg-teal-900/20 border border-teal-800 text-teal-400 font-hud text-[10px] py-2 hover:bg-teal-800 hover:text-white transition-all">
+                          {{ newArticle.id ? 'UPDATE_ARTICLE' : 'SAVE_ARTICLE' }}
+                        </button>
+                      </div>
+
+                      <!-- ARTICLE LIST -->
+                      <div class="col-span-2 flex flex-col bg-black/40 border border-gray-900 rounded overflow-hidden">
+                        <div class="p-3 border-b border-gray-900 font-hud text-[10px] text-gray-500 flex justify-between items-center">
+                          <span>STORED_ARTICLES</span>
+                          <button @click="fetchArticles" class="text-[8px] text-teal-500 hover:text-white">[ REFRESH ]</button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto scrollbar-hide max-h-[400px]">
+                          <table class="w-full text-left font-code text-[10px]">
+                            <thead class="sticky top-0 bg-black/90 text-teal-500/60 font-hud border-b border-gray-900">
+                              <tr>
+                                <th class="py-2 px-3">TITLE</th>
+                                <th class="py-2 px-3">STATUS</th>
+                                <th class="py-2 px-3 text-right">ACTIONS</th>
+                              </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-900/30">
+                              <tr v-for="art in articles" :key="art.id" class="hover:bg-white/5 group">
+                                <td class="py-3 px-3">
+                                  <div class="text-white font-bold">{{ art.title }}</div>
+                                  <div class="text-[8px] text-gray-600 flex gap-2">
+                                    <a v-if="art.docurl" :href="art.docurl" target="_blank" class="text-blue-500 hover:underline">DOC</a>
+                                  </div>
+                                </td>
+                                <td class="py-3 px-3">
+                                  <a v-if="art.publishedurl" :href="art.publishedurl" target="_blank" class="no-underline">
+                                    <span class="px-1.5 py-0.5 rounded-sm text-[8px] font-hud bg-green-950/30 text-green-500 hover:bg-green-500 hover:text-black transition-all cursor-pointer">
+                                      {{ art.status.toUpperCase() }} ↗
+                                    </span>
+                                  </a>
+                                  <span v-else class="px-1.5 py-0.5 rounded-sm text-[8px] font-hud bg-gray-900 text-gray-500">
+                                    {{ art.status.toUpperCase() }}
+                                  </span>
+                                </td>
+                                <td class="py-3 px-3 text-right">
+                                  <div class="flex gap-2 justify-end opacity-20 group-hover:opacity-100 transition-opacity">
+                                    <button @click="startEditArticle(art)" class="text-teal-500 hover:text-teal-300" title="Edit Article">[ EDIT ]</button>
+                                    <button @click="trackArticle(art)" class="text-cyan-500 hover:text-cyan-300" title="View Performance Trend">[ TRACK ]</button>
+                                    <button @click="executeDeleteArticle(art.id)" class="text-red-900 hover:text-red-500" title="Delete Article">[ X ]</button>
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr v-if="articles.length === 0">
+                                <td colspan="3" class="py-10 text-center text-gray-700 italic font-hud">NO_ARTICLES_FOUND</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- PERFORMANCE TREND CHART (HIDDEN UNTIL TRACKING) -->
+                    <div v-if="selectedArticleForTrack" class="bg-black/60 border border-cyan-900/30 p-4 rounded mt-4">
+                      <div class="flex justify-between items-center mb-4 border-b border-cyan-900/30 pb-2">
+                        <div class="font-hud text-[10px] text-cyan-400 uppercase tracking-widest">
+                          PERFORMANCE_TREND: {{ selectedArticleForTrack.title }}
+                        </div>
+                        <button @click="selectedArticleForTrack = null" class="text-[8px] text-gray-600 hover:text-white">[ CLOSE ]</button>
+                      </div>
+                      <div class="h-48 relative"><canvas id="articleTrendChart"></canvas></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: LEAD_PIPELINE -->
+            <div v-if="currentView === 'leads'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-orange-400 tracking-[0.3em]">LEAD_PIPELINE_ORCHESTRATOR</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">CRM Integration & Autonomous Agent Deployment</div>
+                </div>
+                <div class="flex gap-4">
+                  <div class="px-4 py-1 border border-emerald-900/30 bg-emerald-950/10 rounded flex flex-col justify-center">
+                    <span class="text-[7px] text-emerald-500 font-hud">EST_PIPELINE_VALUE</span>
+                    <span class="text-xs text-white font-hud">${{ financeMetrics.pipelineValue }}</span>
+                  </div>
+                  <button @click="syncInbox" class="text-[10px] font-hud text-blue-500 border border-blue-900/30 px-3 py-1 hover:bg-blue-950/20">SYNC_INBOX</button>
+                  <button @click="syncLeads" class="text-[10px] font-hud text-orange-500 border border-orange-900/30 px-3 py-1 hover:bg-orange-950/20">SYNC_CRM</button>
+                  <button @click="fetchLeads" class="text-[10px] font-hud text-gray-500 border border-gray-900/30 px-3 py-1 hover:text-white">REFRESH_LIST</button>
+                </div>
+              </div>
+
+              <div class="flex-1 bg-black/40 border border-gray-900 rounded overflow-hidden flex flex-col">
+                <!-- CHART CONTAINER -->
+                <div class="h-48 border-b border-gray-900 bg-orange-950/10 p-4 flex flex-col">
+                  <div class="font-hud text-[10px] text-orange-500 mb-2">PIPELINE_VELOCITY_MODEL</div>
+                  <div class="flex-1 relative w-full"><canvas id="leadsChart"></canvas></div>
+                </div>
+
+                <div class="overflow-y-auto scrollbar-hide flex-1">
+                  <table class="w-full text-left font-code text-[10px] border-collapse">
+                    <thead class="sticky top-0 z-10 bg-black/90 backdrop-blur-md text-orange-500/60 font-hud border-b border-gray-900">
+                      <tr>
+                        <th class="py-3 px-4">COMPANY / CONTACT</th>
+                        <th class="py-3 px-4">BUDGET</th>
+                        <th class="py-3 px-4">STATUS</th>
+                        <th class="py-3 px-4">AUDIT_INTEL</th>
+                        <th class="py-3 px-4 text-right">MISSION_ACTIONS</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-900/30">
+                      <tr v-for="lead in leads" :key="lead.lead_id" class="hover:bg-white/5 transition-colors group">
+                        <td class="py-4 px-4">
+                          <div class="text-white font-bold">{{ lead.company }}</div>
+                          <div class="text-[9px] text-gray-500">{{ lead.contact_name }} // {{ lead.email }}</div>
+                          <div v-if="lead.website" class="text-[8px] text-cyan-700 mt-1 truncate max-w-[200px]">{{ lead.website }}</div>
+                        </td>
+                        <td class="py-4 px-4 font-hud text-white">
+                          ${{ lead.budget || '0' }}
+                        </td>
+                        <td class="py-4 px-4">
+                          <span class="px-2 py-0.5 rounded-sm text-[8px] font-hud tracking-tighter" :style="getStatusStyle(lead.status)">
+                            {{ lead.status }}
+                          </span>
+                        </td>
+                        <td class="py-4 px-4">
+                          <div class="truncate max-w-[150px] text-gray-600 italic">{{ lead.audit_results || 'NO_AUDIT_DATA' }}</div>
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                          <div class="flex gap-2 justify-end opacity-40 group-hover:opacity-100 transition-opacity">
+                            <button @click="deployLeadAction(lead, 'audit')" title="Run SEO/GEO Audit" class="p-1 border border-cyan-900/50 text-cyan-600 hover:border-cyan-400 hover:text-cyan-400">
+                              [ AUDIT ]
+                            </button>
+                            <button @click="deployLeadAction(lead, 'research')" title="Deep Market Research" class="p-1 border border-purple-900/50 text-purple-600 hover:border-purple-400 hover:text-purple-400">
+                              [ RES ]
+                            </button>
+                            <button @click="deployLeadAction(lead, 'outreach')" title="Draft Outreach" class="p-1 border border-amber-900/50 text-amber-600 hover:border-amber-400 hover:text-amber-400">
+                              [ COMMS ]
+                            </button>
+                            <button @click="fetchEmailHistory(lead.email); selectedLeadForHistory = lead" title="View Communication History" class="p-1 border border-purple-900/50 text-purple-600 hover:border-purple-400 hover:text-purple-400">
+                              [ HIST ]
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr v-if="leads.length === 0">
+                        <td colspan="6" class="py-20 text-center text-gray-700 italic font-hud">
+                          NO_LEADS_DETECTED // INITIATE_SOURCE_SYNC
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- EMAIL HISTORY SLIDE-OVER -->
+                <transition name="slide-right">
+                  <div v-if="selectedLeadForHistory" class="absolute inset-y-0 right-0 w-96 bg-black border-l border-purple-900/30 z-50 shadow-[-20px_0_50px_rgba(0,0,0,0.8)] flex flex-col">
+                    <div class="p-4 border-b border-purple-900/30 flex justify-between items-center bg-purple-950/5">
+                      <div>
+                        <div class="font-hud text-[10px] text-purple-400 uppercase tracking-widest">COMMS_HISTORY</div>
+                        <div class="font-code text-[9px] text-gray-500">{{ selectedLeadForHistory.company }} // {{ selectedLeadForHistory.email }}</div>
+                      </div>
+                      <button @click="selectedLeadForHistory = null" class="text-gray-500 hover:text-white font-hud text-xs">[ CLOSE ]</button>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+                      <div v-if="isFetchingHistory" class="flex flex-col items-center justify-center h-full opacity-30 animate-pulse">
+                        <div class="text-2xl mb-2">&#x231B;</div>
+                        <div class="font-hud text-[8px] tracking-[0.2em]">SYNCING_GMAIL_INTEL...</div>
+                      </div>
+                      
+                      <div v-else-if="leadEmailHistory.length === 0" class="flex flex-col items-center justify-center h-full opacity-20 italic">
+                        <div class="text-2xl mb-2">&#x2709;</div>
+                        <div class="text-[9px]">No recent communication found.</div>
+                      </div>
+                      
+                      <div v-else v-for="(mail, m) in leadEmailHistory" :key="m" class="bg-black/60 border border-purple-900/20 p-3 rounded hover:border-purple-500/30 transition-all">
+                        <div class="flex justify-between items-center mb-2">
+                          <div class="font-hud text-[8px] text-purple-500">{{ mail.date }}</div>
+                          <div class="text-[7px] font-code text-gray-600 truncate max-w-[150px]">{{ mail.from }}</div>
+                        </div>
+                        <div class="font-hud text-[9px] text-white mb-1 truncate">{{ mail.subject }}</div>
+                        <div class="font-code text-[9px] text-gray-500 leading-tight italic">{{ mail.snippet }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="p-4 border-t border-purple-900/30 bg-black">
+                      <button @click="deployLeadAction(selectedLeadForHistory, 'outreach')" class="w-full bg-purple-900/20 border border-purple-800 text-purple-400 font-hud text-[10px] py-2 hover:bg-purple-800 hover:text-white transition-all">
+                        START_NEW_SEQUENCE
+                      </button>
+                    </div>
+                  </div>
+                </transition>
+              </div>
+            </div>
+
+            <!-- VIEW: SENTINELS -->
+            <div v-if="currentView === 'sentinels'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-blue-400 tracking-[0.3em]">SENTINEL_MONITOR</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Proactive Background Agents & Watchers</div>
+                </div>
+                <div class="flex gap-4">
+                  <button @click="fetchSentinels" class="text-[10px] font-hud text-blue-500 border border-blue-900/30 px-3 py-1 hover:bg-blue-950/20">REFRESH_SENTINELS</button>
+                </div>
+              </div>
+              
+              <div class="flex-1 flex flex-col gap-6 overflow-y-auto scrollbar-hide">
+                <!-- QUICK LAUNCH PRESETS -->
+                <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                  <button v-for="preset in sentinelPresets" :key="preset.label" 
+                          @click="deploySentinelPreset(preset)"
+                          class="lux-panel p-3 border group text-left transition-all flex flex-col justify-between h-32 relative overflow-hidden"
+                          :style="{ 
+                            borderColor: getSentinelStatus(preset.label) === 'ACTIVE' ? uiColor : 'rgba(30, 58, 138, 0.3)',
+                            backgroundColor: getSentinelStatus(preset.label) === 'ACTIVE' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(30, 58, 138, 0.05)',
+                            boxShadow: getSentinelStatus(preset.label) === 'ACTIVE' ? `inset 0 0 20px ${uiColor}11` : 'none'
+                          }">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="font-hud text-[7px] opacity-60" :class="'text-' + (preset.color || 'blue') + '-500'">{{ preset.type }}</div>
+                      
+                      <!-- Status Indicator (Pulsing Green for ACTIVE, Solid Red for DISABLED, Dim for OFF) -->
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[6px] font-hud tracking-tighter" :style="{ color: getSentinelStatus(preset.label) === 'ACTIVE' ? '#22c55e' : '#ef4444' }">
+                          {{ getSentinelStatus(preset.label) }}
+                        </span>
+                        
+                        <!-- ACTIVE -->
+                        <div v-if="getSentinelStatus(preset.label) === 'ACTIVE'" 
+                             class="w-2 h-2 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]" 
+                             style="background-color: #22c55e;"></div>
+                        
+                        <!-- DISABLED -->
+                        <div v-else-if="getSentinelStatus(preset.label) === 'DISABLED'"
+                             class="w-2 h-2 rounded-full shadow-[0_0_8px_#ef4444]" 
+                             style="background-color: #ef4444;"></div>
+                        
+                        <!-- OFF (NOT YET CREATED) -->
+                        <div v-else 
+                             class="w-2 h-2 rounded-full opacity-20" 
+                             style="background-color: #94a3b8;"></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="font-hud text-[9px] text-white group-hover:text-blue-400 transition-colors mb-1 leading-tight flex justify-between items-start">
+                        <span>{{ preset.label }}</span>
+                        <span class="text-[7px] opacity-50">{{ preset.cost }}</span>
+                      </div>
+                      <div class="text-[7px] font-code text-gray-500 leading-tight line-clamp-3">{{ preset.mission }}</div>
+                    </div>
+                    
+                    <!-- Top accent bar for active sentinels -->
+                    <div v-if="getSentinelStatus(preset.label) === 'ACTIVE'" 
+                         class="absolute top-0 left-0 w-full h-0.5" 
+                         :style="{ backgroundColor: uiColor }"></div>
+                  </button>
+                </div>
+
+
+
+
+
+
+                <div class="h-px bg-gray-900/50"></div>
+
+                <div v-if="!sentinels || sentinels.length === 0" class="flex-1 flex flex-col items-center justify-center opacity-20 italic">
+                  <div class="text-4xl mb-4 text-blue-500/50">&#x2316;</div>
+                  <div class="font-hud text-sm text-blue-400 tracking-widest mb-2">NO_SENTINELS_DEPLOYED</div>
+                  <div class="font-code text-[10px] text-gray-500 text-center max-w-xs">Deployment requires direct mission command. Use the terminal to 'Create a watcher for...'</div>
+                </div>
+
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div v-for="s in (Array.isArray(sentinels) ? sentinels : [])" :key="s.id" class="lux-panel p-4 border border-blue-900/30 bg-blue-950/5 relative">
+                    <div class="absolute top-4 right-4">
+                      <span class="px-2 py-0.5 rounded-sm text-[8px] font-hud tracking-tighter bg-blue-500/20 text-blue-400 border border-blue-500/30">{{ s.status }}</span>
+                    </div>
+                    <div class="flex gap-4 items-start">
+                      <div class="w-10 h-10 rounded bg-black/60 border border-blue-900/30 flex items-center justify-center text-blue-500 font-hud text-xs">
+                        {{ s.type[0] }}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="font-hud text-xs text-white mb-1">WATCHER_{{ s.type }}</div>
+                        <div class="font-code text-[10px] text-blue-300 truncate mb-3">Condition: {{ s.condition }}</div>
+                        <div class="p-2 bg-black/40 border border-blue-900/20 rounded font-code text-[9px] text-gray-400">
+                          <span class="text-blue-500 font-hud text-[8px] uppercase">Mission:</span> {{ s.mission }}
+                        </div>
+                        <div class="mt-3 flex justify-between items-center text-[8px] text-gray-600 font-hud">
+                          <span>LAST_PING: {{ s.lastCheck }}</span>
+                          <span class="text-blue-900">ID: {{ s.id.substring(0,12) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: RESEARCH -->
+            <div v-if="currentView === 'research'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-purple-400 tracking-[0.3em]">RESEARCH_LAB</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Vector Database Exploration & Fact Clusters</div>
+                </div>
+                <div class="flex gap-4">
+                  <button @click="fetchVectorStats" class="text-[10px] font-hud text-purple-500 border border-purple-900/30 px-3 py-1 hover:bg-purple-950/20">REFRESH_DATABASE</button>
+                </div>
+              </div>
+              
+              <div class="flex-1 flex flex-col gap-6 overflow-y-auto scrollbar-hide">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="lux-panel p-6 border-l-2 border-purple-500 bg-purple-950/5">
+                    <div class="text-[8px] text-purple-500/60 font-hud uppercase mb-1">Total_Neural_Nodes</div>
+                    <div class="text-3xl font-hud text-white">{{ vectorStats.count }}</div>
+                    <div class="text-[8px] text-gray-600 mt-2 font-code">Stored Semantic Insights</div>
+                  </div>
+                  <div class="col-span-2 lux-panel p-6 border-l-2 border-cyan-500 bg-cyan-950/5">
+                    <div class="text-[8px] text-cyan-500/60 font-hud uppercase mb-1">Most_Recent_Memory</div>
+                    <div class="text-xs font-code text-gray-300 mt-2 line-clamp-2 italic">"{{ vectorStats.lastInsight }}"</div>
+                  </div>
+                </div>
+
+                <div class="lux-panel p-8 border border-gray-900 bg-black/40 flex flex-col items-center justify-center relative overflow-hidden min-h-[300px]">
+                  <div class="absolute inset-0 pointer-events-none opacity-5">
+                    <div class="text-[200px] font-hud text-purple-500 absolute -bottom-20 -right-20 rotate-12">DATA</div>
+                  </div>
+                  <div class="text-center z-10 mb-8">
+                    <div class="text-4xl mb-4 text-purple-500/50">&#x26F6;</div>
+                    <div class="font-hud text-sm text-purple-400 tracking-widest mb-2">VECTOR_SEARCH_ACTIVE</div>
+                    <div class="font-code text-[10px] text-gray-500 max-w-sm">The semantic memory layer is indexed and ready. Use the Command Terminal to query your research database.</div>
+                  </div>
+                  
+                  <!-- Add Fact to Memory -->
+                  <div class="w-full max-w-md z-10 flex flex-col gap-3">
+                    <!-- Google Doc Ingestion -->
+                    <div class="flex gap-1">
+                      <input v-model="gDocUrl" @keyup.enter="ingestGoogleDoc" type="text" placeholder="Paste Google Doc URL for Professional Intelligence..." class="flex-1 bg-black/50 border border-purple-900/50 text-[10px] text-gray-300 p-2 focus:border-purple-400 outline-none placeholder-gray-700">
+                      <button @click="ingestGoogleDoc" class="bg-purple-900/20 border border-purple-800 text-purple-400 text-[10px] px-4 hover:bg-purple-800/40">INGEST_DOC</button>
+                    </div>
+
+                    <div class="flex gap-1">
+                      <input v-model="quickFact" @keyup.enter="ingestFact" type="text" placeholder="Add specific fact to research memory..." class="flex-1 bg-black/50 border border-purple-900/50 text-[10px] text-gray-300 p-2 focus:border-purple-400 outline-none placeholder-gray-700">
+                      <button @click="ingestFact" class="bg-purple-900/20 border border-purple-800 text-purple-400 text-[10px] px-4 hover:bg-purple-800/40">INGEST</button>
+                    </div>
+
+                    <!-- Curate Topic -->
+                    <div class="flex gap-1">
+                      <input v-model="curateTopic" @keyup.enter="triggerCuration" type="text" placeholder="Deep research & curate new topic..." class="flex-1 bg-black/50 border border-purple-900/50 text-[10px] text-gray-300 p-2 focus:border-cyan-400 outline-none placeholder-gray-700">
+                      <button @click="triggerCuration" class="bg-cyan-900/20 border border-cyan-800 text-cyan-400 text-[10px] px-4 hover:bg-cyan-800/40">RESEARCH</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: CODING -->
+            <div v-if="currentView === 'coding'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-yellow-400 tracking-[0.3em]">HGM_GROWTH_ENGINE</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Holistic Growth Marketing // Agentic Engineering Layer</div>
+                </div>
+                <!-- SUB-TABS -->
+                <div class="flex gap-2">
+                  <button @click="codingSubTab = 'terminal'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'terminal' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">TERMINAL</button>
+                  <button @click="codingSubTab = 'monitor'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'monitor' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">MONITOR</button>
+                  <button @click="codingSubTab = 'pipeline'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'pipeline' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">PIPELINE</button>
+                </div>
+              </div>
+              
+              <!-- TERMINAL SUB-TAB -->
+              <div v-if="codingSubTab === 'terminal'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                <!-- Repository Config Sidebar -->
+                <div class="w-80 flex flex-col gap-4 overflow-y-auto scrollbar-hide">
+                  <div class="lux-panel p-4 border border-yellow-900/30 bg-yellow-950/5 relative">
+                    <div class="font-hud text-[10px] text-yellow-500 mb-3 border-b border-yellow-900/30 pb-2">GITHUB_REPOSITORY_UPLINK</div>
+                    <div class="space-y-3">
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">OWNER/ORG</label>
+                        <input v-model="githubState.owner" type="text" placeholder="e.g. facebook" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
+                      </div>
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">REPOSITORY_NAME</label>
+                        <input v-model="githubState.repo" type="text" placeholder="e.g. react" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
+                      </div>
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">TARGET_BRANCH</label>
+                        <input v-model="githubState.branch" type="text" placeholder="e.g. main" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
+                      </div>
+                      <button @click="fetchRepoStructure" class="w-full bg-yellow-900/20 border border-yellow-800 text-yellow-400 font-hud text-[10px] py-2 hover:bg-yellow-800/40">
+                        CONNECT_TO_REPO
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Directory Tree -->
+                  <div class="flex-1 bg-black/40 border border-gray-900 rounded p-4 flex flex-col">
+                     <div class="font-hud text-[10px] text-gray-500 mb-2 border-b border-gray-900 pb-2">REPOSITORY_STRUCTURE</div>
+                     <div class="flex-1 overflow-y-auto font-code text-[9px] text-gray-400 space-y-1 scrollbar-hide">
+                        <div v-if="githubState.isFetchingTree" class="italic opacity-50 flex items-center gap-2">
+                           <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> Indexing Repository...
+                        </div>
+                        <div v-else-if="!githubState.tree || githubState.tree.length === 0" class="italic opacity-30 text-center py-4">No repository indexed.</div>
+                        <div v-else v-for="node in githubState.tree" :key="node.path" class="truncate hover:text-yellow-400 cursor-pointer flex gap-2">
+                           <span :class="node.type === 'tree' ? 'text-yellow-500/50' : 'text-cyan-500/50'">{{ node.type === 'tree' ? '&#128193;' : '&#128196;' }}</span>
+                           {{ node.path }}
+                        </div>
+                     </div>
+                  </div>
+                </div>
+                
+                <!-- Main Coding Area -->
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">
+                   <div class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
+                     <div class="text-[300px] font-hud text-yellow-500 rotate-12">CODE</div>
+                   </div>
+                   
+                   <div class="p-4 border-b border-gray-900 flex justify-between items-center bg-yellow-950/5">
+                      <div class="font-hud text-[10px] text-yellow-500">DEVELOPMENT_TERMINAL</div>
+                      <div class="flex gap-2">
+                         <button @click="syncGasToGithub" class="border border-green-900 text-green-500 text-[8px] font-hud px-2 py-1 hover:bg-green-950/30">SYNC_GAS_TO_GITHUB</button>
+                      </div>
+                   </div>
+                   
+                   <!-- Internal Coding Chat -->
+                   <div class="flex-1 p-6 overflow-y-auto space-y-4 font-code text-xs scrollbar-hide z-10" ref="codingChatBox">
+                      <div v-if="(githubState.chatHistory || []).length === 0" class="h-full flex flex-col items-center justify-center opacity-30 text-center">
+                        <div class="text-4xl text-yellow-500 mb-4">&lt;/&gt;</div>
+                        <div class="font-hud text-[10px] tracking-widest">AWAITING_DEVELOPER_DIRECTIVE</div>
+                        <div class="text-[9px] text-gray-500 mt-2 max-w-sm">Use this terminal to issue coding commands, refactor requests, or orchestrate GitHub commits.</div>
+                      </div>
+                      
+                      <div v-for="(msg, i) in githubState.chatHistory" :key="i" class="message" :class="msg.role === 'user' ? 'message-user' : 'message-model'">
+                        <div class="message-label" :class="msg.role === 'user' ? 'text-blue-500' : 'text-yellow-500'">{{ msg.role === 'user' ? 'DEVELOPER_REQUEST' : 'CODING_ENGINE' }}</div>
+                        <div class="markdown-content" v-html="renderMarkdown(msg.text)"></div>
+                      </div>
+                      
+                      <div v-if="githubState.isProcessing" class="flex items-center gap-2 text-[10px] text-yellow-500 animate-pulse">
+                        <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+                        SYNTHESIZING_CODE...
+                      </div>
+                   </div>
+                   
+                   <!-- Code Input -->
+                   <div class="p-4 bg-black border-t border-gray-900 z-10 flex gap-2">
+                      <div class="flex items-center text-yellow-500 font-hud text-[10px] animate-pulse">>></div>
+                      <input type="text" v-model="githubState.userInput" @keyup.enter="runCodingTask()" class="flex-1 bg-transparent text-[11px] font-code text-white outline-none" placeholder="e.g. Add error handling to index.js and commit it...">
+                      <button @click="runCodingTask()" class="font-hud text-[9px] bg-yellow-900/20 text-yellow-400 border border-yellow-800 px-4 hover:bg-yellow-800/40">EXECUTE</button>
+                   </div>
+                </div>
+              </div>
+
+              <!-- MONITOR SUB-TAB -->
+              <div v-if="codingSubTab === 'monitor'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                <!-- ACTIVE AGENTS (Sidebar) -->
+                <div class="w-80 flex flex-col gap-4 overflow-y-auto scrollbar-hide">
+                  <div class="lux-panel p-4 border border-blue-900/30 bg-blue-950/5 relative">
+                    <div class="font-hud text-[10px] text-blue-500 mb-3 border-b border-blue-900/30 pb-2 flex justify-between">
+                      <span>HGM_AGENTIC_SWARM</span>
+                      <span class="animate-pulse w-2 h-2 rounded-full bg-blue-500 mt-1"></span>
+                    </div>
+                    <div class="space-y-3">
+                      <div v-for="agent in hgmSwarm" :key="agent.name" class="p-3 bg-black/60 border border-blue-900/30 rounded">
+                        <div class="flex justify-between items-center mb-1">
+                          <span class="font-hud text-[10px] text-white">{{ agent.name }}</span>
+                          <span class="text-[8px] font-code px-1.5 py-0.5 rounded" :class="agent.status === 'ACTIVE' ? 'bg-blue-900/50 text-blue-400' : 'bg-gray-900 text-gray-500'">{{ agent.status }}</span>
+                        </div>
+                        <div class="text-[9px] font-code text-gray-400">{{ agent.role.toUpperCase() }} | {{ agent.worktree }}</div>
+                      </div>
+                    </div>
+                    <button @click="spawnAgent()" class="w-full mt-4 bg-blue-900/20 border border-blue-800 text-blue-400 font-hud text-[10px] py-2 hover:bg-blue-800/40">
+                        SPAWN_SWARM_WORKER
+                    </button>
+                  </div>
+                </div>
+
+                <!-- COMMUNICATION STREAM -->
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">
+                   <div class="p-4 border-b border-gray-900 flex justify-between items-center bg-black/60">
+                      <div class="font-hud text-[10px] text-gray-400">HGM_SWARM_COMM_PROTOCOL (SYNC_WAL)</div>
+                   </div>
+                   <div class="flex-1 p-6 overflow-y-auto space-y-4 font-code text-[10px] scrollbar-hide" ref="swarmLogBox">
+                      <div v-for="(msg, i) in swarmMessages" :key="i" class="border border-gray-800 bg-black/50 p-3 rounded hover:border-blue-900/50 transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                           <div class="text-cyan-400 font-hud text-[9px]">{{ msg.from }} &rarr; {{ msg.to }}</div>
+                           <div class="text-gray-600 text-[8px]">{{ msg.time }}</div>
+                        </div>
+                        <div class="text-white font-bold mb-1">{{ msg.subject }}</div>
+                        <div class="text-gray-400 whitespace-pre-wrap">{{ msg.body }}</div>
+                      </div>
+                      <div v-if="swarmMessages.length === 0" class="h-full flex flex-col items-center justify-center opacity-30 text-center">
+                        <div class="text-4xl text-blue-500 mb-4">&#x260E;</div>
+                        <div class="font-hud text-[10px] tracking-widest">AWAITING_INTER_AGENT_COMMS</div>
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              <!-- PIPELINE SUB-TAB -->
+              <div v-if="codingSubTab === 'pipeline'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                 <div class="w-80 flex flex-col gap-4 overflow-y-auto scrollbar-hide">
+                    <div class="lux-panel p-4 border border-green-900/30 bg-green-950/5 relative">
+                      <div class="font-hud text-[10px] text-green-500 mb-3 border-b border-green-900/30 pb-2">PIPELINE_STAGES</div>
+                      <div class="space-y-2">
+                        <button v-for="(stage, idx) in pipelineStages" :key="idx" @click="activePipelineStage = idx" class="w-full text-left p-3 border bg-black/60 transition-all font-hud text-[9px] text-white flex justify-between items-center" :class="activePipelineStage === idx ? 'border-green-500/50' : 'border-gray-800'">
+                          <span>{{ stage.name }}</span>
+                          <span :class="stage.status === 'PASS' ? 'text-green-500' : (stage.status === 'RUNNING' ? 'text-yellow-500 animate-pulse' : 'text-gray-600')">{{ stage.status }}</span>
+                        </button>
+                      </div>
+                      <button @click="triggerWorkflow()" class="w-full mt-4 bg-green-900/20 border border-green-800 text-green-400 font-hud text-[10px] py-2 hover:bg-green-800/40">
+                          TRIGGER_WORKFLOW
+                      </button>
+                    </div>
+                 </div>
+                 
+                 <div class="flex-1 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">
+                   <div class="p-4 border-b border-gray-900 bg-black/60 flex justify-between items-center">
+                     <span class="font-hud text-[10px] text-gray-400">WORKFLOW_LOGS // STAGE: {{ activePipelineStage + 1 }}</span>
+                     <span class="font-code text-[8px] text-yellow-500" :class="{ 'animate-pulse': pipelineStages[activePipelineStage].status === 'RUNNING' }">{{ pipelineStages[activePipelineStage].status }}</span>
+                   </div>
+                   <div class="flex-1 p-6 overflow-y-auto font-code text-[10px] text-gray-300 bg-black/80 scrollbar-hide whitespace-pre-wrap leading-relaxed">
+{{ pipelineStages[activePipelineStage].log || 'Waiting for execution...' }}
+                   </div>
+                 </div>
+              </div>
+            </div>
+
+            <!-- VIEW: FINANCE -->
+            <div v-if="currentView === 'finance'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-emerald-400 tracking-[0.3em]">FINANCIAL_INTELLIGENCE</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">System ROI & Resource Cost Analysis</div>
+                </div>
+                <div class="flex gap-4">
+                  <button @click="fetchFinanceMetrics" class="text-[10px] font-hud text-emerald-500 border border-emerald-900/30 px-3 py-1 hover:bg-emerald-950/20">REFRESH_METRICS</button>
+                </div>
+              </div>
+
+              <div class="flex-1 flex flex-col gap-6 overflow-y-auto scrollbar-hide">
+                <!-- TOP METRICS -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div class="lux-panel p-6 border-l-2 border-emerald-500 bg-emerald-950/5">
+                    <div class="text-[8px] text-emerald-500/60 font-hud uppercase mb-1">Total_API_Cost</div>
+                    <div class="text-3xl font-hud text-white">${{ financeMetrics.totalCost }}</div>
+                    <div class="text-[8px] text-gray-600 mt-2 font-code">Est. Gemini Usage</div>
+                  </div>
+                  <div class="lux-panel p-6 border-l-2 border-blue-500 bg-blue-950/5">
+                    <div class="text-[8px] text-blue-500/60 font-hud uppercase mb-1">Pipeline_Value</div>
+                    <div class="text-3xl font-hud text-white">${{ financeMetrics.pipelineValue }}</div>
+                    <div class="text-[8px] text-gray-600 mt-2 font-code">CRM Opportunity Sum</div>
+                  </div>
+                  <div class="lux-panel p-6 border-l-2 border-purple-500 bg-purple-950/5">
+                    <div class="text-[8px] text-purple-500/60 font-hud uppercase mb-1">System_ROI</div>
+                    <div class="text-3xl font-hud text-white">{{ financeMetrics.roiFactor }}x</div>
+                    <div class="text-[8px] text-gray-600 mt-2 font-code">Value / Cost Ratio</div>
+                  </div>
+                  <div class="lux-panel p-6 border-l-2 border-amber-500 bg-amber-950/5">
+                    <div class="text-[8px] text-amber-500/60 font-hud uppercase mb-1">Token_Throughput</div>
+                    <div class="text-3xl font-hud text-white">{{ (financeMetrics.totalTokens / 1000).toFixed(1) }}k</div>
+                    <div class="text-[8px] text-gray-600 mt-2 font-code">Total Lifetime Tokens</div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- ROI VISUALIZATION -->
+                  <div class="lux-panel p-6 border border-gray-900 bg-black/40 relative overflow-hidden">
+                    <div class="font-hud text-xs text-emerald-400 mb-6 tracking-widest border-b border-emerald-900/30 pb-2">ROI_EFFICIENCY_MODEL</div>
+                    <div class="flex items-center justify-center py-8">
+                      <div class="relative w-48 h-48 rounded-full border-4 border-emerald-900/20 flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" :style="{ animationDuration: '3s' }"></div>
+                        <div class="text-center">
+                          <div class="text-4xl font-hud text-white">{{ financeMetrics.roiFactor }}x</div>
+                          <div class="text-[8px] text-gray-500 uppercase font-hud">Efficiency</div>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="text-[9px] text-gray-600 font-code leading-relaxed text-center px-8 italic">
+                      This model calculates ROI by comparing cumulative Gemini API costs against the projected value of leads currently in the "Qualified", "Proposal", or "Closed" stages of your CRM.
+                    </p>
+                  </div>
+
+                  <!-- SYSTEM VITALITY / QUOTA -->
+                  <div class="lux-panel p-6 border border-gray-900 bg-black/40">
+                    <div class="font-hud text-xs text-blue-400 mb-6 tracking-widest border-b border-blue-900/30 pb-2">QUOTA_REMAINING_SNAPSHOT</div>
+                    <div class="space-y-6">
+                      <div v-if="activeState.metrics.quota">
+                        <div class="flex justify-between font-hud text-[10px] mb-2">
+                          <span class="text-gray-500">GMAIL_DAILY_REMAINING</span>
+                          <span class="text-white">{{ activeState.metrics.quota.email }} / {{ activeState.metrics.quota.max }}</span>
+                        </div>
+                        <div class="h-2 bg-gray-900 rounded-full overflow-hidden">
+                          <div class="h-full bg-blue-500 transition-all duration-1000" :style="{ width: (activeState.metrics.quota.email / activeState.metrics.quota.max * 100) + '%' }"></div>
+                        </div>
+                      </div>
+                      
+                      <div class="p-4 bg-blue-950/10 border border-blue-900/20 rounded">
+                        <div class="font-hud text-[8px] text-blue-500 uppercase mb-2">Economic_Observation</div>
+                        <div class="text-[10px] font-code text-gray-400">
+                          The system is currently operating in <strong>{{ activeState.metrics.quota ? activeState.metrics.quota.label : 'STANDBY' }}</strong> mode. 
+                          Projected cost for the next 100 missions: <strong>< $0.05</strong> based on current Flash/Pro model mix.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: CORE SETTINGS -->
+            <div v-if="currentView === 'settings'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-rose-400 tracking-[0.3em]">CORE_SYSTEM_CONFIG</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Credential Encryption & API Uplink Management</div>
+                </div>
+                <div class="flex gap-4">
+                  <button @click="runGa4Diagnostic" class="text-[10px] font-hud text-green-500 border border-green-900/30 px-3 py-1 hover:bg-green-950/20">RUN_GA4_DIAGNOSTIC</button>
+                  <button @click="refreshSettings" class="text-[10px] font-hud text-rose-500 border border-rose-900/30 px-3 py-1 hover:bg-rose-950/20">REFRESH_UPLINKS</button>
+                </div>
+              </div>
+
+              <div class="flex-1 flex gap-6 overflow-hidden">
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded p-4 overflow-y-auto scrollbar-hide">
+                  <table class="w-full text-left font-code text-[10px]">
+                    <thead class="text-rose-500/60 font-hud border-b border-gray-900">
+                      <tr>
+                        <th class="py-2">PROPERTY_KEY</th>
+                        <th class="py-2">ENCRYPTED_VALUE</th>
+                        <th class="py-2 text-right">ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-900/30">
+                      <tr v-for="cred in vaultKeys" :key="cred.name" class="hover:bg-white/5 transition-colors">
+                        <td class="py-3 text-gray-300">{{ cred.name }}</td>
+                        <td class="py-3 text-gray-600 tracking-widest">{{ cred.value }}</td>
+                        <td class="py-3 text-right">
+                          <button @click="deleteKey(cred.name)" class="text-red-900 hover:text-red-500">[ PURGE ]</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="w-80 flex flex-col gap-6">
+                  <!-- MODEL SELECTOR -->
+                  <div class="bg-indigo-950/10 border border-indigo-900/30 rounded p-6 flex flex-col gap-4">
+                    <div class="font-hud text-xs text-indigo-400 border-b border-indigo-900/30 pb-2 uppercase">Model_Architecture</div>
+                    <div class="space-y-4">
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">FAST_LAYER (Flash)</label>
+                        <select v-model="selectedFlashModel" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-indigo-500 appearance-none">
+                          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                          <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Latest)</option>
+                          <option value="gemini-1.5-flash-002">Gemini 1.5 Flash (002)</option>
+                          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Stable)</option>
+                          <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">THINK_LAYER (Pro)</label>
+                        <select v-model="selectedProModel" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-indigo-500 appearance-none">
+                          <option value="gemini-2.0-pro-exp-02-05">Gemini 2.0 Pro (Exp)</option>
+                          <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro (Latest)</option>
+                          <option value="gemini-1.5-pro-002">Gemini 1.5 Pro (002)</option>
+                          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Stable)</option>
+                        </select>
+                      </div>
+                      <button @click="saveModelConfig" class="w-full bg-indigo-900/20 border border-indigo-800 text-indigo-400 font-hud text-[10px] py-3 hover:bg-indigo-800 hover:text-white transition-all">
+                        UPDATE_ARCHITECTURE
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="bg-rose-950/5 border border-rose-900/20 rounded p-6 flex flex-col gap-4">
+                    <div class="font-hud text-xs text-rose-400 border-b border-rose-900/30 pb-2">INJECT_NEW_CREDENTIAL</div>
+                    <div class="space-y-4">
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">KEY_NAME</label>
+                        <input v-model="newKeyName" type="text" placeholder="e.g. GEMINI_API_KEY" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-rose-500">
+                      </div>
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">KEY_VALUE</label>
+                        <input v-model="newKeyValue" type="password" placeholder="••••••••••••" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-rose-500">
+                      </div>
+                      <button @click="saveKey" class="w-full bg-rose-900/20 border border-rose-800 text-rose-400 font-hud text-[10px] py-3 hover:bg-rose-800 hover:text-white transition-all">
+                        EXECUTE_STORAGE
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- GLOBAL COMMAND INPUT -->
+            <div class="p-6 border-t border-white/5 bg-gradient-to-b from-black/40 to-black/80 backdrop-blur-xl relative z-40">
+              <!-- QUICK_SLASH_OVERLAY -->
+              <div class="flex flex-wrap gap-2 mb-3">
+                <button v-for="cmd in quickSlashCommands" :key="cmd.label"
+                        @click="sendMessage(cmd.cmd)"
+                        class="px-2 py-1 bg-black/40 border border-gray-900 hover:border-white/20 transition-all group relative"
+                        :title="cmd.desc">
+                  <span class="font-hud text-[8px] text-gray-600 group-hover:text-white transition-colors tracking-widest">{{ cmd.label }}</span>
+                  <div class="absolute bottom-0 left-0 h-px bg-white/10 transition-all duration-300 w-0 group-hover:w-full"></div>
+                </button>
+              </div>
+
+              <div v-if="selectedImage" class="mb-3 px-4 py-2 text-[10px] text-cyan-400 bg-cyan-950/30 border border-cyan-500/30 flex justify-between items-center rounded-sm">
+                <span class="flex items-center gap-3 font-hud">
+                  <span class="w-1.5 h-1.5 bg-cyan-400 animate-pulse rounded-full shadow-[0_0_8px_#00f3ff]"></span> 
+                  ATTACH_ASSET: {{ selectedImage.name }}
+                </span>
+                <button @click="clearImage" class="text-red-500 hover:text-white transition-colors font-hud text-[9px]">[ PURGE ]</button>
+              </div>
+              
+              <div class="lux-panel flex items-center gap-4 p-1 pl-5 border-l-2 transition-all duration-500 group focus-within:shadow-[0_0_30px_-10px_rgba(0,243,255,0.2)]" 
+                   :style="{ borderLeftColor: uiColor, backgroundColor: 'rgba(255,255,255,0.02)' }">
+                
+                <button @click="openFilePicker" class="text-gray-600 hover:text-white transition-all transform hover:scale-110" title="Upload Asset">
+                  <span class="text-xl font-light">+</span>
+                </button>
+                <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">
+                
+                <div class="flex items-center gap-2">
+                  <span class="font-hud text-[10px] tracking-tighter opacity-40">MISSION</span>
+                  <span class="font-hud text-xs animate-pulse" :style="{color: uiColor}">>></span>
+                </div>
+                
+                <input type="text" v-model="userInput" @keyup.enter="sendMessage()" 
+                       class="flex-1 bg-transparent border-none outline-none text-white font-code text-xs py-3 placeholder-gray-800 tracking-wider"
+                       :placeholder="isRecording ? 'CAPTURING_AUDIO_INTEL...' : 'ENTER_MISSION_DIRECTIVE...'">
+                
+                <button @click="sendMessage()" :disabled="isProcessing" 
+                        class="font-hud text-[10px] px-8 py-3 transition-all duration-300 relative overflow-hidden group/btn"
+                        :class="isProcessing ? 'text-gray-600 cursor-wait' : 'text-black font-bold cursor-pointer hover:tracking-[0.2em]'"
+                        :style="{ backgroundColor: isProcessing ? '#111' : uiColor }">
+                  <span class="relative z-10">{{ isProcessing ? 'BUSY' : 'LAUNCH' }}</span>
+                  <div v-if="!isProcessing" class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                </button>
+              </div>
+              
+              <div class="mt-2 flex justify-between px-1">
+                <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Intel_Link: Stable</div>
+                <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Access: admin@agency</div>
               </div>
             </div>
           </main>
@@ -463,13 +1742,13 @@
           <!-- RIGHT PANEL: ADVANCED CONTEXT & ANALYSIS -->
           <aside class="w-full md:w-80 border-l border-gray-900 flex flex-col bg-black/40">
             <div class="p-4 border-b border-gray-900">
-              <div class="text-[9px] text-gray-600 font-hud mb-2 tracking-[0.2em]">ADVANCED_CONTEXT</div>
+              <div class="text-[9px] text-gray-600 font-hud mb-2 tracking-[0.2em]">STRATEGIC_CONTEXT</div>
               <div class="bg-blue-950/10 border border-blue-900/30 p-4 rounded">
-                <div class="font-hud text-[10px] text-blue-400 mb-2">SYSTEM_CONTEXT_MAP</div>
+                <div class="font-hud text-[10px] text-blue-400 mb-2">INTELLIGENCE_PARAMETERS</div>
                 <div class="font-code text-[10px] text-gray-300 space-y-2">
                   <div class="flex justify-between"><span>SESSION_TOKEN:</span> <span class="text-blue-300">{{ sessionId ? sessionId.substring(0,8) : 'NONE' }}</span></div>
-                  <div class="flex justify-between"><span>MEMORY_LOAD:</span> <span class="text-blue-300">{{ activeState.metrics.logs }} BYTES</span></div>
-                  <div class="flex justify-between"><span>ORCH_LATENCY:</span> <span class="text-blue-300">244ms</span></div>
+                  <div class="flex justify-between"><span>INTEL_STORE:</span> <span class="text-blue-300">{{ activeState.metrics.logs }} BYTES</span></div>
+                  <div class="flex justify-between"><span>CORE_LATENCY:</span> <span class="text-blue-300">244ms</span></div>
                 </div>
               </div>
             </div>
@@ -479,11 +1758,11 @@
               
               <!-- RECENT FILES EXPLORER -->
               <div class="space-y-4">
-                <div class="font-hud text-[9px] text-gray-600">LIVE_FILE_STREAM</div>
+                <div class="font-hud text-[9px] text-gray-600">LIVE_ASSET_STREAM</div>
                 <div class="space-y-1">
                   <div v-for="file in recentFiles" :key="file.id" @click="sendMessage('Read file: ' + file.name)" class="file-row">
                     <div class="file-type-indicator" :style="{ backgroundColor: getFileTypeColor(file.mimeType) }"></div>
-                    <div class="flex-1 truncate">{{ file.name }}</div>
+                    <div class="flex-1 truncate text-[10px]">{{ file.name }}</div>
                     <div class="text-gray-600 text-[8px] uppercase">{{ file.mimeType.split('.').pop() }}</div>
                   </div>
                   <div v-if="recentFiles.length === 0" class="text-[9px] text-gray-700 italic px-2">Scanning Drive for artifacts...</div>
@@ -491,7 +1770,7 @@
               </div>
 
               <div v-if="activeState.team" class="space-y-4">
-                <div class="font-hud text-[9px] text-gray-600">AGENT_CAPABILITIES</div>
+                <div class="font-hud text-[9px] text-gray-600">DEPARTMENT_CAPABILITIES</div>
                 <div class="grid grid-cols-1 gap-2">
                   <div v-for="cap in getAgentCaps(activeState.team)" :key="cap" class="bg-black/60 border border-gray-800 px-3 py-2 font-code text-[10px] text-cyan-400">
                     &bull; {{ cap }}
@@ -500,51 +1779,86 @@
               </div>
 
               <div class="space-y-4">
-                <div class="font-hud text-[9px] text-gray-600">KNOWLEDGE_NEXUS</div>
+                <div class="font-hud text-[9px] text-gray-600">KNOWLEDGE_HUB</div>
                 
                 <!-- Core Links -->
                 <div v-if="knowledgeMeta" class="grid grid-cols-1 gap-2">
                   <a :href="knowledgeMeta.folder.url" target="_blank" class="p-2 border border-gray-800 bg-cyan-950/20 hover:bg-cyan-900/30 flex items-center justify-between group no-underline">
-                    <div class="font-code text-[10px] text-cyan-400">KB_FOLDER</div>
-                    <div class="text-[9px] text-gray-500 group-hover:text-cyan-200">OPEN ↗</div>
+                    <div class="font-code text-[10px] text-cyan-400">ASSET_VAULT</div>
+                    <div class="text-[9px] text-gray-500 group-hover:text-cyan-200">OPEN -></div>
                   </a>
                   <a :href="knowledgeMeta.truth.url" target="_blank" class="p-2 border border-gray-800 bg-purple-950/20 hover:bg-purple-900/30 flex items-center justify-between group no-underline">
                     <div class="font-code text-[10px] text-purple-400">TRUTH_DOC</div>
-                    <div class="text-[9px] text-gray-500 group-hover:text-cyan-200">OPEN ↗</div>
+                    <div class="text-[9px] text-gray-500 group-hover:text-cyan-200">OPEN -></div>
                   </a>
                   <a :href="knowledgeMeta.memory.url" target="_blank" class="p-2 border border-gray-800 bg-green-950/20 hover:bg-green-900/30 flex items-center justify-between group no-underline">
-                    <div class="font-code text-[10px] text-green-400">MEMORY_STORE</div>
+                    <div class="font-code text-[10px] text-green-400">INTEL_STORE</div>
                     <div class="text-[9px] text-gray-500 group-hover:text-green-200">OPEN ↗</div>
                   </a>
                 </div>
                 <div v-else class="text-[9px] text-gray-600 italic">Loading Nexus uplink...</div>
 
-                <!-- Interactive Actions -->
+                <!-- Asset Storage -->
                 <div class="space-y-2 mt-4">
-                  <div class="font-hud text-[8px] text-gray-500">QUICK_ACTIONS</div>
-                  
-                  <!-- Quick Fact -->
-                  <div class="flex gap-1">
-                    <input v-model="quickFact" @keyup.enter="ingestFact" type="text" placeholder="Add fact to memory..." class="flex-1 bg-black/50 border border-gray-800 text-[10px] text-gray-300 p-1 focus:border-cyan-500 outline-none placeholder-gray-700">
-                    <button @click="ingestFact" class="bg-cyan-900/20 border border-cyan-800 text-cyan-400 text-[10px] px-2 hover:bg-cyan-800/40">+</button>
-                  </div>
-
-                  <!-- Curate Topic -->
-                  <div class="flex gap-1">
-                    <input v-model="curateTopic" @keyup.enter="triggerCuration" type="text" placeholder="Research & curate topic..." class="flex-1 bg-black/50 border border-gray-800 text-[10px] text-gray-300 p-1 focus:border-purple-500 outline-none placeholder-gray-700">
-                    <button @click="triggerCuration" class="bg-purple-900/20 border border-purple-800 text-purple-400 text-[10px] px-2 hover:bg-purple-800/40">RUN</button>
-                  </div>
+                  <div class="font-hud text-[8px] text-gray-500">ASSET_STORAGE</div>
+                  <button @click="openAssetPicker" class="w-full p-2 border border-gray-800 bg-white/5 hover:bg-white/10 flex items-center justify-between group">
+                    <div class="font-code text-[10px] text-white">UPLOAD_MEDIA_ASSET</div>
+                    <div class="text-[9px] text-gray-500 group-hover:text-white">+</div>
+                  </button>
+                  <input type="file" ref="assetFileInput" @change="handleAssetSelect" accept="image/*,audio/*,video/*" class="hidden">
                 </div>
 
               </div>
 
               <div class="mt-auto pt-6 border-t border-gray-900">
-                <div class="font-hud text-[9px] text-gray-600 mb-2">TELEMETRY_RADAR</div>
-                <div class="flex justify-center py-4" :style="{ opacity: 0.3 + (activeState.metrics.load / 100) }">
-                  <div class="w-24 h-24 rounded-full border border-cyan-900 relative flex items-center justify-center overflow-hidden" :style="{ borderColor: uiColor + '33' }">
-                    <div class="absolute inset-0 border-t-2 animate-spin" :style="{ borderColor: uiColor, animationDuration: Math.max(0.5, 5 - (activeState.metrics.load / 20)) + 's' }"></div>
-                    <div class="w-1 h-1 rounded-full animate-ping" :style="{ backgroundColor: uiColor }"></div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-cyan-500/10" :style="{ opacity: activeState.metrics.load / 100 }"></div>
+                <div class="flex justify-between items-center mb-4">
+                  <div class="font-hud text-[9px] text-gray-600">SYSTEM_VITALITY</div>
+                  <div class="font-code text-[8px] px-2 py-0.5 rounded-sm bg-blue-500/10 text-blue-400 border border-blue-500/20" v-if="activeState.metrics.quota">
+                    GMAIL_QUOTA: {{ activeState.metrics.quota.label }}
+                  </div>
+                </div>
+                
+                <div class="relative flex flex-col items-center py-4">
+                  <!-- Advanced Radar Rings -->
+                  <div class="w-32 h-32 rounded-full border border-gray-900 relative flex items-center justify-center">
+                    <!-- Outer Ring (Quota Pressure) -->
+                    <div class="absolute inset-0 rounded-full border border-dashed border-gray-800 transition-all duration-1000"
+                         :style="{ transform: `rotate(${(activeState.metrics.load * 2)}deg)`, opacity: 0.2 + (activeState.metrics.load / 200) }"></div>
+                    
+                    <!-- Middle Ring (Neural Saturation) -->
+                    <div class="absolute inset-2 rounded-full border-2 border-t-transparent border-l-transparent animate-spin"
+                         :style="{ borderColor: uiColor, animationDuration: Math.max(0.5, 5 - (activeState.metrics.load / 20)) + 's' }"></div>
+                    
+                    <!-- Inner Core -->
+                    <div class="w-2 h-2 rounded-full animate-ping" :style="{ backgroundColor: uiColor }"></div>
+                    
+                    <!-- Data Labels Inside Radar -->
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <div class="font-hud text-[10px] text-white font-bold">{{ activeState.metrics.load }}%</div>
+                      <div class="font-code text-[6px] text-gray-600 uppercase tracking-tighter">Saturation</div>
+                    </div>
+                  </div>
+
+                  <!-- Mini Gauges Below Radar -->
+                  <div class="mt-6 w-full grid grid-cols-2 gap-4 px-2">
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[7px] font-hud text-gray-600">
+                        <span>INTEL_LOAD</span>
+                        <span>{{ activeState.metrics.load }}%</span>
+                      </div>
+                      <div class="h-0.5 bg-gray-950 w-full overflow-hidden">
+                        <div class="h-full bg-cyan-500 transition-all duration-1000" :style="{ width: activeState.metrics.load + '%' }"></div>
+                      </div>
+                    </div>
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[7px] font-hud text-gray-600">
+                        <span>QUOTA_REMAIN</span>
+                        <span v-if="activeState.metrics.quota">{{ activeState.metrics.quota.email }}</span>
+                      </div>
+                      <div class="h-0.5 bg-gray-950 w-full overflow-hidden">
+                        <div class="h-full bg-purple-500 transition-all duration-1000" :style="{ width: (activeState.metrics.quota ? (activeState.metrics.quota.email / activeState.metrics.quota.max * 100) : 0) + '%' }"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

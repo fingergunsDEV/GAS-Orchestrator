@@ -4,28 +4,145 @@
 
 // Define constants
 var API_KEY_PROPERTY = "GEMINI_API_KEY";
-var ACTIVE_MODEL_NAME = "gemini-2.0-flash";
 var API_VERSION = "v1beta";
 
-function callGemini(history, toolsManifest, systemInstruction) {
-  var manifest = toolsManifest || [];
+/**
+ * Core function to call Gemini API with automatic model failover.
+ */
+function callGemini(history, toolsManifest, systemInstruction, responseMimeType, modelTier) {
   var scriptProperties = PropertiesService.getScriptProperties();
   var apiKey = scriptProperties.getProperty(API_KEY_PROPERTY);
-  var activeModel = scriptProperties.getProperty("PREFERRED_MODEL") || "gemini-2.0-flash";
-  var customInstruction = scriptProperties.getProperty("SYSTEM_INSTRUCTION");
-  var userTone = scriptProperties.getProperty("USER_PREFERENCE_TONE") || "professional and concise";
   
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
-    throw new Error("Gemini API Key is missing or invalid. Please run 'setApiKey()' in the script editor with your actual key from Google AI Studio.");
+    throw new Error("Gemini API Key is missing or invalid.");
   }
-  
   apiKey = apiKey.trim();
-  
-  // Debug: Log the key being used (masked) to verify it's loaded correctly
-  var maskedKey = apiKey.length > 5 ? apiKey.substring(0, 5) + "..." + apiKey.substring(apiKey.length - 3) : "(Invalid Length)";
-  console.log("Using Gemini API Key: " + maskedKey + " | Model: " + activeModel);
 
-  var endpoint = "https://generativelanguage.googleapis.com/" + API_VERSION + "/models/" + activeModel + ":generateContent?key=" + apiKey;
+  // 1. Get prioritized list of models for this tier
+  var models = getPrioritizedModels(modelTier);
+  var lastError = null;
+  var triedModels = [];
+
+  // 2. Iterate through models until one works
+  for (var m = 0; m < models.length; m++) {
+    var activeModel = models[m];
+    triedModels.push(activeModel);
+    try {
+      return executeGeminiRequest(activeModel, history, toolsManifest, systemInstruction, responseMimeType, apiKey);
+    } catch (e) {
+      lastError = e.message;
+      console.warn("Model " + activeModel + " failed: " + e.message + ". Trying fallback...");
+      // If it's a 404 (Not Found) or 429 (Quota), try next model
+      if (e.message.indexOf("404") !== -1 || e.message.indexOf("429") !== -1) {
+        continue;
+      }
+      // For other errors, maybe stop? For now, we continue to maximize availability
+      continue;
+    }
+  }
+
+  return { error: "All available models failed. Tried: " + triedModels.join(", ") + ". Last error: " + lastError };
+}
+
+/**
+ * Discovers and prioritizes models based on tier.
+ * Caches results for performance.
+ */
+function getPrioritizedModels(tier) {
+  var cache = CacheService.getScriptCache();
+  var cacheKey = "DISCOVERED_MODELS_" + (tier || "flash");
+  var cached = cache.get(cacheKey);
+  if (cached) return JSON.parse(cached);
+
+  var allModels = listModelsInternal();
+  var prioritized = [];
+
+  if (tier === 'pro') {
+    prioritized = allModels.filter(function(m) { return (m.includes("pro") || m.includes("2.0-flash")) && !m.includes("vision"); });
+    // Sort: 2.0 > 1.5, latest > stable
+    prioritized.sort(function(a, b) {
+      if (a.includes("2.0") && !b.includes("2.0")) return -1;
+      if (!a.includes("2.0") && b.includes("2.0")) return 1;
+      if (a.includes("latest") && !b.includes("latest")) return -1;
+      if (a.includes("002") && !b.includes("002")) return -1;
+      return 0;
+    });
+    // Add hardcoded fallbacks just in case discovery failed or is missing modern models
+    var fallbacks = [
+      "models/gemini-1.5-pro-002",
+      "models/gemini-1.5-pro-latest",
+      "models/gemini-1.5-pro",
+      "models/gemini-2.0-flash-exp",
+      "models/gemini-2.0-flash"
+    ];
+    fallbacks.forEach(function(f) {
+      if (prioritized.indexOf(f) === -1) prioritized.push(f);
+    });
+  } else {
+    prioritized = allModels.filter(function(m) { return m.includes("flash") && !m.includes("8b"); });
+    // Sort: 2.0 > 1.5, latest > stable
+    prioritized.sort(function(a, b) {
+      if (a.includes("2.0") && !b.includes("2.0")) return -1;
+      if (!a.includes("2.0") && b.includes("2.0")) return 1;
+      if (a.includes("latest") && !b.includes("latest")) return -1;
+      return 0;
+    });
+    // Add hardcoded fallbacks
+    var fallbacks = [
+      "models/gemini-2.0-flash",
+      "models/gemini-1.5-flash-latest",
+      "models/gemini-1.5-flash-002",
+      "models/gemini-1.5-flash"
+    ];
+    fallbacks.forEach(function(f) {
+      if (prioritized.indexOf(f) === -1) prioritized.push(f);
+    });
+  }
+
+  // Final sanitization: ensure 'models/' prefix
+  prioritized = prioritized.map(function(m) { return m.startsWith("models/") ? m : "models/" + m; });
+
+  cache.put(cacheKey, JSON.stringify(prioritized), 3600); // Cache for 1 hour
+  return prioritized;
+}
+
+/**
+ * Internal model listing
+ */
+function listModelsInternal() {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var apiKey = scriptProperties.getProperty(API_KEY_PROPERTY);
+  if (!apiKey) return [];
+  
+  var endpoint = "https://generativelanguage.googleapis.com/" + API_VERSION + "/models?key=" + apiKey;
+  try {
+    var response = UrlFetchApp.fetch(endpoint, {muteHttpExceptions: true});
+    var json = JSON.parse(response.getContentText());
+    if (json.models) {
+      return json.models
+        .filter(function(m) { return m.supportedGenerationMethods.indexOf("generateContent") !== -1; })
+        .map(function(m) { return m.name; });
+    }
+  } catch (e) {
+    console.error("ListModels failed: " + e.message);
+  }
+  return [];
+}
+
+/**
+ * Execution logic separated for failover retry
+ */
+function executeGeminiRequest(activeModel, history, toolsManifest, systemInstruction, responseMimeType, apiKey) {
+  var manifest = toolsManifest || [];
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var userTone = scriptProperties.getProperty("USER_PREFERENCE_TONE") || "professional and concise";
+  var customInstruction = scriptProperties.getProperty("SYSTEM_INSTRUCTION");
+
+  // Remove 'models/' prefix if present for endpoint construction if needed, 
+  // but the API usually expects the full name or just the ID. 
+  // The current code uses it in the URL path.
+  var modelId = activeModel.replace("models/", "");
+  var endpoint = "https://generativelanguage.googleapis.com/" + API_VERSION + "/models/" + modelId + ":generateContent?key=" + apiKey;
 
   var baseContext = "CORE CONTEXT:\n" +
     "- User Identity: " + Session.getActiveUser().getEmail() + "\n" +
@@ -50,27 +167,17 @@ function callGemini(history, toolsManifest, systemInstruction) {
       return {
         role: turn.role,
         parts: turn.parts.map(function(part) {
-          // Handle Text
           if (part.text) return { text: part.text };
-          // Handle Function Calls
           if (part.functionCall) return { functionCall: part.functionCall };
           if (part.functionResponse) return { functionResponse: part.functionResponse };
-          // Handle Images (Inline Data)
           if (part.mimeType && part.data) {
-            return {
-              inlineData: {
-                mimeType: part.mimeType,
-                data: part.data
-              }
-            };
+            return { inlineData: { mimeType: part.mimeType, data: part.data } };
           }
           return part;
         })
       };
     }),
-    systemInstruction: {
-      parts: [{ text: finalInstruction }]
-    },
+    systemInstruction: { parts: [{ text: finalInstruction }] },
     safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -79,9 +186,8 @@ function callGemini(history, toolsManifest, systemInstruction) {
     ]
   };
 
-  if (manifest.length > 0) {
-    payload.tools = [{ functionDeclarations: manifest }];
-  }
+  if (manifest.length > 0) payload.tools = [{ functionDeclarations: manifest }];
+  if (responseMimeType) payload.generationConfig = { response_mime_type: responseMimeType };
 
   var options = {
     method: "post",
@@ -90,79 +196,43 @@ function callGemini(history, toolsManifest, systemInstruction) {
     muteHttpExceptions: true
   };
 
-  try {
-    var maxRetries = 5;
-    var retryCount = 0;
-    var response;
-    var code;
-    var contentText;
-    var json;
-
-    while (retryCount <= maxRetries) {
-      try {
-        response = UrlFetchApp.fetch(endpoint, options);
-        code = response.getResponseCode();
-        contentText = response.getContentText();
-        
-        // Success
-        if (code === 200) {
-          json = JSON.parse(contentText);
-          return parseGeminiResponse(json);
-        }
-        
-        // Retryable Errors: 429 (Too Many Requests) or 5xx (Server Errors)
-        if (code === 429 || (code >= 500 && code < 600)) {
-          if (retryCount === maxRetries) {
-            json = JSON.parse(contentText);
-            throw new Error("API Error (" + code + ") after " + maxRetries + " retries: " + (json.error ? json.error.message : contentText));
-          }
-          
-          var delay = Math.min(32000, 1000 * Math.pow(2, retryCount));
-          console.warn("Gemini API Error (" + code + "). Retrying in " + delay + "ms...");
-          Utilities.sleep(delay);
-          retryCount++;
-          continue;
-        }
-
-        // Non-retryable error (e.g., 400 Bad Request)
-        json = JSON.parse(contentText);
-        throw new Error("API Error (" + code + "): " + (json.error ? json.error.message : contentText));
-
-      } catch (fetchErr) {
-        // Handle network errors (e.g. DNS failure) that throw exceptions instead of returning error codes
-        if (retryCount === maxRetries) throw fetchErr;
-        
-        var delay = Math.min(32000, 1000 * Math.pow(2, retryCount));
-        console.warn("Network Error: " + fetchErr.message + ". Retrying in " + delay + "ms...");
-        Utilities.sleep(delay);
-        retryCount++;
-      }
-    }
-  } catch (e) {
-    // SELF-CORRECTION: Handle Invalid JSON or API hiccups
-    if (e.message.indexOf("Unexpected token") !== -1 || e.message.indexOf("JSON") !== -1) {
-      console.warn("Gemini returned invalid JSON. Attempting self-correction...");
-      
-      // Prevent infinite recursion
-      var retryCount = history.filter(function(h) { return h.role === "user" && h.parts[0].text.indexOf("Fix your JSON") !== -1; }).length;
-      if (retryCount < 2) {
-        history.push({
-          role: "user",
-          parts: [{ text: "SYSTEM ERROR: You returned invalid JSON. Please fix your previous response and return ONLY valid JSON." }]
-        });
-        return callGemini(history, toolsManifest, systemInstruction);
-      }
+  var maxRetries = 3;
+  var retryCount = 0;
+  
+  while (retryCount <= maxRetries) {
+    var response = UrlFetchApp.fetch(endpoint, options);
+    var code = response.getResponseCode();
+    var contentText = response.getContentText();
+    
+    if (code === 200) {
+      var parsed = parseGeminiResponse(JSON.parse(contentText));
+      parsed.model = activeModel;
+      return parsed;
     }
     
-    console.error("Gemini Request Failed:", e);
-    return { error: e.message };
+    if (code === 429 || (code >= 500 && code < 600)) {
+      if (retryCount === maxRetries) throw new Error("API Error (" + code + ") after retries: " + contentText);
+      var delay = Math.min(16000, 1000 * Math.pow(2, retryCount));
+      Utilities.sleep(delay);
+      retryCount++;
+      continue;
+    }
+    
+    throw new Error("API Error (" + code + "): " + contentText);
   }
 }
 
 function parseGeminiResponse(jsonResponse) {
+  var usage = jsonResponse.usageMetadata || { promptTokenCount: 0, candidatesTokenCount: 0, totalTokenCount: 0 };
+  
   if (!jsonResponse.candidates || jsonResponse.candidates.length === 0) {
-      console.error("No candidates returned. Response: " + JSON.stringify(jsonResponse));
-      return { type: "TEXT", text: "Error: No response generated by the AI." };
+      var blockReason = jsonResponse.promptFeedback ? jsonResponse.promptFeedback.blockReason : "Unknown";
+      console.error("No candidates returned. Block Reason: " + blockReason + " Response: " + JSON.stringify(jsonResponse));
+      return { 
+        type: "TEXT", 
+        text: "Error: No response generated by the AI. (Block Reason: " + blockReason + "). This usually happens if the request triggers a safety filter or the API key has exceeded its free-tier limits.",
+        usage: usage
+      };
   }
 
   var candidate = jsonResponse.candidates[0];
@@ -188,14 +258,32 @@ function parseGeminiResponse(jsonResponse) {
     return {
       type: "TOOL_CALL",
       toolCalls: toolCalls,
-      text: text.trim()
+      text: text.trim(),
+      usage: usage
     };
+  }
+
+  // Handle possible JSON text response
+  var cleanText = text.trim();
+  if (cleanText.startsWith("{") && cleanText.endsWith("}")) {
+    try {
+      var json = JSON.parse(cleanText);
+      return {
+        type: "JSON",
+        data: json,
+        text: cleanText,
+        usage: usage
+      };
+    } catch (e) {
+      // Fallback to TEXT if it's not valid JSON
+    }
   }
 
   return {
     type: "TEXT",
-    text: text.trim(),
-    rawPart: parts
+    text: cleanText,
+    rawPart: parts,
+    usage: usage
   };
 }
 
@@ -221,25 +309,14 @@ function setApiKey(key) {
 }
 
 function listModels() {
-  var scriptProperties = PropertiesService.getScriptProperties();
-  var apiKey = scriptProperties.getProperty(API_KEY_PROPERTY);
+  var flash = getPrioritizedModels('flash');
+  var pro = getPrioritizedModels('pro');
   
-  if (!apiKey) return ["No API Key set"];
-  
-  var endpoint = "https://generativelanguage.googleapis.com/" + API_VERSION + "/models?key=" + apiKey;
-  
-  try {
-    var response = UrlFetchApp.fetch(endpoint, {muteHttpExceptions: true});
-    var json = JSON.parse(response.getContentText());
-    
-    if (json.models) {
-        return json.models.map(function(m) { return m.name; });
-    } else {
-        return ["Error listing models: " + JSON.stringify(json)];
-    }
-  } catch (e) {
-    return ["Exception listing models: " + e.message];
-  }
+  return {
+    flash_tier: flash,
+    pro_tier: pro,
+    advice: "The system automatically tries models in order if one fails or hits a quota."
+  };
 }
 
 /**
@@ -253,8 +330,8 @@ function generateEmbedding(text) {
   
   if (!apiKey) throw new Error("Gemini API Key is missing.");
 
-  // text-embedding-004 is current SOTA for Gemini embeddings
-  var model = "models/text-embedding-004"; 
+  // models/embedding-001 is a more stable fallback for older API keys or restricted regions
+  var model = "models/embedding-001"; 
   var endpoint = "https://generativelanguage.googleapis.com/" + API_VERSION + "/" + model + ":embedContent?key=" + apiKey;
 
   var payload = {

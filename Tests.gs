@@ -21,18 +21,29 @@ function runSystemSuite() {
  */
 function testManifestIntegrity() {
   try {
+    initCoreRegistry();
     var manifest = getManifest();
-    var registry = TOOL_REGISTRY;
+    var coreImpls = CoreRegistry.getImplementations();
+    var pluginTools = (typeof PluginManager !== 'undefined') ? PluginManager.getPluginTools() : [];
+    
     var missing = [];
     
     manifest.forEach(function(tool) {
-      if (!registry.hasOwnProperty(tool.name)) {
-        missing.push(tool.name);
-      }
+      // Check core implementations
+      if (coreImpls.hasOwnProperty(tool.name)) return;
+      
+      // Check plugin implementations if available
+      if (typeof PluginManager !== 'undefined' && PluginManager.getPluginFunction(tool.name)) return;
+      
+      // Check dynamic tools in PropertiesService
+      var dynamicKey = "DYNAMIC_TOOL_" + tool.name.toUpperCase();
+      if (PropertiesService.getScriptProperties().getProperty(dynamicKey)) return;
+      
+      missing.push(tool.name);
     });
     
     if (missing.length > 0) {
-      return { status: "FAIL", message: "Missing tools in Dispatcher: " + missing.join(", ") };
+      return { status: "FAIL", message: "Missing tool implementations in Dispatcher: " + missing.join(", ") };
     }
     return { status: "PASS", message: "All " + manifest.length + " tools mapped correctly." };
   } catch (e) {
@@ -45,10 +56,11 @@ function testManifestIntegrity() {
  */
 function testDispatcherRouting() {
   try {
+    initCoreRegistry();
     // Test a simple tool call
     var result = dispatchToolCall("drive_find_files", { query: "NonExistentFile_12345" });
-    if (typeof result === 'string' && result.indexOf("Error") !== -1 && result.indexOf("Missing") === -1) {
-       // Only fail if it's a hard error, not a "Missing param" or logical error
+    if (typeof result === 'string' && result.indexOf("Error") !== -1 && result.indexOf("Missing") === -1 && result.indexOf("NO_RESULTS_FOUND") === -1) {
+       // Only fail if it's a hard error, not a "Missing param" or standardized empty result
        return { status: "FAIL", message: "Dispatcher returned unexpected error: " + result };
     }
     
@@ -80,14 +92,14 @@ function testGmailTools() {
   try {
     // 1. Unread Count
     var countRes = dispatchToolCall("gmail_get_unread_count", {});
-    if (countRes.indexOf("unread emails") === -1) {
+    if (countRes.indexOf("Unread count:") === -1 && countRes.indexOf("unread emails") === -1) {
       return { status: "FAIL", message: "gmail_get_unread_count failed: " + countRes };
     }
     
     // 2. Search (Empty Query Test)
     var searchRes = dispatchToolCall("gmail_search", { query: "subject:NONEXISTENT_UNIQUE_STRING_123456789" });
-    if (searchRes.indexOf("No email threads found") === -1 && searchRes.indexOf("No emails found") === -1) {
-      return { status: "FAIL", message: "gmail_search did not return 'No results' for empty query. Got: " + searchRes };
+    if (searchRes.indexOf("NO_RESULTS_FOUND") === -1) {
+      return { status: "FAIL", message: "gmail_search did not return standardized 'NO_RESULTS_FOUND' for empty query. Got: " + searchRes };
     }
     
     return { status: "PASS", message: "Gmail tools verified." };
@@ -126,8 +138,8 @@ function testRootRouting() {
   
   console.log("Result: " + result);
   
-  if (result.indexOf("Team Comms Team") !== -1 || result.indexOf("Inbox triage") !== -1) {
-    return { status: "PASS", message: "Successfully routed to Comms Team." };
+  if (result.indexOf("Department Client Communications") !== -1 || result.indexOf("Inbox triage") !== -1) {
+    return { status: "PASS", message: "Successfully routed to Client Communications." };
   } else {
     return { status: "FAIL", message: "Routing failed. Received: " + result };
   }
@@ -147,4 +159,15 @@ function evalPrompt(prompt) {
   if (res.content) console.log("Text Response: " + res.content);
   
   return res;
+}
+
+function testEmbeddingModel() {
+  try {
+    var result = generateEmbedding("Test content for embedding");
+    console.log("Embedding Result Length: " + result.length);
+    return { status: "PASS", message: "Embedding generated successfully with length " + result.length };
+  } catch (e) {
+    console.error("Embedding Test Failed: " + e.message);
+    return { status: "FAIL", message: e.message };
+  }
 }

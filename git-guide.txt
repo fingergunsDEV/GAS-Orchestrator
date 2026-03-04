@@ -1,0 +1,6 @@
+For new commits:
+
+git status	Lists changed files (red = not staged, green = staged).
+git add .	Moves changes from "Working Directory" to "Staging Area".
+git commit -m "msg"	Saves the "Staging Area" to your "Local History".
+git push	Uploads "Local History" to "GitHub".

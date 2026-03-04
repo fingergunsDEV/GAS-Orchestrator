@@ -42,6 +42,16 @@ var AnalyticsVectorDB = (function() {
         ];
         
         sheet.appendRow(row);
+
+        // ALSO upsert to main Knowledge Base with Partition
+        if (typeof executeVectorStoreUpsert !== 'undefined') {
+          executeVectorStoreUpsert({
+            content: "Analytics Intelligence [" + (args.source || "DATA") + "]: " + args.content,
+            tags: "analytics, " + (args.type || "insight").toLowerCase(),
+            partition: "Analytics Intelligence"
+          });
+        }
+        
         return "Success: Analytics insight saved to vector DB.";
       } catch (e) {
         return "Error saving analytics vector: " + e.message;
@@ -105,6 +115,47 @@ function getCosineSimilarity(vecA, vecB) {
   return (normA === 0 || normB === 0) ? 0 : dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+/**
+ * UI Data Provider for Research Lab
+ * Aggregates stats from both the specialized Analytics DB and the main Knowledge Base.
+ */
+function getVectorStatsUI() {
+  try {
+    var totalCount = 0;
+    var lastInsight = "No database found.";
+
+    // 1. Check Analytics DB
+    var filesA = DriveApp.getFilesByName("GAS_ANALYTICS_VECTOR_DB");
+    if (filesA.hasNext()) {
+      var sheetA = SpreadsheetApp.open(filesA.next()).getSheets()[0];
+      var dataA = sheetA.getDataRange().getValues();
+      var countA = Math.max(0, dataA.length - 1);
+      totalCount += countA;
+      if (countA > 0) lastInsight = "Analytics: " + dataA[dataA.length-1][3];
+    }
+
+    // 2. Check Main Knowledge Base (GAS_MEMORY_STORE)
+    var filesM = DriveApp.getFilesByName("GAS_MEMORY_STORE");
+    if (filesM.hasNext()) {
+      var sheetM = SpreadsheetApp.open(filesM.next()).getSheets()[0];
+      var dataM = sheetM.getDataRange().getValues();
+      var countM = Math.max(0, dataM.length - 1);
+      totalCount += countM;
+      if (countM > 0) {
+        var row = dataM[dataM.length - 1];
+        lastInsight = "[" + (row[4] || "General") + "] " + row[1].toString().substring(0, 100);
+      }
+    }
+
+    if (totalCount === 0 && lastInsight === "No database found.") {
+      lastInsight = "Intelligence layer initialized. Awaiting first ingestion.";
+    }
+
+    return { count: totalCount, lastInsight: lastInsight };
+  } catch (e) {
+    return { count: 0, lastInsight: "Error: " + e.message };
+  }
+}
 function initAnalyticsDbPlugin() {
   if (typeof PluginManager === 'undefined') return;
   

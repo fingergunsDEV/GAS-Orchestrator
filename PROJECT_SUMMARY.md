@@ -3,27 +3,31 @@
 ## 1. Executive Summary
 The **GAS Agentic Orchestrator** is a serverless, hierarchical multi-agent system built entirely within the Google Apps Script (GAS) ecosystem. It transforms a standard Google Workspace environment into an intelligent "Operating System" where users can issue natural language commands (text or multimodal) to control their digital office.
 
-Unlike simple chatbots, this system is an **Agentic Framework** that utilizes the **Gemini 1.5/2.0** models to reason, plan, and actively manipulate data across Gmail, Drive, Docs, Sheets, Calendar, Tasks, and external APIs like YouTube and Google Search.
+Unlike simple chatbots, this system is an **Agentic Framework** that utilizes the **Gemini 1.5/2.0** models to reason, plan, and actively manipulate data across Gmail, Drive, Docs, Sheets, Calendar, Tasks, and external APIs like GitHub.
 
 ## 2. Capabilities
 The system has been evolved into a "Pro" level enterprise tool with the following capabilities:
 
-### **Multi-Agent Teams**
-Instead of a single generalist agent, the system deploys **12 Specialized Teams**:
-1.  **Research Team**: Deep-dive web search, competitor analysis, and fact-checking.
-2.  **Content Team**: Creation of Slide decks, Documents, PDFs, and translations.
-3.  **Ops Team**: "Chief of Staff" duties—Calendar, Tasks, Forms, and Contacts management.
-4.  **SEO Team**: Technical website audits (GSC), keyword analysis, and traffic reports (GA4).
-5.  **Outreach Team**: Drafting cold emails, finding leads, and managing CRM data.
-6.  **Data Team**: Spreadsheet manipulation, data entry, and analytical reporting.
-7.  **Comms Team**: Inbox triage, email summarization, and VIP communication.
-8.  **Project Management (PM) Team**: Folder organization, file permissions/sharing, and project setup.
-9.  **Dev Team**: Technical support, script logic, and debugging.
-10. **Legal Team**: Document summary and compliance.
-11. **Social Team**: Social profile analysis, trend scanning, and content scheduling.
-12. **Finance Team**: Invoicing, margin estimation, and pricing strategy.
+### **Multi-Agent Departments**
+Instead of a single generalist agent, the system deploys **13 Specialized Departments**:
+1.  **Market Intelligence**: Deep-dive web search, competitor analysis, and fact-checking.
+2.  **Creative Engine**: Creation of Slide decks, Documents, PDFs, and translations.
+3.  **Agency Operations**: "Chief of Staff" duties—Calendar, Tasks, Forms, and Contacts management.
+4.  **Search Visibility**: Technical website audits (GSC), keyword analysis, and traffic reports (GA4).
+5.  **Strategic Outreach**: Drafting cold emails, finding leads, and managing CRM data.
+6.  **Performance Insights**: Spreadsheet manipulation, data entry, and analytical reporting.
+7.  **Client Communications**: Inbox triage, email summarization, and VIP communication.
+8.  **Project Governance**: Folder organization, file permissions/sharing, and project setup.
+9.  **Technical R&D**: Technical support, script logic, and debugging.
+10. **Coding Engine**: GitHub sync, CI/CD pipeline triggers, and codebase rollback via GitHub Actions.
+11. **Risk & Compliance**: Document summary and compliance.
+12. **Social Analytics**: Social profile analysis, trend scanning, and content scheduling.
+13. **Revenue Management**: Invoicing, margin estimation, and pricing strategy.
 
 ### **Core Features**
+*   **HGM Agentic Swarm**: Inter-agent mailbox monitoring in the UI for unparalleled visibility into complex workflows.
+*   **CI/CD Pipeline Integration**: Trigger and poll real GitHub Actions directly from the orchestrator UI.
+*   **Version Control Rollback**: Instantly revert local GAS files to specific GitHub commits or branches.
 *   **Multimodal Input**: Users can upload images (e.g., screenshots of data, UI designs) which are passed to agents for analysis.
 *   **Deep-Drill Autonomy**: Bypasses the 6-minute GAS timeout limit by automatically checkpointing mission states and scheduling auto-resume triggers.
 *   **Neural Blackboard**: High-fidelity shared state for cross-team data accuracy via structured JSON memory.
@@ -43,6 +47,6 @@ Instead of a single generalist agent, the system deploys **12 Specialized Teams*
 3. **Agentic Reflection**: A final review layer to ensure cross-team output consistency.
 
 ---
-**Version:** 3.6 (Nexus Edition)
-**Last Updated:** February 4, 2026
+**Version:** 4.14.0 (HGM Agentic Swarm Edition)
+**Last Updated:** March 4, 2026
 **Author:** Gemini CLI Agent

@@ -16,16 +16,16 @@ The **Root Orchestrator** is the system's "Pre-frontal Cortex." Its primary role
 
 ### 2.2 Specialized Operational Teams
 The system currently supports 10 specialized teams, each consisting of a **Builder/Validator** pair:
-- **Research Team:** Intel gathering and web search.
-- **Content Team:** Artifact creation (Docs, Slides, PDFs).
-- **Ops Team:** Administrative management (Calendar, Tasks, Forms).
-- **SEO Team:** Technical performance (GSC, GA4).
-- **Outreach Team:** CRM management and email drafting.
-- **Data Team:** Spreadsheet logic and Python analysis.
-- **Comms Team:** Inbox triage and communication.
-- **PM Team:** Organization and permissions.
-- **Dev Team:** Technical support and scripting.
-- **Legal Team:** Compliance and summaries.
+- **Market Intelligence:** Intel gathering and web search.
+- **Creative Engine:** Artifact creation (Docs, Slides, PDFs).
+- **Agency Operations:** Administrative management (Calendar, Tasks, Forms).
+- **Search Visibility:** Technical performance (GSC, GA4).
+- **Strategic Outreach:** CRM management and email drafting.
+- **Performance Insights:** Spreadsheet logic and Python analysis.
+- **Client Communications:** Inbox triage and communication.
+- **Project Governance:** Organization and permissions.
+- **Technical R&D:** Technical support and scripting.
+- **Risk & Compliance:** Compliance and summaries.
 
 ---
 

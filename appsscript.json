@@ -36,6 +36,7 @@
     "https://www.googleapis.com/auth/documents",
     "https://www.googleapis.com/auth/gmail.modify",
     "https://www.googleapis.com/auth/webmasters",
+    "https://www.googleapis.com/auth/analytics",
     "https://www.googleapis.com/auth/analytics.readonly",
     "https://www.googleapis.com/auth/script.external_request",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -45,6 +46,7 @@
     "https://www.googleapis.com/auth/contacts",
     "https://www.googleapis.com/auth/forms",
     "https://www.googleapis.com/auth/tasks",
-    "https://www.googleapis.com/auth/youtube.readonly"
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/script.scriptapp"
   ]
 }

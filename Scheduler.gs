@@ -80,7 +80,8 @@ function setDailyBriefing() {
  * The actual function called by the trigger.
  */
 function runDailyBriefing() {
-  executeScheduledMission("Analyze yesterday's GSC performance and Gmail for urgent items. Send me a summary.");
+  var prompt = "Perform the Morning Brief: 1. Scan GA4/GSC for traffic anomalies. 2. Check the CRM for 'NEW' leads that haven't been audited. 3. Triage Inbox for high-priority client requests. Send a comprehensive 'Strategic Agenda' to my email.";
+  executeScheduledMission(prompt);
 }
 
 /**
