@@ -100,5 +100,16 @@ The agentic layer communicates state to the UI via specific string signals:
 - `TOOL_ERROR`: Prompts an autonomous retry.
 
 ---
+
+## 8. Audit Trail & Guardrails
+
+### 8.1 Unit Test Automation (CI/CD Pipeline)
+- **Implemented:** `.github/workflows/gas-ci.yml`
+- **Pattern:** Autonomous Agent CI/CD Scaffold
+- **Description:** A robust testing suite integrated directly into GitHub Actions to validate core agentic workflows (Mulch, Seeds, Canopy) on every push/PR.
+- **Validation Points:** Verifies registry initialization and ensures the existence of all crucial functional testing methods (`testAgenticWorkflows`, `seeds_create`, `canopy_save`, `mulch_record`).
+- **Guardrails Applied:** STRICT SCOPE, NON-DESTRUCTIVE, VALIDATION, AUDIT TRAIL, AUTONOMY LIMITS, NO BRANCHING.
+
+---
 **Document Status:** Final (v3.1)
 **Architect:** Gemini CLI Agent
