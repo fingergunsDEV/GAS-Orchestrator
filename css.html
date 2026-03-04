@@ -151,9 +151,10 @@
   .animate-scan-slow { animation: scanSlow 6s ease-in-out infinite; }
   .animate-ping-fade { animation: pingFade 2s forwards; }
 
-  .markdown-content { font-size: 11px; line-height: 1.5; }
+  .markdown-content { font-size: 11px; line-height: 1.5; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; }
   .markdown-content ul { list-style-type: square; padding-left: 1rem; }
-  .markdown-content pre { background: rgba(0,0,0,0.6); padding: 8px; border: 1px solid rgba(255,255,255,0.1); overflow-x: auto; margin: 8px 0; }
+  .markdown-content pre { background: rgba(0,0,0,0.6); padding: 8px; border: 1px solid rgba(255,255,255,0.1); overflow-x: auto; margin: 8px 0; max-width: 100%; white-space: pre-wrap; word-wrap: break-word; }
+  .markdown-content p { margin-bottom: 8px; }
   
   [v-cloak] { display: none !important; }
   [v-cloak].v-cloak-initialized { display: flex !important; }
