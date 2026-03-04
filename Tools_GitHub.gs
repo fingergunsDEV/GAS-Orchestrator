@@ -118,6 +118,19 @@ function registerGitHubTools() {
         },
         required: ["owner", "repo", "path"]
       }
+    },
+    {
+      name: "github_fetch_job_logs",
+      description: "Fetches the raw text logs of a failed GitHub Actions job to diagnose and heal build/lint/typecheck errors.",
+      parameters: {
+        type: "object",
+        properties: {
+          owner: { type: "string" },
+          repo: { type: "string" },
+          jobId: { type: "string", description: "The numeric ID of the GitHub Action job to fetch logs for." }
+        },
+        required: ["owner", "repo", "jobId"]
+      }
     }
   ];
 
@@ -128,12 +141,13 @@ function registerGitHubTools() {
     "github_create_branch": executeGithubCreateBranch,
     "github_create_pr": executeGithubCreatePr,
     "github_sync_full_codebase": executeGithubSyncFullCodebase,
-    "github_rollback_file": executeGithubRollbackFile
+    "github_rollback_file": executeGithubRollbackFile,
+    "github_fetch_job_logs": executeGithubFetchJobLogs
   };
 
   var scopes = {
-    "CODE_BUILDER": ["github_read_repo_tree", "github_read_file", "github_commit_file", "github_create_branch", "github_create_pr", "github_sync_full_codebase", "github_rollback_file", "delegate_to_team"],
-    "DEV_BUILDER": ["github_read_repo_tree", "github_read_file", "github_commit_file", "github_create_branch", "github_create_pr", "github_sync_full_codebase", "github_rollback_file"]
+    "CODE_BUILDER": ["github_read_repo_tree", "github_read_file", "github_commit_file", "github_create_branch", "github_create_pr", "github_sync_full_codebase", "github_rollback_file", "github_fetch_job_logs", "delegate_to_team"],
+    "DEV_BUILDER": ["github_read_repo_tree", "github_read_file", "github_commit_file", "github_create_branch", "github_create_pr", "github_sync_full_codebase", "github_rollback_file", "github_fetch_job_logs"]
   };
 
   var team = {
@@ -463,6 +477,7 @@ function checkGithubPipelineStatus(args) {
        return {
          name: job.name.toUpperCase(),
          status: jobStatus,
+         jobId: job.id, // Added ID for fetching logs
          log: "URL: " + job.html_url + "\nStatus: " + job.status + (job.conclusion ? " (" + job.conclusion + ")" : "")
        };
     });
@@ -474,9 +489,51 @@ function checkGithubPipelineStatus(args) {
         stages.push({ name: "GITHUB ACTION PIPELINE", status: overallStatus, log: "Workflow Run: " + latestRun.name + "\nURL: " + latestRun.html_url });
     }
 
-    return JSON.stringify({ success: true, stages: stages });
+    return JSON.stringify({ success: true, stages: stages, conclusion: conclusion, runId: latestRun.id });
   } catch (e) {
     return JSON.stringify({ success: false, message: "Error: " + e.message });
+  }
+}
+
+/**
+ * executeGithubFetchJobLogs (v4.15.0)
+ * Fetches the raw text logs of a specific failed job to feed back into the agentic loop.
+ */
+function executeGithubFetchJobLogs(args) {
+  var owner = args.owner;
+  var repo = args.repo;
+  var jobId = args.jobId;
+
+  var token = getGitHubToken();
+  if (!token) return JSON.stringify({ success: false, message: "No GitHub token found." });
+
+  var url = "https://api.github.com/repos/" + owner + "/" + repo + "/actions/jobs/" + jobId + "/logs";
+  var options = {
+    method: "get",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Accept": "application/vnd.github.v3+json"
+    },
+    muteHttpExceptions: true
+  };
+
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    
+    // GitHub logs often return a 302 redirect to a temporary URL. UrlFetchApp follows this automatically.
+    if (response.getResponseCode() >= 200 && response.getResponseCode() < 300) {
+      var logText = response.getContentText();
+      
+      // Heuristic: truncate to the last 100 lines so we don't blow up the context window
+      var lines = logText.split('\n');
+      var tail = lines.slice(Math.max(lines.length - 100, 0)).join('\n');
+      
+      return JSON.stringify({ success: true, logs: tail });
+    } else {
+       return JSON.stringify({ success: false, message: "Failed to fetch logs. API returned: " + response.getResponseCode() });
+    }
+  } catch (e) {
+    return JSON.stringify({ success: false, message: "Execution error: " + e.message });
   }
 }
 

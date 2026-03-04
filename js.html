@@ -25,12 +25,33 @@
         var swarmMessages = ref([]);
 
         var pipelineStages = ref([
-          { name: '1. DEPENDENCIES & LINT', status: 'PASS', log: '> bun install\nbun install v1.0.0\nDone.' },
-          { name: '2. TYPECHECK', status: 'QUEUED', log: '' },
-          { name: '3. UNIT TESTS', status: 'QUEUED', log: '' },
-          { name: '4. MERGE & DEPLOY', status: 'QUEUED', log: '' }
+          { name: 'PIPELINE_INIT', status: 'QUEUED', log: 'Awaiting execution...' }
         ]);
         var activePipelineStage = ref(0);
+
+        var sandboxProjects = ref([
+          { label: "UNIT_TEST_AUTOMATION", desc: "Scaffold a robust testing suite that validates core agentic workflows (Mulch, Seeds, Canopy) and integrates them into the existing GitHub Actions CI/CD pipeline." },
+          { label: "PROACTIVE_LEAD_HUNTER", desc: "Build an intelligence gathering loop using Google Search to find new local businesses, enrich their data, and automatically add them to the CRM pipeline." },
+          { label: "CLIENT_ONBOARDING_DRIP", desc: "Implement an automated multi-step email sequence that triggers when a lead reaches 'CLOSED' status, pulling specific onboarding templates from Canopy." },
+          { label: "CRM_PIPELINE_MONITOR", desc: "Deploy a Sentinel that watches the CRM pipeline, identifying stalled leads and deploying the Strategic Outreach agent to draft personalized follow-ups." },
+          { label: "SEO_LEAD_MAGNET", desc: "Create a background worker that runs automated SEO audits for newly acquired leads and emails them a branded PDF report to build immediate trust." },
+          { label: "SWARM_CODE_REVIEWER", desc: "Configure the Orchestrator to monitor all open Seeds. When a Seed is marked 'in_progress', deploy a swarm of agents to build, review, and unit test the feature." }
+        ]);
+
+        var startSandboxProject = function(proj) {
+          codingSubTab.value = 'terminal';
+          
+          var guardrails = "\n\n[GUARDRAIL_PROTOCOL]\n" +
+                           "1. STRICT SCOPE: Only create or modify files directly required for this exact blueprint.\n" +
+                           "2. NON-DESTRUCTIVE: Do not delete existing core files or alter foundational system logic.\n" +
+                           "3. VALIDATION: Ensure the generated code includes robust error handling, typing, and logging.\n" +
+                           "4. AUDIT TRAIL: Use 'mulch_record' or system logs to document the architectural pattern you implement.\n" +
+                           "5. AUTONOMY LIMITS: Do not automatically deploy to production without explicit user confirmation.\n" +
+                           "6. NO BRANCHING: Due to potential permission limits, do NOT attempt to create new git branches. Commit directly to the target branch or edit the local files directly.";
+
+          githubState.userInput = "Use the Technical R&D capabilities to architect and scaffold the " + proj.label + " blueprint. " + proj.desc + guardrails;
+          setTimeout(function() { runCodingTask(); }, 500);
+        };
 
         var triggerWorkflow = function() {
           if (!sessionId.value) return;
@@ -82,33 +103,20 @@
           }, 5000);
         };
 
-        var swarmMessages = ref([
-          { time: "10:42:01", from: "Orchestrator", to: "Scout-Alpha", subject: "DISPATCH: seed-a1b2", body: "Please analyze the repo for memory leak issues in tracking system." },
-          { time: "10:42:45", from: "Scout-Alpha", to: "Orchestrator", subject: "worker_done", body: "Found unhandled event listeners in src/tracker/beads.ts line 402." },
-          { time: "10:43:10", from: "Orchestrator", to: "Builder-Omega", subject: "DISPATCH: seed-a1b2", body: "Implement cleanup function for beads.ts based on Scout's analysis." }
-        ]);
-
         var spawnAgent = function() {
-          addLog('SYS', 'Spawning new worker agent in isolated worktree...', 'info');
-          setTimeout(function() {
-            hgmSwarm.value.push({
-              name: "Reviewer-Gamma",
-              role: "reviewer",
-              status: "ACTIVE",
-              worktree: ".worktrees/review-9"
-            });
-            swarmMessages.value.push({
-              time: new Date().toLocaleTimeString(),
-              from: "Orchestrator",
-              to: "Reviewer-Gamma",
-              subject: "DISPATCH: review",
-              body: "Please validate Builder-Omega's fix for seed-a1b2."
-            });
-          }, 1000);
+          if (!sessionId.value) return;
+          var agentName = "Reviewer-" + Math.random().toString(36).substring(7).toUpperCase();
+          addLog('SYS', 'Spawning ' + agentName + ' in isolated worktree...', 'info');
+          
+          google.script.run.withSuccessHandler(function() {
+            pollSwarmStatus();
+            addLog('SYS', agentName + ' successfully joined the swarm.', 'success');
+          }).updateSwarmAgent(sessionId.value, agentName, "Reviewer", "ACTIVE", ".worktrees/" + agentName.toLowerCase());
         };
 
         // GitHub State
         var githubState = reactive({
+          repoUrl: "",
           owner: "",
           repo: "",
           branch: "main",
@@ -117,6 +125,27 @@
           chatHistory: [],
           userInput: "",
           isProcessing: false
+        });
+
+        watch(function() { return githubState.repoUrl; }, function(newUrl) {
+          if (!newUrl) return;
+          try {
+            var urlStr = newUrl.trim();
+            if (urlStr.indexOf("http") !== 0) urlStr = "https://" + urlStr;
+            var url = new URL(urlStr);
+            if (url.hostname === "github.com") {
+              var parts = url.pathname.split('/').filter(Boolean);
+              if (parts.length >= 2) {
+                githubState.owner = parts[0];
+                githubState.repo = parts[1];
+              }
+              if (parts.length >= 4 && parts[2] === "tree") {
+                githubState.branch = parts[3];
+              }
+            }
+          } catch(e) {
+            // Wait for user to finish typing valid URL
+          }
         });
 
         var activeState = ref({ 
@@ -1669,7 +1698,8 @@ var sentinelPresets = ref([
 
           leadEmailHistory, isFetchingHistory, fetchEmailHistory, selectedLeadForHistory,
           codingSubTab, hgmSwarm, swarmMessages, spawnAgent,
-          pipelineStages, activePipelineStage, triggerWorkflow
+          pipelineStages, activePipelineStage, triggerWorkflow,
+          sandboxProjects, startSandboxProject
         };
       }
     });

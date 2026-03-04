@@ -70,6 +70,10 @@ function initCoreRegistry() {
   if (typeof registerLegalTools === 'function') registerLegalTools();
   if (typeof registerSystemTools === 'function') registerSystemTools();
   if (typeof registerGitHubTools === 'function') registerGitHubTools();
+  if (typeof registerMulchTools === 'function') registerMulchTools();
+  if (typeof registerSeedsTools === 'function') registerSeedsTools();
+  if (typeof registerCanopyTools === 'function') registerCanopyTools();
+  if (typeof registerApiIngestTools === 'function') registerApiIngestTools();
 
   // Load dynamic plugins
   if (typeof executeSyncDynamicTools === 'function') executeSyncDynamicTools();

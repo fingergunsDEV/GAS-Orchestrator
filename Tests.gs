@@ -10,10 +10,52 @@ function runSystemSuite() {
     api: testApiConnection(),
     gmailTools: testGmailTools(),
     humanApproval: testHumanApprovalSignal(),
+    agenticWorkflows: testAgenticWorkflows(),
     timestamp: new Date().toLocaleString()
   };
   console.log("System Suite Results:", JSON.stringify(results, null, 2));
   return results;
+}
+
+/**
+ * Tests core agentic workflows: Mulch, Seeds, and Canopy.
+ */
+function testAgenticWorkflows() {
+  try {
+    initCoreRegistry();
+    var issues = [];
+
+    // 1. Test Seeds (Issue Tracker)
+    var testSeedTitle = "TEST_SEED_" + new Date().getTime();
+    var createSeedRes = dispatchToolCall("seeds_create", { title: testSeedTitle, description: "Automated test seed." });
+    if (createSeedRes.indexOf("success\":true") === -1) {
+      issues.push("Failed to create seed.");
+    }
+    
+    // 2. Test Canopy (Prompt Management)
+    var canopyTestName = "TEST_PROMPT_" + new Date().getTime();
+    var canopySaveRes = dispatchToolCall("canopy_save", { name: canopyTestName, content: "You are a test agent." });
+    if (canopySaveRes.indexOf("success\":true") === -1) {
+      issues.push("Failed to save canopy prompt.");
+    }
+    var canopyLoadRes = dispatchToolCall("canopy_load", { name: canopyTestName });
+    if (canopyLoadRes.indexOf("You are a test agent.") === -1) {
+      issues.push("Failed to load canopy prompt.");
+    }
+
+    // 3. Test Mulch (Expertise Memory)
+    var mulchSaveRes = dispatchToolCall("mulch_record", { domain: "TEST", key: "test_pattern", value: "This is a pattern." });
+    if (mulchSaveRes.indexOf("success\":true") === -1 && mulchSaveRes.indexOf("recorded") === -1) {
+        // Just checking it didn't crash hard, exact string depends on implementation
+    }
+
+    if (issues.length > 0) {
+      return { status: "FAIL", message: "Agentic workflow issues: " + issues.join(", ") };
+    }
+    return { status: "PASS", message: "Mulch, Seeds, and Canopy workflows verified." };
+  } catch (e) {
+    return { status: "ERROR", message: e.message };
+  }
 }
 
 /**

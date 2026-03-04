@@ -1356,6 +1356,7 @@
                 <!-- SUB-TABS -->
                 <div class="flex gap-2">
                   <button @click="codingSubTab = 'terminal'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'terminal' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">TERMINAL</button>
+                  <button @click="codingSubTab = 'sandbox'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'sandbox' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">SANDBOX</button>
                   <button @click="codingSubTab = 'monitor'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'monitor' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">MONITOR</button>
                   <button @click="codingSubTab = 'pipeline'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'pipeline' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">PIPELINE</button>
                 </div>
@@ -1369,12 +1370,8 @@
                     <div class="font-hud text-[10px] text-yellow-500 mb-3 border-b border-yellow-900/30 pb-2">GITHUB_REPOSITORY_UPLINK</div>
                     <div class="space-y-3">
                       <div>
-                        <label class="block font-hud text-[8px] text-gray-600 mb-1">OWNER/ORG</label>
-                        <input v-model="githubState.owner" type="text" placeholder="e.g. facebook" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
-                      </div>
-                      <div>
-                        <label class="block font-hud text-[8px] text-gray-600 mb-1">REPOSITORY_NAME</label>
-                        <input v-model="githubState.repo" type="text" placeholder="e.g. react" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">REPOSITORY_URL</label>
+                        <input v-model="githubState.repoUrl" type="text" placeholder="e.g. https://github.com/facebook/react" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
                       </div>
                       <div>
                         <label class="block font-hud text-[8px] text-gray-600 mb-1">TARGET_BRANCH</label>
@@ -1440,6 +1437,28 @@
                       <input type="text" v-model="githubState.userInput" @keyup.enter="runCodingTask()" class="flex-1 bg-transparent text-[11px] font-code text-white outline-none" placeholder="e.g. Add error handling to index.js and commit it...">
                       <button @click="runCodingTask()" class="font-hud text-[9px] bg-yellow-900/20 text-yellow-400 border border-yellow-800 px-4 hover:bg-yellow-800/40">EXECUTE</button>
                    </div>
+                </div>
+              </div>
+
+              <!-- SANDBOX SUB-TAB -->
+              <div v-if="codingSubTab === 'sandbox'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded p-8 flex flex-col relative overflow-y-auto scrollbar-hide">
+                  <div class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
+                    <div class="text-[300px] font-hud text-yellow-500 rotate-12">SANDBOX</div>
+                  </div>
+                  <div class="z-10">
+                    <div class="font-hud text-xs text-yellow-500 mb-2">RAPID_PROTOTYPE_INCUBATOR</div>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-8">Deploy an autonomous builder agent to scaffold a new project architecture.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <button v-for="proj in sandboxProjects" :key="preset" @click="startSandboxProject(proj)" 
+                              class="lux-panel p-6 text-left border border-gray-800 bg-black/60 hover:border-yellow-500/50 hover:bg-yellow-950/10 transition-all group flex flex-col h-full">
+                        <div class="font-hud text-[10px] text-yellow-600 group-hover:text-yellow-400 mb-2 transition-colors">{{ proj.label }}</div>
+                        <div class="font-code text-[9px] text-gray-500 flex-1">{{ proj.desc }}</div>
+                        <div class="mt-4 font-hud text-[8px] text-gray-700 tracking-widest group-hover:text-yellow-500/50">DEPLOY_BLUEPRINT -></div>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
