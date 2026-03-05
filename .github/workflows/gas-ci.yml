@@ -41,10 +41,10 @@ jobs:
       - name: Phase 3 - Unit Test Validation (Agentic Workflows)
         run: |
           echo "Executing Unit Test Hooks via Node.js Framework..."
-          if [ -f tests/run_agentic_tests.gs ]; then
-            node tests/run_agentic_tests.gs
+          if [ -f tests/run_agentic_tests.js ]; then
+            node tests/run_agentic_tests.js
           else
-            echo "Robust test suite (tests/run_agentic_tests.gs) is missing!"
+            echo "Robust test suite (tests/run_agentic_tests.js) is missing!"
             exit 1
           fi
           echo "All Core Agentic Workflow tests passed successfully!"
