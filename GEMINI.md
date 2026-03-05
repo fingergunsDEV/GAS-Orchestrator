@@ -1,30 +1,30 @@
-**Version:** 4.14.0 (Swarm Orchestration & Version Control)
-**Last Updated:** March 4, 2026
+**Version:** 4.18.0 (Proactive Autopilot & Swarm Orchestration)
+**Last Updated:** March 5, 2026
 **Author:** Gemini CLI Agent
 ---
 
-# GAS Agentic Orchestrator (v4.14.0 - Swarm Mode)
+# GAS Agentic Orchestrator (v4.18.0 - Autopilot Mode)
 
 ## Architecture Overview
-The system has been upgraded to **Swarm Orchestration Mode**, introducing deep visibility into multi-agent coordination, CI/CD automation, and integrated version control.
+The system has been upgraded to **v4.18.0**, introducing the **Autopilot Hub** for proactive background execution and **Strict Economy Mode** for zero-cost API monitoring.
 
-### Recent Architectural Upgrades (v4.14.0)
-- **GitHub Rollback Integration**: Introduced the `github_rollback_file` tool, allowing the `CODE_BUILDER` to fetch specific file versions (by branch or commit SHA) directly from GitHub and overwrite local Google Drive files for instant state-recovery.
-- **Swarm Monitoring Engine**: Introduced `logSwarmMessage` and `getSwarmStatus` for real-time tracking of inter-agent communications (Orchestrator <-> Worker) in a dedicated "Monitor" dashboard.
-- **HGM_SWARM Rebranding**: The agentic orchestration layer has been rebranded to **HGM Agentic Swarm** to align with Holistic Growth Marketing's vision for Agentic Engineering.
+### Recent Architectural Upgrades (v4.18.0)
+- **Autopilot Hub**: A dedicated UI dashboard for quick-launching proactive missions (SEO audits, market research, system diagnostics).
+- **Strict Economy Mode**: Automatic interception of background tasks to force the use of `gemini-2.0-flash`, ensuring proactive monitoring incurs zero API costs.
+- **Email-Based Approvals**: Integrated "Human-in-the-Loop" workflow where background agents email the user for approval of protected actions, with an instant "Approve & Continue" link.
+- **GitHub Rollback Integration**: Introduced the `github_rollback_file` tool, allowing the `CODE_BUILDER` to fetch specific file versions directly from GitHub for instant state-recovery.
+- **Swarm Monitoring Engine**: Real-time tracking of inter-agent communications (Orchestrator <-> Worker) in a dedicated "Monitor" dashboard.
 - **CI/CD Pipeline Integration**: Added a visual pipeline manager in the Development Engine, allowing users to trigger and monitor multi-stage workflows (Dependencies, Lint, Typecheck, Test, Deploy).
-- **Inter-Agent Mailbox**: The backend now persists an atomic mailbox of agent dispatches, results, and rejections, providing a complete audit trail of the coding process.
-- **Dynamic Worker Tracking**: Active agents are now tracked with specific roles (Scout, Builder, Reviewer) and worktree assignments in the telemetry stream.
 
 ## Operational Mandates
-- **Model**: Dynamic (Gemini 2.0 Pro for Orchestration, 2.0 Flash for Workers).
-- **Architecture**: 6-Pillar Strategic Command + Swarm Monitor.
-- **Safety**: Direct Sync Authorized (High Velocity) with Audit Trail.
+- **Model**: Dynamic (Gemini 2.0 Pro for Orchestration, 2.0 Flash for Workers & Background Tasks).
+- **Architecture**: 6-Pillar Strategic Command + Swarm Monitor + Autopilot Hub.
+- **Safety**: Direct Sync Authorized with Email-Based Approval for protected tools.
 
-## Latest Upgrades (v4.13.0)
-*   **Updated**: `StateManager.gs` with persistent Swarm Mailbox and Agent Registry.
-*   **Updated**: `Agents.gs` to log inter-agent "DISPATCH" and "worker_done" events automatically.
-*   **Updated**: `Tools_GitHub.gs` with `executeGithubPipeline` simulation engine.
-*   **Updated**: `index.html` & `js.html` with the new 3-tab Coding Module (Terminal, Monitor, Pipeline).
+## Latest Upgrades (v4.18.0)
+*   **Updated**: `Scheduler.gs` & `Sentinels.gs` with background task flags.
+*   **Updated**: `GeminiService.gs` with Economy Mode model overrides.
+*   **Updated**: `Orchestrator.gs` to handle external approval link callbacks.
+*   **Updated**: `index.html` & `js.html` with the new **AUTOPILOT** navigation tab and proactive modules.
 ---
-- The UNIT_TEST_AUTOMATION blueprint was implemented using a Node.js 'vm' module test runner to execute Google Apps Script (.gs) files offline within the GitHub Actions CI/CD pipeline, fully mocking the GAS environment.
+- The UNIT_TEST_AUTOMATION blueprint was implemented using a Node.js 'vm' module test runner to execute Google Apps Script (.gs) files offline within the GitHub Actions CI/CD pipeline.
