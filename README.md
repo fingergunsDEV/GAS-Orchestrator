@@ -1,15 +1,18 @@
-# GAS Orchestrator (HGM Agentic Swarm v4.17.1)
+# GAS Orchestrator (HGM Agentic Swarm v4.18.0)
 
 A high-performance, serverless agentic framework built on Google Apps Script (GAS) and powered by Gemini 2.0.
 
 ## Overview
 This system transforms your Google Workspace into an autonomous digital agency. It utilizes a **"Team of Departments"** architecture to orchestrate specialized departments across your entire digital office. 
 
-With the **v4.17.1 Architectural Upgrade**, the system has evolved into a self-healing, predictive, and globally accessible agentic loop.
+With the **v4.18.0 Architectural Upgrade**, the system has evolved into a self-healing, predictive, and globally accessible agentic loop.
 
 ## Core Pillars
 
 ### 🧠 Intelligence & Memory
+- **Autopilot Hub (NEW):** A proactive command center for background execution of SEO audits, market research, and system diagnostics with zero user intervention.
+- **Strict Economy Mode:** Forced use of `gemini-2.0-flash` for background missions, ensuring high-quality proactive monitoring with zero API cost overhead.
+- **Email Approval Workflow:** A secure "Human-in-the-Loop" link system allowing you to authorize sensitive agent actions directly from your inbox.
 - **Strategy Agent (Predictive BI):** A new high-level persona that analyzes historical CRM and financial data to forecast project timelines and marketing ROI.
 - **Automated SEO Scoring:** Real-time merging of GSC and GA4 data to provide actionable "Striking Distance" opportunity scores directly in the UI.
 - **Campaign Knowledge Base:** Structured shared memory for high-fidelity data passing.
@@ -50,7 +53,7 @@ Set the following **Script Properties** in your project settings:
 Deploy as a Web App. Use the floating **Command Center** at the bottom to issue directives, monitor the **PIPELINE** for deployment health, and utilize the **STRATEGY** agent for proactive business management.
 
 ---
-**Version:** 4.17.1 (HGM Agentic Swarm Edition)
+**Version:** 4.18.0 (HGM Agentic Swarm Edition)
 **Last Updated:** March 5, 2026
 **Author:** Gemini CLI Agent
 ---
