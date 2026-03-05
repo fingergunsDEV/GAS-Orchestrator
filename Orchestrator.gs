@@ -102,11 +102,20 @@ function runAgentTurn(chatHistory, sessionId, imageData) {
     var isDryRun = props.getProperty("DRY_RUN_MODE") === "true";
 
     var needsApproval = response.toolCalls.some(function(tc) {
+      // Check if this specific tool was just approved via email
+      var approvedKey = "APPROVED_TOOL_" + sessionId + "_" + tc.name;
+      if (props.getProperty(approvedKey) === "true") {
+        props.deleteProperty(approvedKey); // Consume the approval
+        return false; // Does not need approval this time
+      }
       return sensitiveTools.indexOf(tc.name) !== -1 || IMMUTABLE_SENSITIVE.indexOf(tc.name) !== -1;
     });
 
     if (needsApproval && !isDryRun) {
       turnResult.status = "AWAITING_APPROVAL";
+      // We must pass back the tool name so the scheduler can generate the link
+      turnResult.toolCalled = response.toolCalls[0].name;
+      turnResult.thought = response.thought || "Attempting to execute protected tool.";
       logAgentEvent(sessionId, "system", "Awaiting Approval", "Action protected by CORE_GUARDRAILS");
       return turnResult;
     }
@@ -360,8 +369,22 @@ function resumeWithToolResult(chatHistory, toolName, result) {
 }
 
 function doGet(e) {
-  if (e && e.parameter && e.parameter.code && e.parameter.state) {
-    return handleSocialCallback(e);
+  if (e && e.parameter) {
+    if (e.parameter.action === "approve_tool" && e.parameter.sessionId && e.parameter.toolName) {
+      var props = PropertiesService.getScriptProperties();
+      var approvedKey = "APPROVED_TOOL_" + e.parameter.sessionId + "_" + e.parameter.toolName;
+      props.setProperty(approvedKey, "true");
+      
+      // Schedule auto resume
+      if (typeof scheduleAutoResume !== 'undefined') {
+        scheduleAutoResume(e.parameter.sessionId);
+      }
+      
+      return HtmlService.createHtmlOutput("<div style='font-family: sans-serif; padding: 40px; text-align: center;'><h2>Action Approved \u2705</h2><p>The proactive agent has been authorized to use <strong>" + e.parameter.toolName + "</strong> and will resume execution shortly.</p><p><small>You may close this tab.</small></p></div>");
+    }
+    if (e.parameter.code && e.parameter.state) {
+      return handleSocialCallback(e);
+    }
   }
   return HtmlService.createTemplateFromFile("index")
       .evaluate()

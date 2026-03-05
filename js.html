@@ -8,9 +8,11 @@
         var booting = ref(true);
         var bootProgress = ref(0);
         var bootStatus = ref("Readying BIOS...");
-        
-        var userInput = ref("");
-        var chatHistory = ref([]);
+
+        var proactiveTopic = ref("");
+        var proactiveCodeDirective = ref("");
+
+        var userInput = ref("");        var chatHistory = ref([]);
         var isProcessing = ref(false);
         var isConnected = ref(false);
         var sessionId = ref(null);
@@ -1740,6 +1742,7 @@ var sentinelPresets = ref([
         return {
           githubState, fetchRepoStructure, runCodingTask, syncGasToGithub,
           booting, bootProgress, bootStatus, userInput, chatHistory, isProcessing, isConnected, currentTime, sessionId,
+          proactiveTopic, proactiveCodeDirective,
           activeState, eventLogs, chatBox, logBox, fileInput, selectedImage, renderMarkdown, sendMessage, 
           resumeMission, handleFileSelect, clearImage, getLogColor, uiColor, uiTheme, currentView, simMode, 
           teamNodes, center, activeNode, neuralBarValues, neuralLayers, dataStreams, diagnosticIssues, 

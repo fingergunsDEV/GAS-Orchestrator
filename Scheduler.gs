@@ -7,51 +7,75 @@
  * Runs a specific mission string in the background (Headless Mode).
  * Intended to be triggered by a ClockTrigger.
  */
-function executeScheduledMission(missionPrompt) {
+function executeScheduledMission(missionPrompt, isBackground) {
   var missionPrompt = missionPrompt || "Check for any urgent emails from 'Client' and summarize them.";
   var sessionId = "auto_" + new Date().getTime();
   
-  console.log("Starting Scheduled Mission: " + missionPrompt);
+  if (isBackground !== false) isBackground = true; // Default to true for scheduled tasks
+  
+  console.log("Starting Scheduled Mission: " + missionPrompt + " (Background: " + isBackground + ")");
   logAgentEvent(sessionId, "system", "Mission Start (Background)", missionPrompt);
   
-  var chatHistory = [{
-    "role": "user",
-    "parts": [{ "text": missionPrompt }]
-  }];
+  var props = PropertiesService.getScriptProperties();
+  if (isBackground) {
+    props.setProperty("IS_BACKGROUND_TASK", "true");
+  }
   
-  // Run the loop synchronously for up to 5 minutes (GAS limit is 6, we stay safe)
-  var startTime = new Date().getTime();
-  var maxTime = 5 * 60 * 1000; 
-  var turnCount = 0;
-  var maxTurns = 10;
+  try {
+    var chatHistory = [{
+      "role": "user",
+      "parts": [{ "text": missionPrompt }]
+    }];
+    
+    // Run the loop synchronously for up to 5 minutes (GAS limit is 6, we stay safe)
+    var startTime = new Date().getTime();
+    var maxTime = 5 * 60 * 1000; 
+    var turnCount = 0;
+    var maxTurns = 10;
+    
+    while (turnCount < maxTurns) {
+      // Check time limit
+      if ((new Date().getTime() - startTime) > maxTime) {
+        logAgentEvent(sessionId, "system", "Timeout", "Mission timed out.");
+        break;
+      }
   
-  while (turnCount < maxTurns) {
-    // Check time limit
-    if ((new Date().getTime() - startTime) > maxTime) {
-      logAgentEvent(sessionId, "system", "Timeout", "Mission timed out.");
-      break;
+      var result = runAgentTurn(chatHistory, sessionId);
+      
+      if (result.status === "AWAITING_APPROVAL") {
+        logAgentEvent(sessionId, "system", "Paused", "Mission paused for human approval: " + result.toolCalled);
+        
+        var scriptUrl = ScriptApp.getService().getUrl();
+        var approvalLink = scriptUrl + "?action=approve_tool&sessionId=" + sessionId + "&toolName=" + encodeURIComponent(result.toolCalled || "unknown");
+        
+        var emailHtml = "<h3>Agent Requesting Approval</h3>" +
+                        "<p>Your proactive agent wants to run a protected action: <strong>" + result.toolCalled + "</strong></p>" +
+                        "<p>Context: " + (result.thought || "No additional context provided.") + "</p>" +
+                        "<br/>" +
+                        "<a href='" + approvalLink + "' style='padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;'>Approve & Continue</a>" +
+                        "<p><small>If you do not want to approve this, simply ignore this email.</small></p>";
+        
+        GmailApp.sendEmail(Session.getActiveUser().getEmail(), "Action Required: Approve Agent Action", "", { htmlBody: emailHtml });
+        break;
+      }
+      
+      if (result.type === "TEXT") {
+        // Mission Complete
+        logAgentEvent(sessionId, "model", "Mission Complete", result.content);
+        // Email the final report to the user
+        GmailApp.sendEmail(Session.getActiveUser().getEmail(), "Agent Mission Report", result.content);
+        break;
+      }
+      
+      // If tool was called and auto-executed (not sensitive), the loop continues with updated history
+      chatHistory = result.history;
+      turnCount++;
     }
-
-    var result = runAgentTurn(chatHistory, sessionId);
-    
-    if (result.status === "AWAITING_APPROVAL") {
-      logAgentEvent(sessionId, "system", "Paused", "Mission paused for human approval: " + result.toolCalled);
-      // In background mode, we can't pop a UI. We could email the user here to ask for approval.
-      GmailApp.sendEmail(Session.getActiveUser().getEmail(), "Agent Requesting Approval", "Your agent wants to run: " + result.toolCalled + "\n\nPlease open the dashboard to approve.");
-      break;
+  } finally {
+    // Always cleanup the economy mode flag
+    if (isBackground) {
+      props.deleteProperty("IS_BACKGROUND_TASK");
     }
-    
-    if (result.type === "TEXT") {
-      // Mission Complete
-      logAgentEvent(sessionId, "model", "Mission Complete", result.content);
-      // Email the final report to the user
-      GmailApp.sendEmail(Session.getActiveUser().getEmail(), "Agent Mission Report", result.content);
-      break;
-    }
-    
-    // If tool was called and auto-executed (not sensitive), the loop continues with updated history
-    chatHistory = result.history;
-    turnCount++;
   }
 }
 

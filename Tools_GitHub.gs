@@ -311,40 +311,70 @@ function executeGithubSyncFullCodebase(args) {
   var owner = args.owner;
   var repo = args.repo;
   var branch = args.branch || "main";
-  var commitMessage = args.commitMessage;
+  var commitMessage = args.commitMessage || "chore: Full codebase sync via Agentic Engine";
 
   var results = [];
+  var props = PropertiesService.getScriptProperties();
+  
   try {
     var scriptId = ScriptApp.getScriptId();
-    var scriptFile = DriveApp.getFileById(scriptId);
-    
-    // In GAS, we are a single file in Drive. To find "our" files, we look in our parent folder.
-    var parents = scriptFile.getParents();
     var folder;
-    if (parents.hasNext()) {
-      folder = parents.next();
-    } else {
-      folder = DriveApp.getRootFolder();
+    
+    // Attempt 1: Direct File Lookup (Standalone scripts only)
+    try {
+      var scriptFile = DriveApp.getFileById(scriptId);
+      var parents = scriptFile.getParents();
+      if (parents.hasNext()) {
+        folder = parents.next();
+      }
+    } catch (e) {
+      console.warn("[Sync] Script ID lookup failed: " + e.message + ". This is expected for bound scripts.");
     }
+    
+    // Attempt 2: Script Property Override
+    if (!folder) {
+      var projectFolderId = props.getProperty("PROJECT_SOURCE_FOLDER_ID");
+      if (projectFolderId) {
+        folder = DriveApp.getFolderById(projectFolderId);
+      }
+    }
+    
+    // Attempt 3: Knowledge Base Parent Fallback
+    if (!folder) {
+      var kbId = props.getProperty("KNOWLEDGE_BASE_FOLDER_ID");
+      if (kbId) {
+        var kbFolder = DriveApp.getFolderById(kbId);
+        var parents = kbFolder.getParents();
+        if (parents.hasNext()) {
+          folder = parents.next();
+        } else {
+          folder = kbFolder; // Last resort
+        }
+      }
+    }
+
+    if (!folder) {
+      return JSON.stringify({ 
+        error: "Sync Engine Failure: Could not identify the source folder for this project.",
+        instructions: "Please manually set a script property 'PROJECT_SOURCE_FOLDER_ID' containing the Google Drive Folder ID where your .gs and .html files are stored."
+      });
+    }
+    
+    console.log("[Sync] Syncing from folder: " + folder.getName() + " (" + folder.getId() + ")");
     
     var files = folder.getFiles();
     while (files.hasNext()) {
       var file = files.next();
       var fileName = file.getName();
       
-      // LOGIC UPGRADE: If it's the script project itself, we can't easily get its internal files 
-      // without the Apps Script API. However, if the user has uploaded .gs/.html files as 
-      // separate files in the same folder (common in dev workflows), we sync them.
-      
       var shouldSync = false;
       var syncPath = fileName;
       
-      if (fileName.endsWith(".gs") || fileName.endsWith(".html") || fileName === "appsscript.json") {
+      // We only sync files that resemble code or config
+      if (fileName.endsWith(".gs") || fileName.endsWith(".js") || fileName.endsWith(".html") || fileName === "appsscript.json" || fileName === "README.md" || fileName === "GEMINI.md") {
          shouldSync = true;
       } else if (file.getMimeType() === "application/vnd.google-apps.script") {
-         // This is a script project container. We can't sync its internal files directly via DriveApp.
-         // We add a result entry to warn the user.
-         results.push({ file: fileName, result: { error: "Container project detected. Use Apps Script API or Clasp for full code sync." } });
+         results.push({ file: fileName, result: { error: "Container project detected. Use Apps Script API or Clasp for internal project code sync. To sync standalone files, upload them as .gs files to the folder." } });
          continue;
       }
       
@@ -367,17 +397,19 @@ function executeGithubSyncFullCodebase(args) {
 
   if (results.length === 0) {
     return JSON.stringify({ 
-      error: "No standalone .gs or .html files found in the parent folder.",
-      context: "Google Apps Script projects are 'containers'. To sync the internal code, enable the Apps Script API in your Google account settings and use a tool designed for project exports."
+      error: "No syncable code files (.gs, .html, .js) found in folder: " + (folder ? folder.getName() : "Unknown"),
+      context: "The sync engine looks for standalone files in Drive. If your code only exists inside the script editor, you must use Clasp or the Apps Script API to sync."
     });
   }
 
   return JSON.stringify({
-    summary: "Cloud-to-GitHub sync completed for visible files.",
+    summary: "Cloud-to-GitHub sync completed for " + results.length + " files.",
     branch: branch,
+    folder: folder.getName(),
     filesProcessed: results.length,
     details: results
   });
+}
 }
 
 /**

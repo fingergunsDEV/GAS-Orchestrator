@@ -13,6 +13,11 @@ function callGemini(history, toolsManifest, systemInstruction, responseMimeType,
   var scriptProperties = PropertiesService.getScriptProperties();
   var apiKey = scriptProperties.getProperty(API_KEY_PROPERTY);
   
+  if (scriptProperties.getProperty("IS_BACKGROUND_TASK") === "true") {
+    modelTier = "flash"; // Strict Economy Mode override
+    console.log("Economy Mode Override: Forcing flash tier for background task.");
+  }
+  
   if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY_HERE") {
     throw new Error("Gemini API Key is missing or invalid.");
   }

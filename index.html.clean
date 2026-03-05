@@ -70,6 +70,9 @@
                   <button @click="currentView = 'sentinels'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-blue-500/30 transition-all whitespace-nowrap" :class="currentView === 'sentinels' ? 'active text-blue-400 bg-blue-400/5' : 'text-gray-500'">
                     SENTINELS
                   </button>
+                  <button @click="currentView = 'proactive'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-cyan-500/30 transition-all whitespace-nowrap" :class="currentView === 'proactive' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">
+                    AUTOPILOT
+                  </button>
                 </div>
               </div>
 
@@ -1284,6 +1287,56 @@
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: AUTOPILOT / PROACTIVE -->
+            <div v-if="currentView === 'proactive'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-cyan-400 tracking-[0.3em]">AUTOPILOT_HUB</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Proactive Task Execution & Diagnostics</div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto scrollbar-hide pb-10">
+                <!-- SEO Check -->
+                <div class="lux-panel p-6 border border-gray-900 bg-black/40 hover:border-cyan-500/30 transition-all flex flex-col justify-between">
+                  <div>
+                    <div class="font-hud text-xs text-cyan-500 mb-2">SEO_HEALTH_AUDIT</div>
+                    <p class="text-[10px] text-gray-500 font-code leading-relaxed mb-4">Proactively query Google Search Console and GA4 to identify crawl errors, anomalies, and optimization opportunities.</p>
+                  </div>
+                  <button @click="currentView = 'terminal'; sendMessage('Check Search Console and GA4 for SEO errors and anomalies.')" class="w-full bg-cyan-900/20 border border-cyan-800 text-cyan-400 font-hud text-[10px] py-2 hover:bg-cyan-800/40 mt-4">LAUNCH_AUDIT</button>
+                </div>
+
+                <!-- Proactive Content -->
+                <div class="lux-panel p-6 border border-gray-900 bg-black/40 hover:border-pink-500/30 transition-all flex flex-col justify-between">
+                  <div>
+                    <div class="font-hud text-xs text-pink-500 mb-2">PROACTIVE_CONTENT_GEN</div>
+                    <p class="text-[10px] text-gray-500 font-code leading-relaxed mb-4">Research market trends based on current topics and synthesize 3 social posts and 1 outline for a technical paper.</p>
+                    <input type="text" v-model="proactiveTopic" placeholder="e.g. AI in Marketing" class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-pink-500 mb-2">
+                  </div>
+                  <button @click="currentView = 'terminal'; sendMessage('Research market trends about ' + (proactiveTopic || 'my business niche') + ' and generate 3 social posts and 1 outline for a technical paper based on my business goals.')" class="w-full bg-pink-900/20 border border-pink-800 text-pink-400 font-hud text-[10px] py-2 hover:bg-pink-800/40">GENERATE_CONTENT</button>
+                </div>
+
+                <!-- Unit Tests -->
+                <div class="lux-panel p-6 border border-gray-900 bg-black/40 hover:border-yellow-500/30 transition-all flex flex-col justify-between">
+                  <div>
+                    <div class="font-hud text-xs text-yellow-500 mb-2">SYSTEM_DIAGNOSTICS</div>
+                    <p class="text-[10px] text-gray-500 font-code leading-relaxed mb-4">Command the coding engine to run unit tests for the existing codebase to ensure it is running optimally and without error.</p>
+                  </div>
+                  <button @click="currentView = 'coding'; githubState.userInput = 'Run unit tests for the existing codebase to ensure everything is running optimally.'; runCodingTask()" class="w-full bg-yellow-900/20 border border-yellow-800 text-yellow-400 font-hud text-[10px] py-2 hover:bg-yellow-800/40 mt-4">RUN_UNIT_TESTS</button>
+                </div>
+
+                <!-- Background Coding Task -->
+                <div class="lux-panel p-6 border border-gray-900 bg-black/40 hover:border-blue-500/30 transition-all flex flex-col justify-between">
+                  <div>
+                    <div class="font-hud text-xs text-blue-500 mb-2">EXTEND_FUNCTIONALITY</div>
+                    <p class="text-[10px] text-gray-500 font-code leading-relaxed mb-4">Provide directives for extending the GAS Orchestrator. The agent will work in the background. Emails will be sent for human approval if protected actions are required.</p>
+                    <textarea v-model="proactiveCodeDirective" rows="3" placeholder="Directive to execute..." class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-blue-500 mb-2 resize-none"></textarea>
+                  </div>
+                  <button @click="currentView = 'terminal'; sendMessage('As a background coding task: ' + proactiveCodeDirective)" class="w-full bg-blue-900/20 border border-blue-800 text-blue-400 font-hud text-[10px] py-2 hover:bg-blue-800/40">START_BACKGROUND_TASK</button>
                 </div>
               </div>
             </div>
