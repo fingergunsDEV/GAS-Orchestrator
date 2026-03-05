@@ -117,15 +117,37 @@ function runAgentTurn(chatHistory, sessionId, imageData) {
     response.toolCalls.forEach(function(tc) {
       logAgentEvent(sessionId, "model", "Tool Call: " + tc.name, tc.args);
       
+      // PHASE 3: Fail-Safe Circuit Breakers
+      // Check history for recursive loops (e.g. 5 identical calls)
+      var loopCount = 0;
+      for (var i = chatHistory.length - 1; i >= 0; i--) {
+        if (chatHistory[i].role === "model" && chatHistory[i].parts) {
+          chatHistory[i].parts.forEach(function(p) {
+            if (p.functionCall && p.functionCall.name === tc.name && JSON.stringify(p.functionCall.args) === JSON.stringify(tc.args)) {
+              loopCount++;
+            }
+          });
+        }
+      }
+
       var toolOutput;
-      if (isDryRun) {
+      if (loopCount >= 5) {
+        toolOutput = "SYSTEM_PAUSE: Circuit Breaker triggered. You are repeating the same action ('" + tc.name + "') too many times. Aborting loop to protect API quota.";
+        logAgentEvent(sessionId, "system", "Circuit Breaker", "Halted recursive loop on " + tc.name);
+      } else if (isDryRun) {
         toolOutput = "[DRY_RUN] Simulated execution of " + tc.name + " with args: " + JSON.stringify(tc.args);
       } else {
         toolOutput = dispatchToolCall(tc.name, tc.args);
       }
       
       if (typeof toolOutput === 'string' && toolOutput.startsWith("Error:")) {
-        toolOutput = "TOOL_ERROR: " + toolOutput;
+        // PHASE 1: Autonomous Tool Synthesis
+        if (toolOutput.indexOf("Tool not found") !== -1) {
+          toolOutput = "TOOL_ERROR: The requested tool '" + tc.name + "' does not exist. [SYSTEM_MANDATE]: Autonomously dispatch the 'Technical R&D' team to write and deploy this tool using 'create_dynamic_tool'.";
+          logAgentEvent(sessionId, "system", "Capability Gap Detected", "Triggered autonomous synthesis for " + tc.name);
+        } else {
+          toolOutput = "TOOL_ERROR: " + toolOutput;
+        }
       }
       
       logAgentEvent(sessionId, "tool", "Output: " + tc.name, toolOutput);

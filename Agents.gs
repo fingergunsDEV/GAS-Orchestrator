@@ -391,9 +391,9 @@ function dispatchToTeam(teamName, context, imageData, sessionId) {
     case "Risk & Compliance": return runLegalTeam({ task: context.goal }, imageData, sessionId);
     case "Social Analytics": return runSocialTeam({ task: context.goal }, imageData, sessionId);
     case "Revenue Management": return runFinanceTeam({ task: context.goal }, imageData, sessionId);
-    
-    default:
-      console.warn("Unknown team: " + teamName + ". Attempting dynamic dispatch via CoreRegistry.");
+    case "Strategy": return runStrategyTeam({ task: context.goal }, imageData, sessionId);
+
+    default:      console.warn("Unknown team: " + teamName + ". Attempting dynamic dispatch via CoreRegistry.");
       // 3. Fallback to CoreRegistry (if any teams were registered there)
       if (typeof CoreRegistry !== 'undefined') {
         var coreTeams = CoreRegistry.getTeams();
@@ -924,6 +924,21 @@ function runFinanceTeam(args, imageData, sessionId) {
     "FINANCE_BUILDER",
     "FINANCE_VALIDATOR",
     "Manage financial docs or estimates: " + task,
+    imageData,
+    sessionId
+  );
+}
+
+/**
+ * Agent: Strategy (Predictive BI)
+ */
+function runStrategyTeam(args, imageData, sessionId) {
+  var task = args.task || "Analyze historical data to predict timelines and ROI";
+  return executeTeamWorkflow(
+    "Strategy",
+    "STRATEGY_BUILDER",
+    "STRATEGY_VALIDATOR",
+    "Predictive Operations: " + task + ". You must analyze historical project data (via FinanceManager and Vector Store) to forecast delivery timelines and identify the highest ROI marketing channels.",
     imageData,
     sessionId
   );

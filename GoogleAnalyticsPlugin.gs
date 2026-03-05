@@ -339,10 +339,41 @@ function getGeoPulseData(propertyId, dateRange) {
       }
     }
 
+    // AUTOMATED SEO OPPORTUNITY SCORING
+    var seoScore = 0;
+    var seoAction = "Need more data (GSC/GA4) for analysis";
+    
+    if (gscStatus === "OK" && trends.length > 0) {
+      // Analyze GSC trends for low-hanging fruit (high impressions, low position/CTR)
+      var totalImps = 0;
+      var strikingDistanceCount = 0;
+      var lowCtrCount = 0;
+      
+      trends.forEach(function(t) {
+        totalImps += t.impressions;
+        if (t.position > 10 && t.position <= 20) strikingDistanceCount++;
+        if (t.position <= 10 && t.ctr < 0.03) lowCtrCount++;
+      });
+      
+      if (strikingDistanceCount > 0) seoScore += 40;
+      if (lowCtrCount > 0) seoScore += 30;
+      if (totalImps > 1000) seoScore += 10;
+      
+      // Factor in engagement from GA4
+      var rawEng = parseFloat(avgEngRate);
+      if (rawEng < 40) seoScore += 20; // High bounce rate = content opportunity
+      
+      if (seoScore >= 70) seoAction = "CRITICAL: Major striking-distance keyword opportunities or low CTR. Deploy Content Agent to refresh top pages.";
+      else if (seoScore >= 40) seoAction = "MODERATE: Optimize metadata for page 1 rankings.";
+      else seoAction = "HEALTHY: Monitor current clusters. No urgent anomalies.";
+    }
+
     return {
       propertyId: propertyId,
       gscSite: gscSite || "NOT_CONFIGURED",
       gscStatus: gscStatus,
+      seoOpportunityScore: seoScore + "/100",
+      seoRecommendedAction: seoAction,
       realtime: realtime,
       historical: historical,
       trends: trends,
