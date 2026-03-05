@@ -63,15 +63,20 @@ jobs:
         env:
           CLASPRC_JSON: \${{ secrets.CLASPRC_JSON }}
           DEPLOYMENT_ID: \${{ secrets.DEPLOYMENT_ID }}
+          SCRIPT_ID: \${{ secrets.SCRIPT_ID }}
         run: |
           echo "Pipeline successful. Deploying to Google Apps Script..."
           npm install -g @google/clasp
-          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          echo "\$CLASPRC_JSON" > ~/.clasprc.json
+          
+          # Create .clasp.json dynamically
+          echo "{\"scriptId\":\"\$SCRIPT_ID\",\"rootDir\":\".\"}" > .clasp.json
+          
           clasp push -f
           
-          if [ -n "$DEPLOYMENT_ID" ]; then
+          if [ -n "\$DEPLOYMENT_ID" ]; then
             echo "Updating existing Web App deployment to keep the same URL..."
-            clasp deploy -i "$DEPLOYMENT_ID" -d "Auto-deployed via GitHub Actions"
+            clasp deploy -i "\$DEPLOYMENT_ID" -d "Auto-deployed via GitHub Actions"
           else
             echo "Notice: DEPLOYMENT_ID secret not set. Code was pushed to the editor, but the public /exec URL was not updated."
           fi

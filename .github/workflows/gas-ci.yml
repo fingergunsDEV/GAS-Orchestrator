@@ -54,10 +54,15 @@ jobs:
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
           DEPLOYMENT_ID: ${{ secrets.DEPLOYMENT_ID }}
+          SCRIPT_ID: ${{ secrets.SCRIPT_ID }}
         run: |
           echo "Pipeline successful. Deploying to Google Apps Script..."
           npm install -g @google/clasp
           echo "$CLASPRC_JSON" > ~/.clasprc.json
+          
+          # Create .clasp.json dynamically
+          echo "{\"scriptId\":\"$SCRIPT_ID\",\"rootDir\":\".\"}" > .clasp.json
+          
           clasp push -f
           
           if [ -n "$DEPLOYMENT_ID" ]; then
