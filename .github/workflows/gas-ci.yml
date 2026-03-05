@@ -58,26 +58,29 @@ jobs:
         run: |
           echo "Pipeline successful. Preparing deployment..."
           
-          if [ -z "$SCRIPT_ID" ]; then
-            echo "Error: SCRIPT_ID secret is missing! Cannot push to Google."
+          # Clean secrets of quotes or whitespace
+          CLEAN_SCRIPT_ID=$(echo "$SCRIPT_ID" | sed 's/["]//g' | xargs)
+          CLEAN_DEPLOY_ID=$(echo "$DEPLOYMENT_ID" | sed 's/["]//g' | xargs)
+          
+          if [ -z "$CLEAN_SCRIPT_ID" ]; then
+            echo "Error: SCRIPT_ID secret is missing or empty! Cannot push to Google."
             exit 1
           fi
           
           npm install -g @google/clasp
           echo "$CLASPRC_JSON" > ~/.clasprc.json
           
-          # Create .clasp.json without using echo which can be weird with masking
-          printf '{"scriptId":"%s","rootDir":"."}\n' "$SCRIPT_ID" > .clasp.json
+          # Create .clasp.json
+          printf '{"scriptId":"%s","rootDir":"."}\n' "$CLEAN_SCRIPT_ID" > .clasp.json
           
           echo "Pushing code to Apps Script..."
           clasp push -f
           
-          if [ -n "$DEPLOYMENT_ID" ]; then
-            echo "Updating Web App deployment ($DEPLOYMENT_ID)..."
-            clasp deploy -i "$DEPLOYMENT_ID" -d "Auto-deployed via GitHub Actions"
+          if [ -n "$CLEAN_DEPLOY_ID" ]; then
+            echo "Updating Web App deployment ($CLEAN_DEPLOY_ID)..."
+            clasp deploy -i "$CLEAN_DEPLOY_ID" -d "Auto-deployed via GitHub Actions"
           else
             echo "Notice: DEPLOYMENT_ID secret not set. Code was pushed to the editor, but the public /exec URL was not updated."
-            echo "To fix this, add the 'Deployment ID' from Apps Script to your GitHub Secrets."
           fi
           
           echo "Deployment complete!"
