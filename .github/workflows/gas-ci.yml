@@ -63,7 +63,7 @@ jobs:
           # Create .clasp.json dynamically
           echo "{\"scriptId\":\"$SCRIPT_ID\",\"rootDir\":\".\"}" > .clasp.json
           
-          clasp push -f --debug
+          clasp push -f
           
           if [ -n "$DEPLOYMENT_ID" ]; then
             echo "Updating existing Web App deployment to keep the same URL..."
