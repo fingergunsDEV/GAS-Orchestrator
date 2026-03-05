@@ -49,7 +49,12 @@ jobs:
           fi
           echo "All Core Agentic Workflow tests passed successfully!"
 
-      - name: Phase 4 - Merge & Deploy
+      - name: Phase 4 - Merge & Deploy via Clasp
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
         run: |
-          echo "Pipeline successful."
-          echo "Ready for autonomous merge or clasp push deployment."
+          echo "Pipeline successful. Deploying to Google Apps Script..."
+          npm install -g @google/clasp
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          clasp push -f
+          echo "Deployment complete!"
