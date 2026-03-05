@@ -108,7 +108,10 @@
         var isFetchingCommits = ref(false);
 
         var fetchRecentCommits = function() {
-          if (!githubState.owner || !githubState.repo) return;
+          if (!githubState.owner || !githubState.repo) {
+            addLog('ERR', 'Please set your REPOSITORY_URL in the Terminal tab first.', 'error');
+            return;
+          }
           isFetchingCommits.value = true;
           addLog('SYS', 'Fetching recent commits from GitHub...', 'info');
           
