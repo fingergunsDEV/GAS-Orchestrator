@@ -40,19 +40,13 @@ jobs:
 
       - name: Phase 3 - Unit Test Validation (Agentic Workflows)
         run: |
-          echo "Executing Unit Test Hooks..."
-          echo "Verifying testAgenticWorkflows integration in Tests.gs..."
-          grep "function testAgenticWorkflows" Tests.gs || { echo "Unit tests for agentic workflows are missing!"; exit 1; }
-          
-          echo "Validating Seeds issue tracker test..."
-          grep "seeds_create" Tests.gs > /dev/null || { echo "Seeds test validation failed!"; exit 1; }
-          
-          echo "Validating Canopy prompt management test..."
-          grep "canopy_save" Tests.gs > /dev/null || { echo "Canopy test validation failed!"; exit 1; }
-          
-          echo "Validating Mulch expertise memory test..."
-          grep "mulch_record" Tests.gs > /dev/null || { echo "Mulch test validation failed!"; exit 1; }
-          
+          echo "Executing Unit Test Hooks via Node.js Framework..."
+          if [ -f tests/run_agentic_tests.js ]; then
+            node tests/run_agentic_tests.js
+          else
+            echo "Robust test suite (tests/run_agentic_tests.js) is missing!"
+            exit 1
+          fi
           echo "All Core Agentic Workflow tests passed successfully!"
 
       - name: Phase 4 - Merge & Deploy

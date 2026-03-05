@@ -27,3 +27,4 @@ The system has been upgraded to **Swarm Orchestration Mode**, introducing deep v
 *   **Updated**: `Tools_GitHub.gs` with `executeGithubPipeline` simulation engine.
 *   **Updated**: `index.html` & `js.html` with the new 3-tab Coding Module (Terminal, Monitor, Pipeline).
 ---
+- The UNIT_TEST_AUTOMATION blueprint was implemented using a Node.js 'vm' module test runner to execute Google Apps Script (.gs) files offline within the GitHub Actions CI/CD pipeline, fully mocking the GAS environment.
