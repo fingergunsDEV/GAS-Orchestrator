@@ -1,5 +1,22 @@
+# Ignore system folders
 .github/
+.git/
+commands/
+local_docs/
+tests/
+
+# Ignore non-GAS files
+**/*.md
+**/*.txt
+**/*.pdf
+**/*.xlsx
+**/*.bak
+**/*.clean
+**/*.js
 **/*.yml
 **/*.yaml
-tests/run_agentic_tests.js
-.git/
+
+# Ignore config files
+.clasp.json
+.gitignore
+.claspignore
