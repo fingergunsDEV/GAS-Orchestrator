@@ -19,6 +19,7 @@
         var currentView = ref('terminal');
         var simMode = ref(false);
         var isRecording = ref(false);
+        var userEmail = ref("admin@agency");
         var codingSubTab = ref("terminal");
 
         var hgmSwarm = ref([]);
@@ -1417,6 +1418,10 @@
 
           runBoot();
           if (typeof google !== 'undefined' && google.script) {
+            google.script.run.withSuccessHandler(function(info) {
+              if (info && info.email) userEmail.value = info.email;
+            }).getUserInfo();
+
             google.script.run.withSuccessHandler(function() { isConnected.value = true; }).verifyGeminiConnection();
             fetchRecentFiles();
             google.script.run.withSuccessHandler(function(meta) { knowledgeMeta.value = meta; }).getKnowledgeBaseMeta();
@@ -1749,7 +1754,8 @@ var sentinelPresets = ref([
           codingSubTab, hgmSwarm, swarmMessages, spawnAgent,
           pipelineStages, activePipelineStage, triggerWorkflow,
           sandboxProjects, startSandboxProject,
-          recentCommits, isFetchingCommits, fetchRecentCommits
+          recentCommits, isFetchingCommits, fetchRecentCommits,
+          userEmail
         };
       }
     });

@@ -6,6 +6,15 @@
 var MAX_ITERATIONS = 10;
 
 /**
+ * Returns the currently logged in user's email.
+ */
+function getUserInfo() {
+  return {
+    email: Session.getActiveUser().getEmail() || "anonymous@agency"
+  };
+}
+
+/**
  * Executes a single turn of the agentic loop.
  * Returns the updated history and a flag if the task is complete.
  */
