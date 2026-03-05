@@ -1789,9 +1789,14 @@
                   </button>
                 </div>
                 
-                <div class="max-w-3xl mx-auto mt-2 flex justify-between px-2 hidden md:flex">
-                  <div class="font-code text-[8px] text-gray-600 tracking-widest uppercase">Intel_Link: Stable</div>
-                  <div class="font-code text-[8px] text-gray-600 tracking-widest uppercase">Access: {{ userEmail }}</div>
+                <div class="flex items-center gap-4">
+                   <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Intel_Link: Stable</div>
+                   <div class="font-code text-[8px] tracking-widest uppercase flex items-center gap-1.5" :class="deploymentStatus === 'PASS' ? 'text-green-900' : (deploymentStatus === 'FAIL' ? 'text-red-900' : 'text-gray-700')">
+                      CI/CD_LINK: 
+                      <span class="w-1 h-1 rounded-full animate-pulse" :class="deploymentStatus === 'PASS' ? 'bg-green-500 shadow-[0_0_5px_#22c55e]' : (deploymentStatus === 'FAIL' ? 'bg-red-500 shadow-[0_0_5px_#ef4444]' : 'bg-gray-700')"></span>
+                      {{ deploymentStatus }}
+                   </div>
+                   <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Access: {{ userEmail }}</div>
                 </div>
               </div>
             </div>
