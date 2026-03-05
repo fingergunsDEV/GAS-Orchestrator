@@ -410,7 +410,6 @@ function executeGithubSyncFullCodebase(args) {
     details: results
   });
 }
-}
 
 /**
  * triggerGithubPipeline (v4.13.1)
