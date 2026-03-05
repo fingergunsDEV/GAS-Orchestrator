@@ -62,11 +62,20 @@ jobs:
       - name: Phase 4 - Merge & Deploy via Clasp
         env:
           CLASPRC_JSON: \${{ secrets.CLASPRC_JSON }}
+          DEPLOYMENT_ID: \${{ secrets.DEPLOYMENT_ID }}
         run: |
           echo "Pipeline successful. Deploying to Google Apps Script..."
           npm install -g @google/clasp
           echo "$CLASPRC_JSON" > ~/.clasprc.json
           clasp push -f
+          
+          if [ -n "$DEPLOYMENT_ID" ]; then
+            echo "Updating existing Web App deployment to keep the same URL..."
+            clasp deploy -i "$DEPLOYMENT_ID" -d "Auto-deployed via GitHub Actions"
+          else
+            echo "Notice: DEPLOYMENT_ID secret not set. Code was pushed to the editor, but the public /exec URL was not updated."
+          fi
+          
           echo "Deployment complete!"
 `;
 }
