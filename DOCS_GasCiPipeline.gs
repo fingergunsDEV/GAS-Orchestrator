@@ -61,7 +61,7 @@ jobs:
 
       - name: Phase 4 - Merge & Deploy via Clasp
         env:
-          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+          CLASPRC_JSON: \${{ secrets.CLASPRC_JSON }}
         run: |
           echo "Pipeline successful. Deploying to Google Apps Script..."
           npm install -g @google/clasp
