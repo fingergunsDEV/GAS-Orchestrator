@@ -1,0 +1,5 @@
+.github/
+**/*.yml
+**/*.yaml
+tests/run_agentic_tests.js
+.git/
