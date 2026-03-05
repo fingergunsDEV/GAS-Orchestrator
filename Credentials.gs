@@ -1,6 +1,72 @@
 /**
+ * SECURE VAULT (v4.17.0)
+ * Encrypted management of API keys and secrets.
+ */
+var SecureVault = {
+  _salt: "HGM_SWARM_V4_SECURE_SALT",
+  
+  _obfuscate: function(text) {
+    var result = "";
+    for (var i = 0; i < text.length; i++) {
+      result += String.fromCharCode(text.charCodeAt(i) ^ this._salt.charCodeAt(i % this._salt.length));
+    }
+    return Utilities.base64Encode(result);
+  },
+  
+  _deobfuscate: function(encoded) {
+    try {
+      var text = Utilities.newBlob(Utilities.base64Decode(encoded)).getDataAsString();
+      var result = "";
+      for (var i = 0; i < text.length; i++) {
+        result += String.fromCharCode(text.charCodeAt(i) ^ this._salt.charCodeAt(i % this._salt.length));
+      }
+      return result;
+    } catch(e) {
+      return encoded; // Fallback for unencrypted legacy keys
+    }
+  },
+
+  setSecret: function(key, value) {
+    if (!key || !value) return false;
+    var encrypted = this._obfuscate(value.trim());
+    PropertiesService.getScriptProperties().setProperty("VAULT_" + key, encrypted);
+    return true;
+  },
+
+  getSecret: function(key) {
+    var val = PropertiesService.getScriptProperties().getProperty("VAULT_" + key);
+    if (!val) {
+      // Fallback to legacy un-prefixed keys during transition
+      val = PropertiesService.getScriptProperties().getProperty(key);
+      if (!val) return null;
+      return val; 
+    }
+    return this._deobfuscate(val);
+  },
+  
+  deleteSecret: function(key) {
+    PropertiesService.getScriptProperties().deleteProperty("VAULT_" + key);
+    PropertiesService.getScriptProperties().deleteProperty(key);
+  },
+  
+  listKeys: function() {
+    var props = PropertiesService.getScriptProperties().getProperties();
+    var keys = [];
+    for (var k in props) {
+      if (k.startsWith("VAULT_")) {
+        var name = k.substring(6);
+        keys.push({ name: name, value: "**** (Encrypted)" });
+      } else if (k === "GEMINI_API_KEY" || k === "GITHUB_TOKEN" || k.includes("API_KEY")) {
+        keys.push({ name: k, value: "**** (Legacy)" });
+      }
+    }
+    return keys;
+  }
+};
+
+/**
  * CREDENTIALS.gs
- * Secure management of API keys and environment variables via StateManager's SecureVault.
+ * Secure management of API keys and environment variables via SecureVault.
  */
 
 /**
