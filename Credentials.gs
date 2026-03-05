@@ -53,11 +53,17 @@ var SecureVault = {
     var props = PropertiesService.getScriptProperties().getProperties();
     var keys = [];
     for (var k in props) {
+      // Ignore system internal keys
+      if (k.startsWith("SESSION_") || k.startsWith("MISSION_") || k.startsWith("SWARM_") || k.startsWith("blob_")) continue;
+      
       if (k.startsWith("VAULT_")) {
         var name = k.substring(6);
         keys.push({ name: name, value: "**** (Encrypted)" });
-      } else if (k === "GEMINI_API_KEY" || k === "GITHUB_TOKEN" || k.includes("API_KEY")) {
-        keys.push({ name: k, value: "**** (Legacy)" });
+      } else {
+        // This is a legacy key - show it so the user can see their current config
+        var val = props[k];
+        var masked = val.length > 10 ? val.substring(0, 4) + "..." + val.substring(val.length - 4) : "****";
+        keys.push({ name: k, value: masked + " (Legacy)" });
       }
     }
     return keys;
