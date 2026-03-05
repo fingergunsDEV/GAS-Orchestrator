@@ -260,6 +260,7 @@
         var quickFact = ref("");
         var curateTopic = ref("");
         var gDocUrl = ref("");
+        var apiUrl = ref("");
 
         var uiColor = computed(function() {
           if (isProcessing.value) return '#ffaa00';
@@ -1602,6 +1603,27 @@ var sentinelPresets = ref([
           }).executeIngestGoogleDoc({ url: gDocUrl.value });
         };
 
+        var ingestApiData = function() {
+          if (!apiUrl.value) return;
+          isProcessing.value = true;
+          addLog("SYS", "Initiating API Ingestion...", "info");
+          google.script.run.withSuccessHandler(function(res) {
+            isProcessing.value = false;
+            try {
+              var json = JSON.parse(res);
+              if (json.success) {
+                addLog("SYS", "API Data Ingested Successfully (Truncated: " + json.wasTruncated + ")", "success");
+                addLog("DATA", json.data.substring(0, 100) + "...", "info");
+                apiUrl.value = "";
+              } else {
+                addLog("SYS", "API Request Failed: " + (json.error || json.message), "error");
+              }
+            } catch (e) {
+              addLog("SYS", "Failed to parse API ingest response.", "error");
+            }
+          }).executeApiIngest({ url: apiUrl.value });
+        };
+
         // --- GITHUB CODING AGENT FUNCTIONS ---
         var fetchRepoStructure = function() {
           if (!githubState.owner || !githubState.repo) {
@@ -1678,7 +1700,7 @@ var sentinelPresets = ref([
           activeState, eventLogs, chatBox, logBox, fileInput, selectedImage, renderMarkdown, sendMessage, 
           resumeMission, handleFileSelect, clearImage, getLogColor, uiColor, uiTheme, currentView, simMode, 
           teamNodes, center, activeNode, neuralBarValues, neuralLayers, dataStreams, diagnosticIssues, 
-          recentFiles, knowledgeMeta, contextualActions, quickFact, curateTopic, gDocUrl, ingestGoogleDoc, toggleTheme, toggleSim, 
+          recentFiles, knowledgeMeta, contextualActions, quickFact, curateTopic, gDocUrl, apiUrl, ingestGoogleDoc, ingestApiData, toggleTheme, toggleSim, 
           getFileTypeColor, getAgentCaps, ingestFact, triggerCuration, openFilePicker, isRecording,
           geoPulseData, activePings, pulseSubTab, totalHistoricalSessions, lastSyncTime, vaultKeys, 
           newKeyName, newKeyValue, promptLibrary, refreshSettings, saveKey, deleteKey, runGa4Diagnostic,
