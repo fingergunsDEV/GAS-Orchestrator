@@ -20,6 +20,13 @@
         var simMode = ref(false);
         var isRecording = ref(false);
         var userEmail = ref("admin@agency");
+        
+        var deploymentStatus = computed(function() {
+          if (!pipelineStages || !pipelineStages.value || pipelineStages.value.length === 0) return 'UNKNOWN';
+          var deployStage = pipelineStages.value.find(function(s) { return s.name && s.name.includes('DEPLOY'); });
+          return deployStage ? deployStage.status : 'WAITING';
+        });
+
         var codingSubTab = ref("terminal");
 
         var hgmSwarm = ref([]);
