@@ -578,3 +578,47 @@ function executeGithubRollbackFile(args) {
   }
   return JSON.stringify({ error: "No content found at ref: " + ref });
 }
+
+/**
+ * getRecentGithubCommits (v4.15.0)
+ * Fetches the recent commit history for the UI.
+ */
+function getRecentGithubCommits(args) {
+  var owner = args.owner;
+  var repo = args.repo;
+  var branch = args.branch || "main";
+  var limit = args.limit || 15;
+
+  var token = getGitHubToken();
+  if (!token) return JSON.stringify({ success: false, message: "No token." });
+
+  var url = "https://api.github.com/repos/" + owner + "/" + repo + "/commits?sha=" + branch + "&per_page=" + limit;
+  var options = {
+    method: "get",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Accept": "application/vnd.github.v3+json"
+    },
+    muteHttpExceptions: true
+  };
+
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    if (response.getResponseCode() !== 200) return JSON.stringify({ success: false, message: "Failed to fetch commits." });
+
+    var data = JSON.parse(response.getContentText());
+    var commits = data.map(function(c) {
+      return {
+        sha: c.sha.substring(0, 7),
+        message: c.commit.message,
+        author: c.commit.author.name,
+        date: c.commit.author.date,
+        url: c.html_url
+      };
+    });
+
+    return JSON.stringify({ success: true, commits: commits });
+  } catch (e) {
+    return JSON.stringify({ success: false, message: "Error: " + e.message });
+  }
+}

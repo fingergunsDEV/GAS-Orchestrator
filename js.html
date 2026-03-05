@@ -103,6 +103,33 @@
           }, 5000);
         };
 
+        var recentCommits = ref([]);
+        var isFetchingCommits = ref(false);
+
+        var fetchRecentCommits = function() {
+          if (!githubState.owner || !githubState.repo) return;
+          isFetchingCommits.value = true;
+          addLog('SYS', 'Fetching recent commits from GitHub...', 'info');
+          
+          google.script.run.withSuccessHandler(function(res) {
+            isFetchingCommits.value = false;
+            var data = JSON.parse(res);
+            if (data.success) {
+              recentCommits.value = data.commits || [];
+            } else {
+              addLog('ERR', 'Failed to fetch commits: ' + data.message, 'error');
+            }
+          }).withFailureHandler(function(err) {
+            isFetchingCommits.value = false;
+            addLog('ERR', 'Commit fetch error: ' + err.message, 'error');
+          }).getRecentGithubCommits({
+            owner: githubState.owner,
+            repo: githubState.repo,
+            branch: githubState.branch,
+            limit: 15
+          });
+        };
+
         var spawnAgent = function() {
           if (!sessionId.value) return;
           var agentName = "Reviewer-" + Math.random().toString(36).substring(7).toUpperCase();
@@ -1721,7 +1748,8 @@ var sentinelPresets = ref([
           leadEmailHistory, isFetchingHistory, fetchEmailHistory, selectedLeadForHistory,
           codingSubTab, hgmSwarm, swarmMessages, spawnAgent,
           pipelineStages, activePipelineStage, triggerWorkflow,
-          sandboxProjects, startSandboxProject
+          sandboxProjects, startSandboxProject,
+          recentCommits, isFetchingCommits, fetchRecentCommits
         };
       }
     });
