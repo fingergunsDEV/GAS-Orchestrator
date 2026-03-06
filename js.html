@@ -585,6 +585,63 @@
           if (fileInput.value) fileInput.value.click();
         };
 
+        var recognition = null;
+        var toggleVoiceDictation = function() {
+          if (isRecording.value) {
+            if (recognition) recognition.stop();
+            return;
+          }
+
+          var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SpeechRecognition) {
+            addLog('ERR', 'Voice Dictation is not supported by your browser.', 'error');
+            return;
+          }
+
+          if (!recognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+              isRecording.value = true;
+              addLog('SYS', 'Audio capture uplink established.', 'info');
+            };
+
+            recognition.onresult = function(event) {
+              var transcript = Array.from(event.results)
+                .map(function(result) { return result[0]; })
+                .map(function(result) { return result.transcript; })
+                .join('');
+              userInput.value = transcript;
+            };
+
+            recognition.onerror = function(event) {
+              addLog('ERR', 'Audio capture failed: ' + event.error, 'error');
+              isRecording.value = false;
+            };
+
+            recognition.onend = function() {
+              isRecording.value = false;
+              // Brief delay to ensure transcript is updated
+              setTimeout(function() {
+                if (userInput.value && userInput.value.trim().length > 0) {
+                  addLog('SYS', 'Audio intel transcribed.', 'success');
+                } else {
+                  addLog('SYS', 'Audio capture complete (no data).', 'info');
+                }
+              }, 500);
+            };
+          }
+
+          try {
+            recognition.start();
+          } catch(e) {
+            console.error("Speech recognition already started");
+          }
+        };
+
         var handleFileSelect = function(e) {
           var f = e.target.files[0]; if (!f) return;
           var r = new FileReader(); r.onload = function(ev) { 
@@ -1930,9 +1987,8 @@ var sentinelPresets = ref([
           resumeMission, handleFileSelect, clearImage, getLogColor, uiColor, uiTheme, currentView, simMode, 
           teamNodes, center, activeNode, neuralBarValues, neuralLayers, dataStreams, diagnosticIssues, 
           recentFiles, knowledgeMeta, contextualActions, quickFact, curateTopic, gDocUrl, apiUrl, ingestGoogleDoc, ingestApiData, toggleTheme, toggleSim, mobileMenuOpen, 
-          getFileTypeColor, getAgentCaps, ingestFact, triggerCuration, openFilePicker, isRecording,
-          geoPulseData, activePings, pulseSubTab, totalHistoricalSessions, lastSyncTime, vaultKeys, 
-          newKeyName, newKeyValue, promptLibrary, refreshSettings, saveKey, deleteKey, runGa4Diagnostic,
+          getFileTypeColor, getAgentCaps, ingestFact, triggerCuration, openFilePicker, toggleVoiceDictation, isRecording,
+          geoPulseData, activePings, pulseSubTab, totalHistoricalSessions, lastSyncTime, vaultKeys,          newKeyName, newKeyValue, promptLibrary, refreshSettings, saveKey, deleteKey, runGa4Diagnostic,
           leads, fetchLeads, syncLeads, syncInbox, deployLeadAction, getStatusStyle,
           engineSubTab, engineData, generateContent, onLeadSelect, sendEngineContent,
           recentRecipients, fetchRecipients, onRecipientSelect,

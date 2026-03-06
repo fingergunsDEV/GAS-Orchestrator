@@ -2144,11 +2144,19 @@
                 <div class="lux-panel max-w-3xl mx-auto flex items-center gap-2 md:gap-4 p-1 pl-4 border-l-2 bg-black/90 backdrop-blur-xl shadow-2xl transition-all duration-500 group focus-within:shadow-[0_0_30px_-10px_rgba(0,243,255,0.2)] rounded" 
                      :style="{ borderLeftColor: uiColor }">
                   
-                  <button @click="openFilePicker" class="text-gray-500 hover:text-white transition-all transform hover:scale-110 p-2" title="Upload Asset">
-                    <span class="text-xl font-light">+</span>
-                  </button>
-                  <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">
-                  
+                  <!-- Chat Input Buttons -->
+                  <div class="flex items-center gap-1">
+                    <button @click="openFilePicker" class="text-gray-500 hover:text-white transition-all transform hover:scale-110 p-2" title="Upload Asset">
+                      <i class="fas fa-plus text-xs"></i>
+                    </button>
+                    <button @click="toggleVoiceDictation" 
+                            class="transition-all transform hover:scale-110 p-2" 
+                            :class="isRecording ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-white'" 
+                            title="Voice Dictation">
+                      <i class="fas" :class="isRecording ? 'fa-microphone' : 'fa-microphone-slash'"></i>
+                    </button>
+                  </div>
+                  <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">                  
                   <div class="flex items-center gap-2 hidden md:flex">
                     <span class="font-hud text-[10px] tracking-tighter opacity-40">MISSION</span>
                     <span class="font-hud text-xs animate-pulse" :style="{color: uiColor}">>></span>
