@@ -4,6 +4,7 @@
 commands/
 local_docs/
 tests/
+local dev/
 
 # Ignore non-GAS files
 **/*.md

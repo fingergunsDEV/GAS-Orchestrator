@@ -119,6 +119,46 @@
 
         var hgmSwarm = ref([]);
         var swarmMessages = ref([]);
+        var skillList = ref([]);
+        var isSkillsLoading = ref(false);
+
+        var fetchSkillList = function() {
+          isSkillsLoading.value = true;
+          google.script.run
+            .withSuccessHandler(function(res) {
+              try {
+                var parsed = JSON.parse(res);
+                if (parsed.success) {
+                  skillList.value = parsed.tools;
+                }
+              } catch (e) { console.error("Error parsing skill list:", e); }
+              isSkillsLoading.value = false;
+            })
+            .executeListDynamicTools();
+        };
+
+        var startSkillInterview = function() {
+          codingSubTab.value = 'terminal';
+          githubState.userInput = "I want to build a new skill. Please start the interview process to gather all necessary details (purpose, parameters, and logic).";
+          setTimeout(function() { runCodingTask(); }, 500);
+        };
+
+        var editSkill = function(skill) {
+          codingSubTab.value = 'terminal';
+          githubState.userInput = "I want to update the '" + skill.name + "' skill. What would you like to change about its logic or parameters?";
+          setTimeout(function() { runCodingTask(); }, 500);
+        };
+
+        var deleteSkill = function(skill) {
+          if (!confirm("Are you sure you want to permanently delete the '" + skill.name + "' skill? This will remove it from the system and trash the source file in Drive.")) return;
+          
+          google.script.run
+            .withSuccessHandler(function(res) {
+              alert(res);
+              fetchSkillList();
+            })
+            .executeRemoveDynamicTool({ toolName: skill.name });
+        };
 
         var pipelineStages = ref([
           { name: 'PIPELINE_INIT', status: 'QUEUED', log: 'Awaiting execution...' }
@@ -1867,6 +1907,7 @@ var sentinelPresets = ref([
 
           leadEmailHistory, isFetchingHistory, fetchEmailHistory, selectedLeadForHistory,
           codingSubTab, hgmSwarm, swarmMessages, spawnAgent,
+          skillList, isSkillsLoading, fetchSkillList, startSkillInterview, editSkill, deleteSkill,
           pipelineStages, activePipelineStage, triggerWorkflow,
           sandboxProjects, startSandboxProject,
           recentCommits, isFetchingCommits, fetchRecentCommits,

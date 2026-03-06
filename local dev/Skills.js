@@ -2330,54 +2330,21 @@ function executeSyncDynamicTools(args) {
 }
 
 /**
- * List all Dynamic Tools in the system.
- */
-function executeListDynamicTools(args) {
-  try {
-    var props = PropertiesService.getScriptProperties().getProperties();
-    var tools = [];
-    
-    for (var key in props) {
-      if (key.startsWith("DYNAMIC_TOOL_")) {
-        try {
-          var toolDef = JSON.parse(props[key]);
-          tools.push({
-            name: toolDef.name,
-            description: toolDef.description,
-            parameters: toolDef.parameters
-          });
-        } catch (e) {
-          console.warn("Error parsing dynamic tool '" + key + "': " + e.message);
-        }
-      }
-    }
-    
-    return JSON.stringify({ success: true, count: tools.length, tools: tools });
-  } catch (e) {
-    return JSON.stringify({ success: false, error: e.message });
-  }
-}
-
-/**
  * Patch a Dynamic Tool (Self-Healing).
- * Updates the file in Drive, re-syncs, and pushes to GitHub.
+ * Updates the file in Drive and re-syncs.
  */
 function executePatchDynamicTool(args) {
   try {
     var toolName = args.toolName;
     var newCode = args.newCode; // Full JS content including JSDoc
-    var results = [];
     
-    // 1. Update/Create in Google Drive
-    var folderName = "GAS_Dynamic_Tools";
-    var folders = DriveApp.getFoldersByName(folderName);
-    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
-    
+    var folder = DriveApp.getFoldersByName("GAS_Dynamic_Tools").next();
     var files = folder.getFiles();
     var targetFile = null;
+    
     while (files.hasNext()) {
       var f = files.next();
-      if (f.getName() === toolName + ".js" || f.getBlob().getDataAsString().indexOf("@tool " + toolName) !== -1) {
+      if (f.getBlob().getDataAsString().indexOf("@tool " + toolName) !== -1) {
         targetFile = f;
         break;
       }
@@ -2385,92 +2352,17 @@ function executePatchDynamicTool(args) {
     
     if (targetFile) {
       targetFile.setContent(newCode);
-      results.push("Drive: Updated '" + targetFile.getName() + "'.");
     } else {
-      var newFile = folder.createFile(toolName + ".js", newCode);
-      results.push("Drive: Created '" + newFile.getName() + "'.");
+      // Create new if not exists
+      folder.createFile(toolName + ".js", newCode);
     }
     
-    // 2. Hot-Load to ScriptProperties
+    // Trigger Sync
     executeSyncDynamicTools({});
-    results.push("System: Hot-loaded into ScriptProperties.");
-
-    // 3. Push to GitHub (Dual-Format for Local Dev and Native GAS)
-    var props = PropertiesService.getScriptProperties();
-    var owner = props.getProperty("GITHUB_OWNER");
-    var repo = props.getProperty("GITHUB_REPO");
-    var branch = props.getProperty("GITHUB_BRANCH") || "main";
     
-    if (owner && repo && typeof executeGithubCommitFile === 'function') {
-      try {
-        // A. Push .js version to local dev folder
-        executeGithubCommitFile({
-          owner: owner,
-          repo: repo,
-          path: "local dev/DynamicTools/" + toolName + ".js",
-          content: newCode,
-          message: "feat(skill): Update local dev source for '" + toolName + "'",
-          branch: branch
-        });
-
-        // B. Push .gs version to root DynamicSkills folder (Triggering CI/CD Deploy)
-        var githubRes = executeGithubCommitFile({
-          owner: owner,
-          repo: repo,
-          path: "DynamicSkills/" + toolName + ".gs",
-          content: newCode,
-          message: "feat(skill): Deploy native .gs skill '" + toolName + "'",
-          branch: branch
-        });
-
-        var parsedGh = JSON.parse(githubRes);
-        if (parsedGh.error) {
-          results.push("GitHub: Native deploy failed - " + (parsedGh.message || parsedGh.error));
-        } else {
-          results.push("GitHub: Synced .js and deployed .gs to " + branch + ".");
-        }
-      } catch (ghErr) {
-        results.push("GitHub: Sync exception - " + ghErr.message);
-      }
-    }
-    
-    return "SUCCESS_PATCH: " + results.join(" | ");
+    return "Success: Patched and re-loaded tool '" + toolName + "'.";
   } catch (e) {
     return "Error patching tool: " + e.message;
-  }
-}
-
-/**
- * Remove a Dynamic Tool from Drive and ScriptProperties.
- */
-function executeRemoveDynamicTool(args) {
-  try {
-    var toolName = args.toolName;
-    var results = [];
-    
-    // 1. Remove from ScriptProperties
-    PropertiesService.getScriptProperties().deleteProperty("DYNAMIC_TOOL_" + toolName.toUpperCase());
-    results.push("System: Purged from ScriptProperties.");
-    
-    // 2. Remove from Drive
-    var folderName = "GAS_Dynamic_Tools";
-    var folders = DriveApp.getFoldersByName(folderName);
-    if (folders.hasNext()) {
-      var folder = folders.next();
-      var files = folder.getFiles();
-      while (files.hasNext()) {
-        var f = files.next();
-        if (f.getName() === toolName + ".js" || f.getBlob().getDataAsString().indexOf("@tool " + toolName) !== -1) {
-          f.setTrashed(true);
-          results.push("Drive: Trashed '" + f.getName() + "'.");
-          break;
-        }
-      }
-    }
-    
-    return "SUCCESS_REMOVE: " + results.join(" | ");
-  } catch (e) {
-    return "Error removing tool: " + e.message;
   }
 }
 

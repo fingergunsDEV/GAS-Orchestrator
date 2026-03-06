@@ -13,27 +13,11 @@ function getManifest(role) {
   // 1. Gather all available tools
   var allTools = CoreRegistry.getTools();
   if (typeof PluginManager !== 'undefined') {
+    // concat returns a new array, preserving CoreRegistry
     allTools = allTools.concat(PluginManager.getPluginTools());
   }
 
-  // Add Dynamic Tools from ScriptProperties
-  var props = PropertiesService.getScriptProperties().getProperties();
-  for (var key in props) {
-    if (key.startsWith("DYNAMIC_TOOL_")) {
-      try {
-        var toolDef = JSON.parse(props[key]);
-        allTools.push({
-          name: toolDef.name,
-          description: toolDef.description,
-          parameters: typeof toolDef.parameters === 'string' ? JSON.parse(toolDef.parameters) : toolDef.parameters
-        });
-      } catch (e) {
-        console.warn("[Manifest] Error loading dynamic tool '" + key + "': " + e.message);
-      }
-    }
-  }
-
-  // Deduplicate tools by name (CoreRegistry + Plugins + Dynamic)
+  // Deduplicate tools by name (CoreRegistry + Plugins)
   var dedupedTools = [];
   var seenTools = {};
   allTools.forEach(function(tool) {

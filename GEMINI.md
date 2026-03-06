@@ -26,5 +26,10 @@ The system has been upgraded to **v4.18.0**, introducing the **Autopilot Hub** f
 *   **Updated**: `GeminiService.gs` with Economy Mode model overrides.
 *   **Updated**: `Orchestrator.gs` to handle external approval link callbacks.
 *   **Updated**: `index.html` & `js.html` with the new **AUTOPILOT** navigation tab and proactive modules.
+*   **New**: **Skill Architect & Management** (v4.18.5) introduced in the Development Engine, allowing for guided skill building, hot-loading, and GitHub synchronization.
+
 ---
 - The UNIT_TEST_AUTOMATION blueprint was implemented using a Node.js 'vm' module test runner to execute Google Apps Script (.gs) files offline within the GitHub Actions CI/CD pipeline.
+---
+## Architectural Note: Dynamic Skills
+The system now supports **Dynamic Skills** which are hot-loaded from `ScriptProperties` and Drive. The `Skill Architect` agent manages the lifecycle of these tools, ensuring they are version-controlled in GitHub while remaining immediately executable in the GAS environment without a full project redeploy.

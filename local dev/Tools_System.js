@@ -94,18 +94,13 @@ function registerSystemTools() {
       parameters: { type: "object", properties: {}, required: [] }
     },
     {
-      name: "list_dynamic_tools",
-      description: "Returns a list of all hot-loaded tools currently available in the system.",
-      parameters: { type: "object", properties: {}, required: [] }
-    },
-    {
       name: "sync_dynamic_tools",
       description: "Scans 'GAS_Dynamic_Tools' folder in Drive for .js files and hot-loads them.",
       parameters: { type: "object", properties: {}, required: [] }
     },
     {
       name: "patch_dynamic_tool",
-      description: "Updates or creates a dynamic tool file in Drive. Also synchronizes to GitHub if configured.",
+      description: "Updates or creates a dynamic tool file in Drive. Used for fixing bugs or adding new capabilities.",
       parameters: {
         type: "object",
         properties: { 
@@ -114,17 +109,6 @@ function registerSystemTools() {
           approvalToken: { type: "string", description: "Required safety guard. Must be set to 'APPROVE_CODE_INJECTION' after user confirmation." }
         },
         required: ["toolName", "newCode"]
-      }
-    },
-    {
-      name: "remove_dynamic_tool",
-      description: "Deletes a hot-loaded tool from the system and its source file in Drive.",
-      parameters: {
-        type: "object",
-        properties: { 
-          toolName: { type: "string", description: "The name of the tool to remove." }
-        },
-        required: ["toolName"]
       }
     },
     {

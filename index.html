@@ -1626,6 +1626,7 @@
                 <!-- SUB-TABS -->
                 <div class="flex gap-2">
                   <button @click="codingSubTab = 'terminal'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'terminal' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">TERMINAL</button>
+                  <button @click="codingSubTab = 'skills'; fetchSkillList()" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'skills' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">SKILLS</button>
                   <button @click="codingSubTab = 'sandbox'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'sandbox' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">SANDBOX</button>
                   <button @click="codingSubTab = 'monitor'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'monitor' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">MONITOR</button>
                   <button @click="codingSubTab = 'pipeline'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'pipeline' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">PIPELINE</button>
@@ -1719,6 +1720,54 @@
                       <input type="text" v-model="githubState.userInput" @keyup.enter="runCodingTask()" class="flex-1 bg-transparent text-[11px] font-code text-white outline-none" placeholder="e.g. Add error handling to index.js and commit it...">
                       <button @click="runCodingTask()" class="font-hud text-[9px] bg-yellow-900/20 text-yellow-400 border border-yellow-800 px-4 hover:bg-yellow-800/40">EXECUTE</button>
                    </div>
+                </div>
+              </div>
+
+              <!-- SKILLS SUB-TAB -->
+              <div v-if="codingSubTab === 'skills'" class="flex-1 flex flex-col min-h-0 animate-fade-in">
+                <div class="flex justify-between items-center mb-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 bg-yellow-500"></div>
+                    <div class="font-hud text-[10px] text-gray-400 tracking-[0.2em] uppercase">Dynamic_Skill_Manager</div>
+                  </div>
+                  <button @click="startSkillInterview" class="px-4 py-2 bg-yellow-500/10 border border-yellow-500/50 text-yellow-400 font-hud text-[9px] tracking-widest hover:bg-yellow-500/20 transition-all">BUILD_NEW_SKILL</button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto scrollbar-hide bg-black/40 border border-gray-900 p-6 relative">
+                  <div v-if="isSkillsLoading" class="flex flex-col items-center justify-center h-full gap-4 py-20">
+                    <div class="w-8 h-8 border-2 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin"></div>
+                    <div class="font-hud text-[9px] text-yellow-500 tracking-widest animate-pulse">SCANNING_REGISTRY...</div>
+                  </div>
+
+                  <div v-else-if="skillList.length === 0" class="flex flex-col items-center justify-center h-full text-gray-600 gap-4 py-20">
+                    <i class="fas fa-box-open text-4xl opacity-20"></i>
+                    <div class="font-hud text-[10px] tracking-widest">NO_DYNAMIC_SKILLS_LOADED</div>
+                    <button @click="startSkillInterview" class="mt-4 text-[9px] text-yellow-600 hover:text-yellow-400 underline uppercase tracking-widest">Initialize First Skill</button>
+                  </div>
+
+                  <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="skill in skillList" :key="skill.name" class="lux-panel p-5 border border-gray-800 bg-black/60 relative group hover:border-yellow-500/30 transition-all">
+                      <div class="flex justify-between items-start mb-4">
+                        <div class="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/30 text-[8px] text-yellow-500 font-hud tracking-widest">DYNAMIC_TOOL</div>
+                        <div class="flex gap-3">
+                          <button @click="editSkill(skill)" class="text-gray-600 hover:text-yellow-400 transition-colors"><i class="fas fa-edit text-[10px]"></i></button>
+                          <button @click="deleteSkill(skill)" class="text-gray-600 hover:text-red-400 transition-colors"><i class="fas fa-trash text-[10px]"></i></button>
+                        </div>
+                      </div>
+                      <div class="font-hud text-[12px] text-yellow-400 tracking-widest mb-2">{{ skill.name }}</div>
+                      <div class="text-[10px] text-gray-500 leading-relaxed mb-4 h-12 overflow-hidden line-clamp-3">{{ skill.description }}</div>
+                      
+                      <div class="flex flex-wrap gap-1.5">
+                        <div v-for="(p, pName) in JSON.parse(skill.parameters).properties" :key="pName" class="px-2 py-0.5 bg-gray-950 border border-gray-800 text-[8px] text-gray-600 font-code">
+                          {{ pName }}
+                        </div>
+                      </div>
+
+                      <div class="absolute bottom-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="text-[7px] text-yellow-700 font-code tracking-tighter uppercase">Hot-Loaded</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
