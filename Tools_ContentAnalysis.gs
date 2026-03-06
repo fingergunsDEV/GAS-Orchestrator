@@ -32,8 +32,9 @@ var ContentAnalysis = (function() {
 
       var prompt = generateAnalysisPrompt(textToAnalyze, payload.context);
       
-      // Call Gemini using the established GeminiService
-      var rawResult = GeminiService.callGemini(prompt, "application/json");
+      // Call Gemini using the global callGemini function
+      var history = [{ role: "user", parts: [{ text: prompt }] }];
+      var rawResult = callGemini(history, [], null, "application/json", "flash");
       
       try {
         var parsed = JSON.parse(rawResult);
