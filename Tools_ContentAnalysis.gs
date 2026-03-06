@@ -37,7 +37,9 @@ var ContentAnalysis = (function() {
       var rawResult = callGemini(history, [], null, "application/json", "flash");
       
       try {
-        var parsed = JSON.parse(rawResult);
+        if (rawResult.error) throw new Error(rawResult.error);
+        var jsonText = (rawResult.text || "").replace(/```json/g, "").replace(/```/g, "").trim();
+        var parsed = JSON.parse(jsonText);
         return { success: true, data: parsed };
       } catch (e) {
         // Fallback or regex parsing if LLM didn't return perfect JSON
