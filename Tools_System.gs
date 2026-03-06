@@ -99,6 +99,24 @@ function registerSystemTools() {
       parameters: { type: "object", properties: {}, required: [] }
     },
     {
+      name: "gas_get_project_content",
+      description: "Fetches all files and source code from the current native Google Apps Script project.",
+      parameters: { type: "object", properties: {}, required: [] }
+    },
+    {
+      name: "gas_commit_file",
+      description: "Commits a file directly to the native Google Apps Script project. Updates existing or creates new.",
+      parameters: {
+        type: "object",
+        properties: {
+          fileName: { type: "string" },
+          content: { type: "string" },
+          type: { type: "string", enum: ["SERVER_JS", "HTML", "JSON"], description: "SERVER_JS for .gs files" }
+        },
+        required: ["fileName", "content"]
+      }
+    },
+    {
       name: "sync_dynamic_tools",
       description: "Scans 'GAS_Dynamic_Tools' folder in Drive for .js files and hot-loads them.",
       parameters: { type: "object", properties: {}, required: [] }

@@ -1650,6 +1650,15 @@
                         <input v-model="githubState.branch" type="text" placeholder="e.g. main" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
                       </div>
 
+                      <div>
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">COMMIT_TARGET</label>
+                        <select v-model="deploymentTarget" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none appearance-none cursor-pointer">
+                          <option value="GITHUB">GITHUB_VERSION_CONTROL</option>
+                          <option value="GAS">NATIVE_APPS_SCRIPT_ONLY</option>
+                          <option value="BOTH">DUAL_SYNC (RECOMMENDED)</option>
+                        </select>
+                      </div>
+
                       <!-- RECENT PROJECTS (v4.18.0) -->
                       <div v-if="recentProjects && recentProjects.length > 0">
                         <label class="block font-hud text-[8px] text-gray-600 mb-1">RECENT_PROJECTS</label>

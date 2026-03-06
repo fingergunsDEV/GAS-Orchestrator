@@ -47,6 +47,7 @@
     "https://www.googleapis.com/auth/forms",
     "https://www.googleapis.com/auth/tasks",
     "https://www.googleapis.com/auth/youtube.readonly",
-    "https://www.googleapis.com/auth/script.scriptapp"
+    "https://www.googleapis.com/auth/script.scriptapp",
+    "https://www.googleapis.com/auth/script.projects"
   ]
 }

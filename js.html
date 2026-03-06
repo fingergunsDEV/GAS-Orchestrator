@@ -121,6 +121,7 @@
         var swarmMessages = ref([]);
         var skillList = ref([]);
         var isSkillsLoading = ref(false);
+        var deploymentTarget = ref("BOTH");
 
         var fetchSkillList = function() {
           isSkillsLoading.value = true;
@@ -139,13 +140,13 @@
 
         var startSkillInterview = function() {
           codingSubTab.value = 'terminal';
-          githubState.userInput = "I want to build a new skill. Please start the interview process to gather all necessary details (purpose, parameters, and logic).";
+          githubState.userInput = "I want to build a new skill. DEPLOYMENT_TARGET: " + deploymentTarget.value + ". Please start the interview process to gather all necessary details (purpose, parameters, and logic).";
           setTimeout(function() { runCodingTask(); }, 500);
         };
 
         var editSkill = function(skill) {
           codingSubTab.value = 'terminal';
-          githubState.userInput = "I want to update the '" + skill.name + "' skill. What would you like to change about its logic or parameters?";
+          githubState.userInput = "I want to update the '" + skill.name + "' skill. DEPLOYMENT_TARGET: " + deploymentTarget.value + ". What would you like to change about its logic or parameters?";
           setTimeout(function() { runCodingTask(); }, 500);
         };
 
@@ -1843,9 +1844,12 @@ var sentinelPresets = ref([
           githubState.userInput = "";
           githubState.isProcessing = true;
 
-          // Pass the context of the selected repo
+          // Pass the context of the selected repo and target
           var repoContext = "Target Repo: " + githubState.owner + "/" + githubState.repo + " (Branch: " + githubState.branch + "). ";
-          var fullPrompt = repoContext + input;
+          var targetContext = "DEPLOYMENT_TARGET: " + deploymentTarget.value + ". ";
+          var instructions = "\nINSTRUCTIONS:\n1. Use github_ tools if GITHUB or BOTH.\n2. Use gas_commit_file if GAS or BOTH.\n3. Verify repository structure via github_read_repo_tree if using GitHub.\n\n";
+          
+          var fullPrompt = repoContext + targetContext + instructions + input;
 
           google.script.run.withSuccessHandler(function(responseStr) {
              githubState.isProcessing = false;
@@ -1908,6 +1912,7 @@ var sentinelPresets = ref([
           leadEmailHistory, isFetchingHistory, fetchEmailHistory, selectedLeadForHistory,
           codingSubTab, hgmSwarm, swarmMessages, spawnAgent,
           skillList, isSkillsLoading, fetchSkillList, startSkillInterview, editSkill, deleteSkill,
+          deploymentTarget,
           pipelineStages, activePipelineStage, triggerWorkflow,
           sandboxProjects, startSandboxProject,
           recentCommits, isFetchingCommits, fetchRecentCommits,

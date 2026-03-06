@@ -2359,16 +2359,103 @@ function executeListDynamicTools(args) {
 }
 
 /**
+ * Internal Helper: Google Apps Script API Request.
+ */
+function _gasApiRequest(endpoint, method, payload) {
+  var url = "https://script.googleapis.com/v1" + endpoint;
+  var options = {
+    method: method || "GET",
+    headers: {
+      "Authorization": "Bearer " + ScriptApp.getOAuthToken(),
+      "Accept": "application/json"
+    },
+    muteHttpExceptions: true
+  };
+  
+  if (payload) {
+    options.contentType = "application/json";
+    options.payload = JSON.stringify(payload);
+  }
+  
+  try {
+    var response = UrlFetchApp.fetch(url, options);
+    var code = response.getResponseCode();
+    var text = response.getContentText();
+    
+    if (code >= 200 && code < 300) {
+      return JSON.parse(text);
+    } else {
+      return { error: "GAS API Error (" + code + "): " + text };
+    }
+  } catch (e) {
+    return { error: "GAS API Exception: " + e.message };
+  }
+}
+
+/**
+ * Fetches the current file list and source code of the active GAS project.
+ */
+function executeGasGetProjectContent() {
+  var scriptId = ScriptApp.getScriptId();
+  return _gasApiRequest("/projects/" + scriptId + "/content");
+}
+
+/**
+ * Commits a single file directly to the Apps Script project (Native Update).
+ * WARNING: This performs a full project content replacement (Read-Modify-Write).
+ */
+function executeGasCommitFile(args) {
+  try {
+    var scriptId = ScriptApp.getScriptId();
+    var fileName = args.fileName;
+    var source = args.content;
+    var fileType = args.type || "SERVER_JS"; // SERVER_JS (.gs), HTML, JSON
+    
+    // 1. Fetch current project content
+    var currentContent = executeGasGetProjectContent();
+    if (currentContent.error) return JSON.stringify(currentContent);
+    
+    var files = currentContent.files || [];
+    var found = false;
+    
+    // 2. Merge logic
+    for (var i = 0; i < files.length; i++) {
+      if (files[i].name === fileName) {
+        files[i].source = source;
+        files[i].type = fileType;
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      files.push({
+        name: fileName,
+        type: fileType,
+        source: source
+      });
+    }
+    
+    // 3. Push back to project
+    var updateRes = _gasApiRequest("/projects/" + scriptId + "/content", "PUT", { files: files });
+    return JSON.stringify(updateRes);
+  } catch (e) {
+    return JSON.stringify({ error: "Native GAS Commit Failed: " + e.message });
+  }
+}
+
+/**
  * Patch a Dynamic Tool (Self-Healing).
- * Updates the file in Drive, re-syncs, and pushes to GitHub.
+ * Updates the file in Drive, re-syncs, and pushes to selected targets (GitHub/GAS).
  */
 function executePatchDynamicTool(args) {
   try {
     var toolName = args.toolName;
-    var newCode = args.newCode; // Full JS content including JSDoc
+    var newCode = args.newCode; 
+    var deployTarget = args.deployTarget || "BOTH"; // GITHUB, GAS, BOTH
     var results = [];
     
-    // 1. Update/Create in Google Drive
+    // 1. Update/Create in Google Drive (Always done for hot-loading)
     var folderName = "GAS_Dynamic_Tools";
     var folders = DriveApp.getFoldersByName(folderName);
     var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
@@ -2395,43 +2482,48 @@ function executePatchDynamicTool(args) {
     executeSyncDynamicTools({});
     results.push("System: Hot-loaded into ScriptProperties.");
 
-    // 3. Push to GitHub (Dual-Format for Local Dev and Native GAS)
+    // 3. Deployment Targets
     var props = PropertiesService.getScriptProperties();
-    var owner = props.getProperty("GITHUB_OWNER");
-    var repo = props.getProperty("GITHUB_REPO");
-    var branch = props.getProperty("GITHUB_BRANCH") || "main";
-    
-    if (owner && repo && typeof executeGithubCommitFile === 'function') {
-      try {
-        // A. Push .js version to local dev folder
-        executeGithubCommitFile({
-          owner: owner,
-          repo: repo,
-          path: "local dev/DynamicTools/" + toolName + ".js",
-          content: newCode,
-          message: "feat(skill): Update local dev source for '" + toolName + "'",
-          branch: branch
-        });
 
-        // B. Push .gs version to root DynamicSkills folder (Triggering CI/CD Deploy)
-        var githubRes = executeGithubCommitFile({
-          owner: owner,
-          repo: repo,
-          path: "DynamicSkills/" + toolName + ".gs",
-          content: newCode,
-          message: "feat(skill): Deploy native .gs skill '" + toolName + "'",
-          branch: branch
-        });
-
-        var parsedGh = JSON.parse(githubRes);
-        if (parsedGh.error) {
-          results.push("GitHub: Native deploy failed - " + (parsedGh.message || parsedGh.error));
-        } else {
-          results.push("GitHub: Synced .js and deployed .gs to " + branch + ".");
-        }
-      } catch (ghErr) {
-        results.push("GitHub: Sync exception - " + ghErr.message);
+    // A. GitHub Deployment
+    if (deployTarget === "GITHUB" || deployTarget === "BOTH") {
+      var owner = props.getProperty("GITHUB_OWNER");
+      var repo = props.getProperty("GITHUB_REPO");
+      var branch = props.getProperty("GITHUB_BRANCH") || "main";
+      
+      if (owner && repo && typeof executeGithubCommitFile === 'function') {
+        try {
+          executeGithubCommitFile({
+            owner: owner, repo: repo, branch: branch,
+            path: "local dev/DynamicTools/" + toolName + ".js",
+            content: newCode,
+            message: "feat(skill): Update local dev source for '" + toolName + "'"
+          });
+          var githubRes = executeGithubCommitFile({
+            owner: owner, repo: repo, branch: branch,
+            path: "DynamicSkills/" + toolName + ".gs",
+            content: newCode,
+            message: "feat(skill): Deploy native .gs skill '" + toolName + "'"
+          });
+          var parsedGh = JSON.parse(githubRes);
+          if (parsedGh.error) results.push("GitHub: Sync failed - " + (parsedGh.message || parsedGh.error));
+          else results.push("GitHub: Deployed to " + branch + ".");
+        } catch (ghErr) { results.push("GitHub: Sync exception - " + ghErr.message); }
       }
+    }
+
+    // B. Native GAS Deployment (Instant)
+    if (deployTarget === "GAS" || deployTarget === "BOTH") {
+      try {
+        var gasRes = executeGasCommitFile({
+          fileName: toolName, // Native GAS doesn't use folders in the API the same way, just names
+          content: newCode,
+          type: "SERVER_JS"
+        });
+        var parsedGas = JSON.parse(gasRes);
+        if (parsedGas.error) results.push("GAS: Native deploy failed - " + parsedGas.error);
+        else results.push("GAS: Native project updated successfully.");
+      } catch (gasErr) { results.push("GAS: Deploy exception - " + gasErr.message); }
     }
     
     return "SUCCESS_PATCH: " + results.join(" | ");
