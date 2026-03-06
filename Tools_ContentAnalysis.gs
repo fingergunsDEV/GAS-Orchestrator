@@ -106,18 +106,14 @@ var ContentAnalysis = (function() {
     function generateAnalysisPrompt(text, context, stats) {
         var contextStr = "";
         if (context) {
-            contextStr = "Consider the following context for this content:
-";
-            if (context.entity) contextStr += "- Business/Entity: " + context.entity + "
-";
-            if (context.location) contextStr += "- Location: " + context.location + "
-";
-            if (context.topic) contextStr += "- Core Topic: " + context.topic + "
-";
+            contextStr = "Consider the following context for this content:\n";
+            if (context.entity) contextStr += "- Business/Entity: " + context.entity + "\n";
+            if (context.location) contextStr += "- Location: " + context.location + "\n";
+            if (context.topic) contextStr += "- Core Topic: " + context.topic + "\n";
         }
-        var statsStr = "HARD METRICS (Use these to inform your scores):
-" +
-            "- Word Count: " + stats.wordCount + "
+        var statsStr = "HARD METRICS (Use these to inform your scores):\n" +
+            "- Word Count: " + stats.wordCount + 
+ "
 " +
             "- Sentence Count: " + stats.sentenceCount + "
 " +
