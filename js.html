@@ -12,7 +12,11 @@
         var proactiveTopic = ref("");
         var proactiveCodeDirective = ref("");
 
-        var userInput = ref("");        var chatHistory = ref([]);
+        var userInput = ref("");
+        var chatHistory = ref([]);
+        var commandHistory = ref([]);
+        var historyIndex = ref(-1);
+        var currentCommand = ref('');
         var isProcessing = ref(false);
         var isConnected = ref(false);
         var sessionId = ref(null);
@@ -40,7 +44,7 @@
           }
         };
         var fetchRecentProjects = function() {
-          if (typeof google !== 'undefined') {
+          if (typeof google !== 'undefined' && google.script) {
             google.script.run.withSuccessHandler(function(res) {
               recentProjects.value = res || [];
             }).getRecentProjects();
@@ -326,18 +330,7 @@
           { id: 4, name: 'MEMORY_UPSERT', type: 'Storage', load: 15, status: 'Synced', team: 'PM' }
         ]);
 
-        var geoPulseData = ref({ 
-          realtime: [], 
-          historical: [], 
-          volume: [],
-          trends: [],
-          totalRealtime: 0, 
-          total7DUsers: 0,
-          total7DViews: 0,
-          avgEngagementRate: '0%',
-          avgSessionDuration: '0m 0s', 
-          timestamp: null 
-        });
+        var geoPulseData = ref({ realtime: [], historical: [], totalRealtime: 0, avgSessionDuration: '0m 0s', timestamp: null });
         var activePings = ref([]);
         var pulseSubTab = ref('geo');
         var pulseDateRange = ref('7d');
@@ -1373,12 +1366,11 @@
           
           if (geoPulseData.value.volume && geoPulseData.value.volume.length > 0) {
             volLabels = geoPulseData.value.volume.map(function(v) { 
-              var d = (v.date || "").toString(); 
-              if (d.length < 8) return d;
+              var d = v.date; 
               return d.substring(4,6) + '/' + d.substring(6,8); 
             });
-            volSessions = geoPulseData.value.volume.map(function(v) { return v.sessions || 0; });
-            volEngage = geoPulseData.value.volume.map(function(v) { return ((v.engagement || 0) * 100).toFixed(1); });
+            volSessions = geoPulseData.value.volume.map(function(v) { return v.sessions; });
+            volEngage = geoPulseData.value.volume.map(function(v) { return (v.engagement * 100).toFixed(1); });
           } else {
             volLabels = ['No Data'];
             volSessions = [0];
@@ -1448,12 +1440,12 @@
 
           if (geoPulseData.value.trends && geoPulseData.value.trends.length > 0) {
             labels = geoPulseData.value.trends.map(function(t) { 
-              var path = (t.url || "").replace(/^https?:\/\/[^\/]+/, '');
+              var path = t.url.replace(/^https?:\/\/[^\/]+/, '');
               if (path === '') path = '/';
               return path.length > 25 ? path.substring(0, 22) + '...' : path;
             });
-            clicks = geoPulseData.value.trends.map(function(t) { return t.clicks || 0; });
-            impressions = geoPulseData.value.trends.map(function(t) { return t.impressions || 0; });
+            clicks = geoPulseData.value.trends.map(function(t) { return t.clicks; });
+            impressions = geoPulseData.value.trends.map(function(t) { return t.impressions; });
           } else {
             // Dynamic error feedback
             var status = geoPulseData.value.gscStatus || "CHECK_SETTINGS";
