@@ -546,32 +546,50 @@
                   <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Live Visitor Telemetry</div>
                 </div>
                 
-                <div class="flex-1 flex gap-2 min-w-0 overflow-hidden">
-                   <button @click="fetchGeoPulseData" class="shrink-0 text-[9px] font-hud text-green-500 border border-green-900/30 px-3 py-2 hover:bg-green-950/20 self-center mr-2">FORCE_SYNC</button>
-                   
-                   <div class="flex-1 lux-panel px-3 py-2 border border-green-900/30 bg-green-950/10 min-w-0">
-                      <div class="text-[7px] text-green-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Active_Nodes</div>
-                      <div class="text-xl font-hud text-green-400 truncate">{{ geoPulseData.totalRealtime }}</div>
+                <div class="flex-1 flex flex-col gap-2 overflow-hidden">
+                   <div class="flex gap-2 min-w-0 overflow-hidden">
+                      <button @click="fetchGeoPulseData" class="shrink-0 text-[9px] font-hud text-green-500 border border-green-900/30 px-3 py-2 hover:bg-green-950/20 self-center mr-2">FORCE_SYNC</button>
+                      
+                      <div class="flex-1 lux-panel px-3 py-2 border border-green-900/30 bg-green-950/10 min-w-0">
+                         <div class="text-[7px] text-green-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Active_Nodes</div>
+                         <div class="text-xl font-hud text-green-400 truncate">{{ geoPulseData.totalRealtime }}</div>
+                      </div>
+                      
+                      <div class="flex-1 lux-panel px-3 py-2 border border-blue-900/30 bg-blue-950/10 min-w-0">
+                         <div class="text-[7px] text-blue-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Total_Sessions</div>
+                         <div class="text-xl font-hud text-blue-400 truncate">{{ totalHistoricalSessions }}</div>
+                      </div>
+                      
+                      <div class="flex-1 lux-panel px-3 py-2 border border-purple-900/30 bg-purple-950/10 min-w-0">
+                         <div class="text-[7px] text-purple-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Unique_Users</div>
+                         <div class="text-xl font-hud text-purple-400 truncate">{{ geoPulseData.total7DUsers || 0 }}</div>
+                      </div>
+                      
+                      <div class="flex-1 lux-panel px-3 py-2 border border-amber-900/30 bg-amber-950/10 min-w-0">
+                         <div class="text-[7px] text-amber-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Engage_Rate</div>
+                         <div class="text-xl font-hud text-amber-400 truncate">{{ geoPulseData.avgEngagementRate || '0%' }}</div>
+                      </div>
+                      
+                      <div class="flex-1 lux-panel px-3 py-2 border border-rose-900/30 bg-rose-950/10 min-w-0">
+                         <div class="text-[7px] text-rose-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Page_Views</div>
+                         <div class="text-xl font-hud text-rose-400 truncate">{{ geoPulseData.total7DViews || 0 }}</div>
+                      </div>
                    </div>
-                   
-                   <div class="flex-1 lux-panel px-3 py-2 border border-blue-900/30 bg-blue-950/10 min-w-0">
-                      <div class="text-[7px] text-blue-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Total_Sessions</div>
-                      <div class="text-xl font-hud text-blue-400 truncate">{{ totalHistoricalSessions }}</div>
-                   </div>
-                   
-                   <div class="flex-1 lux-panel px-3 py-2 border border-purple-900/30 bg-purple-950/10 min-w-0">
-                      <div class="text-[7px] text-purple-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Unique_Users</div>
-                      <div class="text-xl font-hud text-purple-400 truncate">{{ geoPulseData.total7DUsers || 0 }}</div>
-                   </div>
-                   
-                   <div class="flex-1 lux-panel px-3 py-2 border border-amber-900/30 bg-amber-950/10 min-w-0">
-                      <div class="text-[7px] text-amber-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Engage_Rate</div>
-                      <div class="text-xl font-hud text-amber-400 truncate">{{ geoPulseData.avgEngagementRate || '0%' }}</div>
-                   </div>
-                   
-                   <div class="flex-1 lux-panel px-3 py-2 border border-rose-900/30 bg-rose-950/10 min-w-0">
-                      <div class="text-[7px] text-rose-500/60 font-hud uppercase tracking-tighter mb-1 truncate">Page_Views</div>
-                      <div class="text-xl font-hud text-rose-400 truncate">{{ geoPulseData.total7DViews || 0 }}</div>
+
+                   <!-- MARKET INTELLIGENCE OVERLAY (v4.18.0) -->
+                   <div v-if="geoPulseData.seoOpportunityScore" class="flex gap-2 animate-fade-in">
+                      <div class="lux-panel px-3 py-1 border border-indigo-900/50 bg-indigo-950/20 flex items-center gap-4 flex-1">
+                         <div class="shrink-0">
+                            <div class="text-[7px] text-indigo-400 font-hud uppercase tracking-widest">SEO_OPPORTUNITY_SCORE</div>
+                            <div class="text-lg font-hud text-white">{{ geoPulseData.seoOpportunityScore }}</div>
+                         </div>
+                         <div class="h-8 w-px bg-indigo-900/30"></div>
+                         <div class="flex-1">
+                            <div class="text-[7px] text-gray-500 font-hud uppercase">RECOMMENDED_STRATEGY</div>
+                            <div class="text-[9px] font-code text-indigo-200 italic truncate">{{ geoPulseData.seoRecommendedAction }}</div>
+                         </div>
+                         <button @click="currentView = 'terminal'; sendMessage('Analyze SEO opportunities for ' + geoPulseData.gscSite)" class="text-[8px] font-hud bg-indigo-500 text-black px-2 py-1 hover:bg-indigo-400 transition-colors">DECODE_INTEL</button>
+                      </div>
                    </div>
                 </div>
               </div>
