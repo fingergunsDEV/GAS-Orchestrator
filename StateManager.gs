@@ -198,3 +198,29 @@ function updateSwarmAgent(sessionId, name, role, status, worktree) {
   
   PersistentState.set(key, state);
 }
+
+/**
+ * RECENT PROJECTS (v4.18.0)
+ * Manages the last 5 GitHub projects used in the Coding Module.
+ */
+function getRecentProjects() {
+  return PersistentState.get("RECENT_PROJECTS") || [];
+}
+
+function saveProjectUsage(owner, repo, branch) {
+  var projects = getRecentProjects();
+  
+  // Remove duplicate if exists
+  var filtered = projects.filter(function(p) {
+    return !(p.owner === owner && p.repo === repo);
+  });
+  
+  // Add to front
+  filtered.unshift({ owner: owner, repo: repo, branch: branch, timestamp: new Date().toISOString() });
+  
+  // Keep only last 5
+  if (filtered.length > 5) filtered = filtered.slice(0, 5);
+  
+  PersistentState.set("RECENT_PROJECTS", filtered);
+  return filtered;
+}

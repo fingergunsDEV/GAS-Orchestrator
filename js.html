@@ -67,6 +67,19 @@
         });
         var isFetchingFinance = ref(false);
 
+        // Coding Module State (v4.18.0)
+        var githubState = reactive({
+          owner: '',
+          repo: '',
+          branch: 'main',
+          isFetchingTree: false,
+          tree: [],
+          chatHistory: [],
+          isProcessing: false,
+          userInput: ''
+        });
+        var recentProjects = ref([]);
+
         // METHODS
         var addLog = function(source, message, type = 'info') {
             logs.value.unshift({ source, message, type, time: new Date().toLocaleTimeString() });
@@ -189,24 +202,106 @@
         };
 
         var openRewriteModal = function() {
-          originalArticleForModal.value = analysisInputMethod.value === 'text' ? analysisText.value : "Original article fetched from:
-" + analysisUrl.value;
+          originalArticleForModal.value = analysisInputMethod.value === 'text' ? analysisText.value : "Original article fetched from:\n" + analysisUrl.value;
           showRewriteModal.value = true;
+        };
+
+        // GITHUB / CODING METHODS (v4.18.0)
+        var fetchRecentProjects = function() {
+          if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(function(res) {
+              recentProjects.value = res || [];
+            }).getRecentProjects();
+          }
+        };
+
+        var onRecentProjectChange = function(event) {
+          var val = event.target.value;
+          if (!val) return;
+          try {
+            var proj = JSON.parse(val);
+            githubState.owner = proj.owner;
+            githubState.repo = proj.repo;
+            githubState.branch = proj.branch;
+            fetchRepoStructure();
+          } catch(e) {
+            addLog('ERR', 'Failed to parse recent project data.', 'error');
+          }
+        };
+
+        var fetchRepoStructure = function() {
+          if (!githubState.owner || !githubState.repo) {
+            addLog('ERR', 'Owner and Repository name required.', 'error');
+            return;
+          }
+          githubState.isFetchingTree = true;
+          addLog('SYS', 'Fetching repository structure...', 'info');
+          
+          google.script.run.withSuccessHandler(function(res) {
+            githubState.tree = res || [];
+            githubState.isFetchingTree = false;
+            addLog('SYS', 'Repository linked successfully.', 'success');
+            
+            // Save as recent
+            google.script.run.withSuccessHandler(function(updated) {
+              recentProjects.value = updated || [];
+            }).saveProjectUsage(githubState.owner, githubState.repo, githubState.branch);
+          }).withFailureHandler(function(err) {
+            githubState.isFetchingTree = false;
+            addLog('ERR', 'GitHub Error: ' + err.message, 'error');
+          }).github_get_tree(githubState.owner, githubState.repo, githubState.branch);
+        };
+
+        var runCodingTask = function() {
+          if (!githubState.userInput.trim() || githubState.isProcessing) return;
+          
+          var task = githubState.userInput;
+          githubState.chatHistory.push({ role: 'user', text: task });
+          githubState.userInput = '';
+          githubState.isProcessing = true;
+          
+          addLog('DEV', 'Executing coding directive: ' + task, 'info');
+
+          google.script.run.withSuccessHandler(function(res) {
+            githubState.chatHistory.push({ role: 'model', text: typeof res === 'string' ? res : res.text });
+            githubState.isProcessing = false;
+            if (res.sessionId) sessionId.value = res.sessionId;
+          }).withFailureHandler(function(err) {
+            githubState.chatHistory.push({ role: 'model', text: 'CRITICAL_ENGINE_FAILURE: ' + err.message });
+            githubState.isProcessing = false;
+          }).handleRequest(task, null, 'coding_' + (sessionId.value || 'new'));
+        };
+
+        var syncGasToGithub = function() {
+          if (!githubState.owner || !githubState.repo) {
+            addLog('ERR', 'Owner and Repository name required for sync.', 'error');
+            return;
+          }
+          addLog('SYS', 'Initiating full codebase sync to GitHub...', 'info');
+          google.script.run.withSuccessHandler(function(res) {
+            addLog('SYS', 'Sync Complete: ' + (res.message || 'Success'), 'success');
+          }).withFailureHandler(function(err) {
+            addLog('ERR', 'Sync Failed: ' + err.message, 'error');
+          }).github_sync_to_gas(githubState.owner, githubState.repo, githubState.branch);
         };
 
         var executeSaveArticle = function() { ... };
         var sendArticleToAnalysis = function() { ... };
 
         // LIFECYCLE
-        onMounted(function() { ... });
+        onMounted(function() {
+          fetchRecentProjects();
+        });
 
         return {
           // Refs & State
           logs, commandHistory, currentCommand, isProcessing, isConnected, sessionId, currentTime, uiTheme, currentView, mobileMenuOpen, isRecording, userEmail,
           analysisInputMethod, analysisUrl, analysisText, analysisContext, analysisResults, isAnalyzing,
           isForecasting, forecastData, rewrittenArticle, originalArticleForModal, showRewriteModal,
+          githubState, recentProjects,
           // Methods
-          addLog, sendMessage, triggerContentAnalysis, triggerForecastAndRewrite, openRewriteModal
+          addLog, sendMessage, triggerContentAnalysis, triggerForecastAndRewrite, openRewriteModal,
+          fetchRepoStructure, runCodingTask, syncGasToGithub, onRecentProjectChange
         };
       }
     });

@@ -1426,6 +1426,18 @@
                         <label class="block font-hud text-[8px] text-gray-600 mb-1">TARGET_BRANCH</label>
                         <input v-model="githubState.branch" type="text" placeholder="e.g. main" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
                       </div>
+                      
+                      <!-- RECENT PROJECTS (v4.18.0) -->
+                      <div v-if="recentProjects && recentProjects.length > 0">
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">RECENT_PROJECTS</label>
+                        <select @change="onRecentProjectChange" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none appearance-none cursor-pointer hover:bg-yellow-900/10 transition-all">
+                          <option value="">-- RESTORE PREVIOUS PROJECT --</option>
+                          <option v-for="proj in recentProjects" :key="proj.owner + '/' + proj.repo" :value="JSON.stringify(proj)">
+                            {{ proj.owner }}/{{ proj.repo }} ({{ proj.branch }})
+                          </option>
+                        </select>
+                      </div>
+
                       <button @click="fetchRepoStructure" class="w-full bg-yellow-900/20 border border-yellow-800 text-yellow-400 font-hud text-[10px] py-2 hover:bg-yellow-800/40">
                         CONNECT_TO_REPO
                       </button>

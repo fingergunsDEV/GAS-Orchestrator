@@ -631,3 +631,23 @@ function getRecentRecipients() {
   }
 }
 
+/**
+ * RECENT PROJECTS (v4.18.0)
+ * Exports for the Coding Module.
+ */
+function getRecentProjects() {
+  return StateManager.getRecentProjects();
+}
+
+function saveProjectUsage(owner, repo, branch) {
+  return StateManager.saveProjectUsage(owner, repo, branch);
+}
+
+function github_get_tree(owner, repo, branch) {
+  return executeGithubReadRepoTree({ owner: owner, repo: repo, branch: branch });
+}
+
+function github_sync_to_gas(owner, repo, branch) {
+  return executeGithubSyncFullCodebase({ owner: owner, repo: repo, branch: branch });
+}
+
