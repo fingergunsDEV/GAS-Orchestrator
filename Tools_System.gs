@@ -117,6 +117,25 @@ function registerSystemTools() {
       }
     },
     {
+      name: "gas_create_checkpoint",
+      description: "Creates a full project backup in Google Drive for safety before critical changes.",
+      parameters: { type: "object", properties: {}, required: [] }
+    },
+    {
+      name: "gas_list_checkpoints",
+      description: "Returns a list of available project backups stored in Google Drive.",
+      parameters: { type: "object", properties: {}, required: [] }
+    },
+    {
+      name: "gas_restore_checkpoint",
+      description: "Rolls back the entire project to a previous state using a Drive checkpoint ID.",
+      parameters: {
+        type: "object",
+        properties: { checkpointId: { type: "string" } },
+        required: ["checkpointId"]
+      }
+    },
+    {
       name: "sync_dynamic_tools",
       description: "Scans 'GAS_Dynamic_Tools' folder in Drive for .js files and hot-loads them.",
       parameters: { type: "object", properties: {}, required: [] }

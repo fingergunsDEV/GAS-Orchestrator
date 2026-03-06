@@ -835,14 +835,15 @@ function runProjectTeam(args, imageData, sessionId) {
  */
 function runDevTeam(args, imageData, sessionId) {
   var task = args.task || "Code generation or debugging";
-  return executeTeamWorkflow(
-    "Technical R&D",
-    "DEV_BUILDER",
-    "DEV_VALIDATOR",
-    "Provide technical support/code for: " + task,
-    imageData,
-    sessionId
-  );
+  var instructions = "You are the **Technical R&D Team**. You specialize in script generation, GitHub synchronization, and system performance.\n\n" +
+                     "**NATIVE_GAS_DEPLOYMENT_RULES:**\n" +
+                     "1. When asked to update the GAS project, use `gas_commit_file`.\n" +
+                     "2. Before making major project-wide changes, use `gas_create_checkpoint` as a safety measure.\n" +
+                     "3. If a deployment fails, use `gas_list_checkpoints` and `gas_restore_checkpoint` to revert if necessary.\n" +
+                     "4. Always verify your code's integrity via `verify_dynamic_tool` if creating tools.\n\n" +
+                     "Provide technical support/code for: " + task;
+
+  return callGemini([{ role: "user", parts: [{ text: task }] }], getManifest("DEV_BUILDER"), instructions, imageData, "pro", sessionId);
 }
 
 /**
@@ -897,7 +898,11 @@ function runSkillArchitect(args, imageData, sessionId) {
                            "1. **Information Gathering**: Ask questions to understand the skill's purpose, input parameters (names, types), and core logic.\n" +
                            "2. **Deployment Choice**: Ask the user where they want to deploy the skill: 1. GitHub (Version Control), 2. Google Apps Script (Instant Native), or 3. Both.\n" +
                            "3. **Drafting**: Once you have enough info, draft the complete JavaScript code for the tool. Use ES5 syntax. Include a JSDoc header with `@tool`, `@description`, and `@param` tags.\n" +
-                           "4. **Execution**: After the user approves the code, call `patch_dynamic_tool` with the correct `deployTarget` ('GITHUB', 'GAS', or 'BOTH') to deploy it.\n\n" +
+                           "4. **Execution & Self-Healing**: \n" +
+                           "   - Call `patch_dynamic_tool` with the correct `deployTarget`.\n" +
+                           "   - **IMPORTANT**: After deployment, you MUST call `verify_dynamic_tool` to ensure it loaded correctly.\n" +
+                           "   - If verification fails (e.g., syntax error), you MUST automatically refactor the code and re-patch. Just fix it and report the success.\n" +
+                           "   - Inform the user that a safety checkpoint was created before the operation.\n\n" +
                            "**CODE STYLE:**\n" +
                            "- Must be standalone functions.\n" +
                            "- Use `UrlFetchApp`, `SpreadsheetApp`, `GmailApp`, etc.\n" +

@@ -122,6 +122,46 @@
         var skillList = ref([]);
         var isSkillsLoading = ref(false);
         var deploymentTarget = ref("BOTH");
+        
+        var checkpoints = ref([]);
+        var isCheckpointsLoading = ref(false);
+        var showVersionHistory = ref(false);
+
+        var fetchCheckpoints = function() {
+          isCheckpointsLoading.value = true;
+          google.script.run
+            .withSuccessHandler(function(res) {
+              try {
+                var parsed = JSON.parse(res);
+                if (parsed.success) checkpoints.value = parsed.checkpoints;
+              } catch (e) { console.error("Error parsing checkpoints:", e); }
+              isCheckpointsLoading.value = false;
+            })
+            .executeGasListCheckpoints();
+        };
+
+        var restoreCheckpoint = function(cp) {
+          if (!confirm("Are you sure you want to rollback the entire project to: " + cp.name + "? This action is irreversible without another backup.")) return;
+          
+          isCheckpointsLoading.value = true;
+          google.script.run
+            .withSuccessHandler(function(res) {
+              var parsed = JSON.parse(res);
+              if (parsed.success) {
+                alert("Rollback Successful. The project has been restored.");
+                showVersionHistory.value = false;
+                window.location.reload(); // Reload to pick up native GAS changes
+              } else {
+                alert("Rollback Failed: " + parsed.error);
+              }
+              isCheckpointsLoading.value = false;
+            })
+            .executeGasRestoreCheckpoint({ checkpointId: cp.id });
+        };
+
+        var formatTimestamp = function(ts) {
+          return new Date(ts).toLocaleString();
+        };
 
         var fetchSkillList = function() {
           isSkillsLoading.value = true;
@@ -1913,6 +1953,7 @@ var sentinelPresets = ref([
           codingSubTab, hgmSwarm, swarmMessages, spawnAgent,
           skillList, isSkillsLoading, fetchSkillList, startSkillInterview, editSkill, deleteSkill,
           deploymentTarget,
+          checkpoints, isCheckpointsLoading, showVersionHistory, fetchCheckpoints, restoreCheckpoint, formatTimestamp,
           pipelineStages, activePipelineStage, triggerWorkflow,
           sandboxProjects, startSandboxProject,
           recentCommits, isFetchingCommits, fetchRecentCommits,

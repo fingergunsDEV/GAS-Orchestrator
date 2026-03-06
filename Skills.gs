@@ -2399,9 +2399,116 @@ function executeGasGetProjectContent() {
   var scriptId = ScriptApp.getScriptId();
   return _gasApiRequest("/projects/" + scriptId + "/content");
 }
+/**
+ * Creates a timestamped checkpoint of the entire GAS project in Google Drive.
+ * Used for emergency rollbacks.
+ */
+function executeGasCreateCheckpoint(args) {
+  try {
+    var content = executeGasGetProjectContent();
+    if (content.error) return JSON.stringify(content);
+
+    var folderName = "GAS_Project_Backups";
+    var folders = DriveApp.getFoldersByName(folderName);
+    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+
+    var timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd_HH-mm-ss");
+    var fileName = "ProjectBackup_" + timestamp + ".json";
+    var file = folder.createFile(fileName, JSON.stringify(content, null, 2));
+
+    // Cleanup: Keep only last 10 backups
+    var files = folder.getFiles();
+    var allFiles = [];
+    while (files.hasNext()) allFiles.push(files.next());
+    allFiles.sort(function(a, b) { return b.getLastUpdated() - a.getLastUpdated(); });
+    if (allFiles.length > 10) {
+      for (var i = 10; i < allFiles.length; i++) allFiles[i].setTrashed(true);
+    }
+
+    return JSON.stringify({ success: true, fileName: fileName, url: file.getUrl() });
+  } catch (e) {
+    return JSON.stringify({ success: false, error: e.message });
+  }
+}
+
+/**
+ * Lists all available project checkpoints from Google Drive.
+ */
+function executeGasListCheckpoints() {
+  try {
+    var folderName = "GAS_Project_Backups";
+    var folders = DriveApp.getFoldersByName(folderName);
+    if (!folders.hasNext()) return JSON.stringify({ success: true, checkpoints: [] });
+
+    var folder = folders.next();
+    var files = folder.getFiles();
+    var checkpoints = [];
+    while (files.hasNext()) {
+      var f = files.next();
+      if (f.getName().startsWith("ProjectBackup_") && f.getName().endsWith(".json")) {
+        checkpoints.push({
+          id: f.getId(),
+          name: f.getName(),
+          created: f.getDateCreated().getTime()
+        });
+      }
+    }
+    checkpoints.sort(function(a, b) { return b.created - a.created; });
+    return JSON.stringify({ success: true, checkpoints: checkpoints });
+  } catch (e) {
+    return JSON.stringify({ success: false, error: e.message });
+  }
+}
+
+/**
+ * Restores the entire GAS project from a JSON checkpoint file.
+ */
+function executeGasRestoreCheckpoint(args) {
+  try {
+    var fileId = args.checkpointId;
+    var blob = DriveApp.getFileById(fileId).getBlob();
+    var content = JSON.parse(blob.getDataAsString());
+
+    if (!content.files || !Array.isArray(content.files)) {
+      throw new Error("Invalid checkpoint format.");
+    }
+
+    var scriptId = ScriptApp.getScriptId();
+    var updateRes = _gasApiRequest("/projects/" + scriptId + "/content", "PUT", { files: content.files });
+    return JSON.stringify({ success: true, message: "Project successfully restored from checkpoint.", result: updateRes });
+  } catch (e) {
+    return JSON.stringify({ success: false, error: e.message });
+  }
+}
+
+/**
+ * Verifies if a dynamic tool is correctly hot-loaded and syntactically valid.
+ */
+function verifyDynamicTool(toolName) {
+  try {
+    var key = "DYNAMIC_TOOL_" + toolName.toUpperCase();
+    var prop = PropertiesService.getScriptProperties().getProperty(key);
+    if (!prop) return { success: false, error: "Tool not found in ScriptProperties." };
+
+    var toolDef = JSON.parse(prop);
+    if (!toolDef.code) return { success: false, error: "Tool definition is missing source code." };
+
+    // Syntax Check via new Function constructor
+    try {
+      new Function("args", toolDef.code);
+    } catch (syntaxErr) {
+      return { success: false, error: "Syntax Error: " + syntaxErr.message };
+    }
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: "Verification Crash: " + e.message };
+  }
+}
 
 /**
  * Commits a single file directly to the Apps Script project (Native Update).
+ */
  * WARNING: This performs a full project content replacement (Read-Modify-Write).
  */
 function executeGasCommitFile(args) {
@@ -2446,89 +2553,91 @@ function executeGasCommitFile(args) {
 
 /**
  * Patch a Dynamic Tool (Self-Healing).
- * Updates the file in Drive, re-syncs, and pushes to selected targets (GitHub/GAS).
+ * Updates Drive, re-syncs, and pushes to selected targets (GitHub/GAS).
  */
 function executePatchDynamicTool(args) {
-  try {
-    var toolName = args.toolName;
-    var newCode = args.newCode; 
-    var deployTarget = args.deployTarget || "BOTH"; // GITHUB, GAS, BOTH
-    var results = [];
-    
-    // 1. Update/Create in Google Drive (Always done for hot-loading)
-    var folderName = "GAS_Dynamic_Tools";
-    var folders = DriveApp.getFoldersByName(folderName);
-    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
-    
-    var files = folder.getFiles();
-    var targetFile = null;
-    while (files.hasNext()) {
-      var f = files.next();
-      if (f.getName() === toolName + ".js" || f.getBlob().getDataAsString().indexOf("@tool " + toolName) !== -1) {
-        targetFile = f;
-        break;
-      }
-    }
-    
-    if (targetFile) {
-      targetFile.setContent(newCode);
-      results.push("Drive: Updated '" + targetFile.getName() + "'.");
-    } else {
-      var newFile = folder.createFile(toolName + ".js", newCode);
-      results.push("Drive: Created '" + newFile.getName() + "'.");
-    }
-    
-    // 2. Hot-Load to ScriptProperties
-    executeSyncDynamicTools({});
-    results.push("System: Hot-loaded into ScriptProperties.");
+  var maxRetries = 3;
+  var currentTry = 0;
+  var toolName = args.toolName;
+  var newCode = args.newCode; 
+  var deployTarget = args.deployTarget || "BOTH"; 
+  var results = [];
 
-    // 3. Deployment Targets
-    var props = PropertiesService.getScriptProperties();
+  // 1. Pre-deployment Checkpoint (Native GAS only)
+  if (deployTarget === "GAS" || deployTarget === "BOTH") {
+    executeGasCreateCheckpoint({});
+    results.push("System: Pre-flight checkpoint created.");
+  }
 
-    // A. GitHub Deployment
-    if (deployTarget === "GITHUB" || deployTarget === "BOTH") {
-      var owner = props.getProperty("GITHUB_OWNER");
-      var repo = props.getProperty("GITHUB_REPO");
-      var branch = props.getProperty("GITHUB_BRANCH") || "main";
+  while (currentTry < maxRetries) {
+    try {
+      results = [results[0]]; // Keep only the checkpoint log
       
-      if (owner && repo && typeof executeGithubCommitFile === 'function') {
-        try {
-          executeGithubCommitFile({
-            owner: owner, repo: repo, branch: branch,
-            path: "local dev/DynamicTools/" + toolName + ".js",
-            content: newCode,
-            message: "feat(skill): Update local dev source for '" + toolName + "'"
-          });
-          var githubRes = executeGithubCommitFile({
-            owner: owner, repo: repo, branch: branch,
-            path: "DynamicSkills/" + toolName + ".gs",
-            content: newCode,
-            message: "feat(skill): Deploy native .gs skill '" + toolName + "'"
-          });
-          var parsedGh = JSON.parse(githubRes);
-          if (parsedGh.error) results.push("GitHub: Sync failed - " + (parsedGh.message || parsedGh.error));
-          else results.push("GitHub: Deployed to " + branch + ".");
-        } catch (ghErr) { results.push("GitHub: Sync exception - " + ghErr.message); }
+      // 2. Update/Create in Google Drive
+      var folderName = "GAS_Dynamic_Tools";
+      var folders = DriveApp.getFoldersByName(folderName);
+      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+      
+      var files = folder.getFiles();
+      var targetFile = null;
+      while (files.hasNext()) {
+        var f = files.next();
+        if (f.getName() === toolName + ".js" || f.getBlob().getDataAsString().indexOf("@tool " + toolName) !== -1) {
+          targetFile = f;
+          break;
+        }
       }
-    }
+      
+      if (targetFile) {
+        targetFile.setContent(newCode);
+        results.push("Drive: Updated '" + targetFile.getName() + "'.");
+      } else {
+        folder.createFile(toolName + ".js", newCode);
+        results.push("Drive: Created '" + toolName + ".js'.");
+      }
+      
+      // 3. Hot-Load to ScriptProperties
+      executeSyncDynamicTools({});
+      
+      // 4. Verification Loop
+      var vRes = verifyDynamicTool(toolName);
+      if (!vRes.success) {
+        throw new Error("Verification Failed: " + vRes.error);
+      }
+      results.push("System: Verified & Hot-loaded.");
 
-    // B. Native GAS Deployment (Instant)
-    if (deployTarget === "GAS" || deployTarget === "BOTH") {
-      try {
-        var gasRes = executeGasCommitFile({
-          fileName: toolName, // Native GAS doesn't use folders in the API the same way, just names
-          content: newCode,
-          type: "SERVER_JS"
-        });
-        var parsedGas = JSON.parse(gasRes);
-        if (parsedGas.error) results.push("GAS: Native deploy failed - " + parsedGas.error);
-        else results.push("GAS: Native project updated successfully.");
-      } catch (gasErr) { results.push("GAS: Deploy exception - " + gasErr.message); }
+      // 5. Deployment Targets
+      var props = PropertiesService.getScriptProperties();
+
+      // A. GitHub Deployment
+      if (deployTarget === "GITHUB" || deployTarget === "BOTH") {
+        var owner = props.getProperty("GITHUB_OWNER");
+        var repo = props.getProperty("GITHUB_REPO");
+        var branch = props.getProperty("GITHUB_BRANCH") || "main";
+        if (owner && repo && typeof executeGithubCommitFile === 'function') {
+          executeGithubCommitFile({ owner: owner, repo: repo, branch: branch, path: "local dev/DynamicTools/" + toolName + ".js", content: newCode, message: "feat(skill): Update source" });
+          executeGithubCommitFile({ owner: owner, repo: repo, branch: branch, path: "DynamicSkills/" + toolName + ".gs", content: newCode, message: "feat(skill): Deploy native" });
+          results.push("GitHub: Synced to " + branch + ".");
+        }
+      }
+
+      // B. Native GAS Deployment
+      if (deployTarget === "GAS" || deployTarget === "BOTH") {
+        executeGasCommitFile({ fileName: toolName, content: newCode, type: "SERVER_JS" });
+        results.push("GAS: Native project updated.");
+      }
+      
+      return "SUCCESS_PATCH: " + results.join(" | ");
+
+    } catch (e) {
+      currentTry++;
+      results.push("Attempt " + currentTry + " Failed: " + e.message);
+      if (currentTry >= maxRetries) {
+        return "FATAL_PATCH_ERROR: " + results.join(" | ");
+      }
+      // Brief pause before retry
+      Utilities.sleep(1000);
     }
-    
-    return "SUCCESS_PATCH: " + results.join(" | ");
-  } catch (e) {
-    return "Error patching tool: " + e.message;
   }
 }
 

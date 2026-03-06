@@ -26,10 +26,10 @@ The system has been upgraded to **v4.18.0**, introducing the **Autopilot Hub** f
 *   **Updated**: `GeminiService.gs` with Economy Mode model overrides.
 *   **Updated**: `Orchestrator.gs` to handle external approval link callbacks.
 *   **Updated**: `index.html` & `js.html` with the new **AUTOPILOT** navigation tab and proactive modules.
-*   **New**: **Skill Architect & Management** (v4.18.6) introduced in the Development Engine, now supporting **Multi-Target Deployment** (GitHub, Native Google Apps Script, or Both).
+*   **New**: **Skill Self-Healing & Project Rollbacks** (v4.18.7) introduced. The system now creates automated checkpoints in Google Drive before native GAS deployments and includes a recursive verification loop to fix syntax errors during skill creation.
 
 ---
 - The UNIT_TEST_AUTOMATION blueprint was implemented using a Node.js 'vm' module test runner to execute Google Apps Script (.gs) files offline within the GitHub Actions CI/CD pipeline.
 ---
-## Architectural Note: Dynamic Skills & Native Commits
-The system now supports **Native GAS Commits** via the Apps Script API. This allows for instant, hot-loaded updates to the core project without a GitHub middleman, while still maintaining the option for GitHub version control and CI/CD triggers.
+## Architectural Note: Native Resilience
+The system now implements a **Safety-First Native Deployment** workflow. Every direct project modification is preceded by a full-project snapshot stored in `GAS_Project_Backups/` (Drive). The `Skill Architect` and `Technical R&D` agents are instructed to use `verify_dynamic_tool` to validate their own code, enabling autonomous self-correction without user intervention.
