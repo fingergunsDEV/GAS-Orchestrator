@@ -16,6 +16,9 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <!-- Include Styles -->
     <?!= include('css'); ?>
   </head>
@@ -1726,7 +1729,16 @@
                    <!-- Code Input -->
                    <div class="p-4 bg-black border-t border-gray-900 z-10 flex gap-2">
                       <div class="flex items-center text-yellow-500 font-hud text-[10px] animate-pulse">>></div>
-                      <input type="text" v-model="githubState.userInput" @keyup.enter="runCodingTask()" class="flex-1 bg-transparent text-[11px] font-code text-white outline-none" placeholder="e.g. Add error handling to index.js and commit it...">
+                      <input type="text" v-model="githubState.userInput" @keyup.enter="runCodingTask()" 
+                             class="flex-1 bg-transparent text-[11px] font-code text-white outline-none" 
+                             :placeholder="isRecording ? 'CAPTURING_DEV_INTEL...' : 'e.g. Add error handling to index.js and commit it...'">
+                      
+                      <button @click="toggleVoiceDictation('coding')" 
+                              class="px-3 border border-yellow-900/30 transition-all hover:bg-yellow-500/10"
+                              :class="isRecording ? 'text-red-500 animate-pulse border-red-900/50' : 'text-yellow-600'">
+                        <i class="fas fa-microphone text-[10px]"></i>
+                      </button>
+
                       <button @click="runCodingTask()" class="font-hud text-[9px] bg-yellow-900/20 text-yellow-400 border border-yellow-800 px-4 hover:bg-yellow-800/40">EXECUTE</button>
                    </div>
                 </div>
@@ -2149,11 +2161,11 @@
                     <button @click="openFilePicker" class="text-gray-500 hover:text-white transition-all transform hover:scale-110 p-2" title="Upload Asset">
                       <i class="fas fa-plus text-xs"></i>
                     </button>
-                    <button @click="toggleVoiceDictation" 
-                            class="transition-all transform hover:scale-110 p-2" 
-                            :class="isRecording ? 'text-red-500 animate-pulse' : 'text-gray-500 hover:text-white'" 
+                    <button @click="toggleVoiceDictation('terminal')" 
+                            class="transition-all transform hover:scale-110 p-2 border border-gray-800 rounded mx-1 px-3 bg-black/40" 
+                            :class="isRecording ? 'text-red-500 animate-pulse border-red-900/50' : 'text-cyan-500 hover:text-white border-cyan-900/30'" 
                             title="Voice Dictation">
-                      <i class="fas" :class="isRecording ? 'fa-microphone' : 'fa-microphone-slash'"></i>
+                      <i class="fas fa-microphone text-xs"></i>
                     </button>
                   </div>
                   <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">                  

@@ -586,7 +586,10 @@
         };
 
         var recognition = null;
-        var toggleVoiceDictation = function() {
+        var toggleVoiceDictation = function(target) {
+          var targetRef = (target === 'coding') ? githubState.userInput : userInput;
+          var fieldName = (target === 'coding') ? 'DEVELOPER_UPLINK' : 'MISSION_CONTROL';
+
           if (isRecording.value) {
             if (recognition) recognition.stop();
             return;
@@ -606,7 +609,7 @@
 
             recognition.onstart = function() {
               isRecording.value = true;
-              addLog('SYS', 'Audio capture uplink established.', 'info');
+              addLog('SYS', 'Audio capture uplink [' + fieldName + '] established.', 'info');
             };
 
             recognition.onresult = function(event) {
@@ -614,7 +617,12 @@
                 .map(function(result) { return result[0]; })
                 .map(function(result) { return result.transcript; })
                 .join('');
-              userInput.value = transcript;
+              
+              if (target === 'coding') {
+                githubState.userInput = transcript;
+              } else {
+                userInput.value = transcript;
+              }
             };
 
             recognition.onerror = function(event) {
@@ -624,10 +632,10 @@
 
             recognition.onend = function() {
               isRecording.value = false;
-              // Brief delay to ensure transcript is updated
               setTimeout(function() {
-                if (userInput.value && userInput.value.trim().length > 0) {
-                  addLog('SYS', 'Audio intel transcribed.', 'success');
+                var currentVal = (target === 'coding') ? githubState.userInput : userInput.value;
+                if (currentVal && currentVal.trim().length > 0) {
+                  addLog('SYS', 'Audio intel transcribed to ' + fieldName + '.', 'success');
                 } else {
                   addLog('SYS', 'Audio capture complete (no data).', 'info');
                 }
