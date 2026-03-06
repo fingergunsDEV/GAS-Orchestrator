@@ -2508,7 +2508,6 @@ function verifyDynamicTool(toolName) {
 
 /**
  * Commits a single file directly to the Apps Script project (Native Update).
- */
  * WARNING: This performs a full project content replacement (Read-Modify-Write).
  */
 function executeGasCommitFile(args) {
