@@ -90,6 +90,7 @@
                   <button @click="currentView = 'creative'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'creative' ? 'active text-pink-400 bg-pink-400/5' : 'text-gray-500'">CREATIVE</button>
                   <button @click="currentView = 'proposals'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'proposals' ? 'active text-indigo-400 bg-indigo-400/5' : 'text-gray-500'">PROPOSALS</button>
                   <button @click="currentView = 'articles'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'articles' ? 'active text-teal-400 bg-teal-400/5' : 'text-gray-500'">ARTICLES</button>
+                  <button @click="currentView = 'analysis'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'analysis' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">ANALYSIS</button>
                 </div>
               </div>
 
@@ -204,6 +205,10 @@
                    <button @click="currentView = 'articles'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'articles' ? 'border-teal-500 text-teal-400' : ''">
                      <div class="text-xs">ARTICLES</div>
                      <div class="text-[8px] opacity-40 mt-1">SEO Engine</div>
+                   </button>
+                   <button @click="currentView = 'analysis'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'analysis' ? 'border-cyan-500 text-cyan-400' : ''">
+                     <div class="text-xs">ANALYSIS</div>
+                     <div class="text-[8px] opacity-40 mt-1">Content Quality</div>
                    </button>
                  </div>
                </div>
@@ -1074,9 +1079,14 @@
                           <label class="block font-hud text-[8px] text-gray-600 mb-1">PUBLISHED_URL</label>
                           <input v-model="newArticle.publishedUrl" type="text" placeholder="https://yoursite.com/article" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-teal-500">
                         </div>
-                        <button @click="executeSaveArticle" class="w-full bg-teal-900/20 border border-teal-800 text-teal-400 font-hud text-[10px] py-2 hover:bg-teal-800 hover:text-white transition-all">
-                          {{ newArticle.id ? 'UPDATE_ARTICLE' : 'SAVE_ARTICLE' }}
-                        </button>
+                        <div class="flex gap-2">
+                          <button @click="executeSaveArticle" class="flex-1 bg-teal-900/20 border border-teal-800 text-teal-400 font-hud text-[10px] py-2 hover:bg-teal-800 hover:text-white transition-all">
+                            {{ newArticle.id ? 'UPDATE_ARTICLE' : 'SAVE_ARTICLE' }}
+                          </button>
+                          <button @click="sendArticleToAnalysis" :disabled="!newArticle.publishedUrl" class="flex-1 bg-cyan-900/20 border border-cyan-800 text-cyan-400 font-hud text-[10px] py-2 hover:bg-cyan-800 hover:text-white transition-all disabled:opacity-30">
+                            ANALYZE_QUALITY
+                          </button>
+                        </div>
                       </div>
 
                       <!-- ARTICLE LIST -->
@@ -1138,6 +1148,116 @@
                         <button @click="selectedArticleForTrack = null" class="text-[8px] text-gray-600 hover:text-white">[ CLOSE ]</button>
                       </div>
                       <div class="h-48 relative"><canvas id="articleTrendChart"></canvas></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: ANALYSIS -->
+            <div v-if="currentView === 'analysis'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-cyan-400 tracking-[0.3em]">CONTENT_ANALYSIS</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Analyze content quality based on 12 distinct dimensions</div>
+                </div>
+              </div>
+
+              <div class="flex-1 flex gap-6 overflow-hidden">
+                <!-- Left Column: Inputs & Summary -->
+                <div class="w-80 flex flex-col gap-6 overflow-y-auto scrollbar-hide">
+                  <!-- Inputs Panel -->
+                  <div class="lux-panel p-4 border border-cyan-900/30 bg-cyan-950/5 flex flex-col gap-4">
+                    <div class="font-hud text-[10px] text-cyan-500 mb-2 border-b border-cyan-900/30 pb-2 uppercase tracking-tighter">Input_Method</div>
+                    <div class="flex gap-2">
+                      <button @click="analysisInputMethod = 'url'" class="flex-1 py-1 text-[9px] font-hud border transition-all" :class="analysisInputMethod === 'url' ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' : 'border-gray-800 text-gray-500'">URL</button>
+                      <button @click="analysisInputMethod = 'text'" class="flex-1 py-1 text-[9px] font-hud border transition-all" :class="analysisInputMethod === 'text' ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' : 'border-gray-800 text-gray-500'">PASTE_TEXT</button>
+                    </div>
+
+                    <div v-if="analysisInputMethod === 'url'">
+                      <label class="block font-hud text-[8px] text-gray-600 mb-1">TARGET_URL</label>
+                      <input v-model="analysisUrl" type="text" placeholder="https://..." class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                    </div>
+                    <div v-if="analysisInputMethod === 'text'">
+                      <label class="block font-hud text-[8px] text-gray-600 mb-1">RAW_TEXT</label>
+                      <textarea v-model="analysisText" rows="4" placeholder="Paste content..." class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none resize-none"></textarea>
+                    </div>
+
+                    <div>
+                      <label class="block font-hud text-[8px] text-gray-600 mb-1">CONTEXT (Optional)</label>
+                      <div class="space-y-2">
+                        <input v-model="analysisContext.entity" type="text" placeholder="Entity / Business Name" class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                        <input v-model="analysisContext.location" type="text" placeholder="Target Location" class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                        <input v-model="analysisContext.topic" type="text" placeholder="Core Topic" class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                      </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                      <button @click="triggerContentAnalysis" :disabled="isAnalyzing" class="flex-1 bg-cyan-900/20 border border-cyan-800 text-cyan-400 font-hud text-[10px] py-2 hover:bg-cyan-800/40" :class="{'opacity-50 cursor-not-allowed': isAnalyzing}">
+                        {{ isAnalyzing ? 'ANALYZING...' : 'RUN_ANALYSIS' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Entropy Score -->
+                  <div v-if="analysisResults" class="lux-panel p-6 border border-gray-900 bg-black/40 text-center flex flex-col items-center">
+                    <div class="font-hud text-[10px] text-gray-500 mb-4 tracking-widest">ENTROPY_SCORE</div>
+                    <div class="text-6xl font-hud mb-4" :class="analysisResults.entropyScore > 70 ? 'text-green-400' : (analysisResults.entropyScore > 40 ? 'text-yellow-400' : 'text-red-400')">
+                      {{ analysisResults.entropyScore }}
+                    </div>
+                    <div class="w-full h-2 bg-gray-900 rounded-full mb-2">
+                      <div class="h-full rounded-full transition-all duration-1000" :class="analysisResults.entropyScore > 70 ? 'bg-green-500' : (analysisResults.entropyScore > 40 ? 'bg-yellow-500' : 'bg-red-500')" :style="{ width: analysisResults.entropyScore + '%' }"></div>
+                    </div>
+                    <div class="font-code text-[9px] uppercase tracking-widest" :class="analysisResults.entropyScore > 70 ? 'text-green-500' : (analysisResults.entropyScore > 40 ? 'text-yellow-500' : 'text-red-500')">
+                      {{ analysisResults.entropyScore > 70 ? 'HIGH_ENTROPY' : (analysisResults.entropyScore > 40 ? 'MODERATE_ENTROPY' : 'LOW_ENTROPY') }}
+                    </div>
+                  </div>
+
+                  <!-- Top Problems -->
+                  <div v-if="analysisResults && analysisResults.topProblems" class="lux-panel p-4 border border-red-900/30 bg-red-950/5">
+                    <div class="font-hud text-[10px] text-red-500 mb-4 border-b border-red-900/30 pb-2">TOP_PROBLEMS</div>
+                    <div class="space-y-4">
+                      <div v-for="(problem, i) in analysisResults.topProblems" :key="i" class="flex gap-3 items-start">
+                        <span class="text-red-500 font-hud text-[10px] mt-0.5">&#x26A0;</span>
+                        <div>
+                          <div class="text-[10px] text-white font-hud tracking-widest mb-1">{{ problem.title }}</div>
+                          <div class="text-[9px] font-code text-gray-400 leading-relaxed">{{ problem.description }}</div>
+                        </div>
+                      </div>
+                      <div v-if="analysisResults.topProblems.length === 0" class="text-[9px] text-gray-500 italic text-center">No major structural problems detected.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Column: Dimensions -->
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded p-6 flex flex-col relative overflow-hidden">
+                  <div v-if="isAnalyzing" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                    <div class="flex gap-2 mb-4">
+                      <div class="w-2 h-2 bg-cyan-500 animate-bounce"></div>
+                      <div class="w-2 h-2 bg-cyan-500 animate-bounce [animation-delay:0.2s]"></div>
+                      <div class="w-2 h-2 bg-cyan-500 animate-bounce [animation-delay:0.4s]"></div>
+                    </div>
+                    <div class="font-hud text-xs text-cyan-400 tracking-[0.3em] animate-pulse">SYNTHESIZING_DIMENSIONS...</div>
+                  </div>
+
+                  <div v-if="!analysisResults && !isAnalyzing" class="flex-1 flex flex-col items-center justify-center opacity-30">
+                    <div class="text-6xl text-cyan-500 mb-6">&#x2316;</div>
+                    <div class="font-hud text-sm text-cyan-400 tracking-[0.2em] mb-2">AWAITING_CONTENT_INPUT</div>
+                    <div class="font-code text-[10px] text-gray-500 max-w-sm text-center">Provide a URL or raw text to generate a multi-dimensional quality analysis matrix.</div>
+                  </div>
+
+                  <div v-if="analysisResults" class="flex-1 overflow-y-auto scrollbar-hide">
+                    <div class="font-hud text-xs text-cyan-500 mb-6 tracking-widest border-b border-gray-900 pb-2">DIMENSION_SCORES</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div v-for="(val, key) in analysisResults.dimensions" :key="key" class="bg-black/60 border border-gray-900 p-4 rounded hover:border-cyan-900/50 transition-colors">
+                        <div class="flex justify-between items-center mb-3">
+                          <div class="font-hud text-[10px] text-gray-300 uppercase">{{ key.replace(/([A-Z])/g, ' $1').trim() }}</div>
+                          <div class="font-hud text-xs" :class="val.score > 7 ? 'text-green-400' : (val.score > 4 ? 'text-yellow-400' : 'text-red-400')">
+                            {{ val.score }}/10
+                          </div>
+                        </div>
+                        <div class="text-[9px] font-code text-gray-500 leading-relaxed">{{ val.explanation }}</div>
+                      </div>
                     </div>
                   </div>
                 </div>

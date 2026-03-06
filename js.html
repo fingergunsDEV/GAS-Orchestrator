@@ -23,6 +23,64 @@
         var simMode = ref(false);
         var isRecording = ref(false);
         var userEmail = ref("admin@agency");
+
+        // Analysis View State
+        var analysisInputMethod = ref('url');
+        var analysisUrl = ref('');
+        var analysisText = ref('');
+        var analysisContext = ref({ entity: '', location: '', topic: '' });
+        var analysisResults = ref(null);
+        var isAnalyzing = ref(false);
+
+        var triggerContentAnalysis = function() {
+          if (analysisInputMethod.value === 'url' && !analysisUrl.value) {
+            addLog('ERR', 'Please provide a Target URL.', 'error');
+            return;
+          }
+          if (analysisInputMethod.value === 'text' && !analysisText.value) {
+            addLog('ERR', 'Please paste the Raw Text.', 'error');
+            return;
+          }
+
+          isAnalyzing.value = true;
+          analysisResults.value = null;
+          addLog('SYS', 'Initiating Content Quality Analysis...', 'info');
+
+          var payload = {
+            method: analysisInputMethod.value,
+            url: analysisUrl.value,
+            text: analysisText.value,
+            context: analysisContext.value
+          };
+
+          if (typeof google !== 'undefined' && google.script) {
+            google.script.run.withSuccessHandler(function(res) {
+              isAnalyzing.value = false;
+              if (res.success && res.data) {
+                analysisResults.value = res.data;
+                addLog('SYS', 'Content Analysis Complete. Score: ' + res.data.entropyScore, 'success');
+              } else {
+                addLog('ERR', 'Analysis Failed: ' + (res.error || 'Unknown Error'), 'error');
+              }
+            }).withFailureHandler(function(err) {
+              isAnalyzing.value = false;
+              addLog('ERR', 'Analysis Failed: ' + err.message, 'error');
+            }).runContentAnalysis(payload);
+          } else {
+             // For local dev simulation
+             setTimeout(function() {
+               isAnalyzing.value = false;
+               analysisResults.value = {
+                 entropyScore: 25,
+                 topProblems: [{title: "Pervasive Cliche Usage", description: "The page is built on generic marketing phrases."}],
+                 dimensions: {
+                   lexicalDiversity: { score: 2, explanation: "Heavily repeats generic marketing terms." },
+                   syntacticBurstiness: { score: 3, explanation: "Most sentences are simple, declarative statements." }
+                 }
+               };
+             }, 2000);
+          }
+        };
         
         var deploymentStatus = computed(function() {
           if (!pipelineStages || !pipelineStages.value || pipelineStages.value.length === 0) return 'UNKNOWN';
@@ -745,6 +803,19 @@
           newArticle.docUrl = art.docurl;
           newArticle.publishedUrl = art.publishedurl;
           // Scroll to form if needed
+        };
+
+        var sendArticleToAnalysis = function() {
+          if (!newArticle.publishedUrl) return;
+          analysisInputMethod.value = 'url';
+          analysisUrl.value = newArticle.publishedUrl;
+          analysisContext.value.topic = newArticle.title;
+          currentView.value = 'analysis';
+          
+          // Slight delay to allow view render
+          setTimeout(function() {
+            triggerContentAnalysis();
+          }, 300);
         };
 
         var cancelEditArticle = function() {
@@ -1756,13 +1827,15 @@ var sentinelPresets = ref([
           selectedFlashModel, selectedProModel, saveModelConfig,
           fetchGeoPulseData, pulseDateRange,
           articles, articlesSourceUrl, newArticle, selectedArticleForTrack, fetchArticles, executeSaveArticle, executeDeleteArticle, trackArticle,
-          startEditArticle, cancelEditArticle,
+          startEditArticle, cancelEditArticle, sendArticleToAnalysis,
           copyToClipboard,
           financeMetrics, fetchFinanceMetrics,
           sentinels, fetchSentinels, sentinelPresets, deploySentinelPreset, getSentinelStatus,
           vectorStats, fetchVectorStats, quickSlashCommands,
           assetFileInput, openAssetPicker, handleAssetSelect,
 
+
+          analysisInputMethod, analysisUrl, analysisText, analysisContext, analysisResults, isAnalyzing, triggerContentAnalysis,
 
           leadEmailHistory, isFetchingHistory, fetchEmailHistory, selectedLeadForHistory,
           codingSubTab, hgmSwarm, swarmMessages, spawnAgent,
