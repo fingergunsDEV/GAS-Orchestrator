@@ -42,127 +42,204 @@
       <div class="flex-1 flex flex-col h-full relative z-10" id="main-interface">
 
         <!-- TOP HUD BAR -->
-        <header class="flex justify-between items-center py-1 px-4 border-b border-gray-900 bg-black/80 backdrop-blur-md">
-          <div class="flex items-center gap-6">
-            <div class="flex items-center gap-3">
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full" :class="isConnected ? 'bg-green-500' : 'bg-red-500'"></span>
-                <span class="font-hud text-[10px] text-white whitespace-nowrap">INTEL_CORE_ID: <span :style="{color: uiColor}">0x7E3</span></span>
+        <header class="flex justify-between items-center py-1.5 px-4 border-b border-gray-900 bg-black/90 backdrop-blur-md sticky top-0 z-50">
+          <div class="flex items-center gap-3 md:gap-6">
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full shadow-[0_0_5px_rgba(34,197,94,0.5)]" :class="isConnected ? 'bg-green-500' : 'bg-red-500'"></span>
+                <span class="font-hud text-[9px] text-white whitespace-nowrap">0x7E3</span>
               </div>
-              <button @click="toggleTheme" class="font-hud text-[7px] px-1.5 py-0.5 border border-gray-800 text-gray-500 hover:text-white hover:border-gray-600 transition-all whitespace-nowrap">
-                STYLE_SYNC
+              <button @click="toggleTheme" class="font-hud text-[7px] px-1.5 py-0.5 border border-gray-800 text-gray-500 hover:text-white transition-all whitespace-nowrap hidden sm:block">
+                STYLE
               </button>
             </div>
-            <div class="hidden md:block h-3 w-px bg-gray-800"></div>
             
-            <!-- VIEW SELECTOR GROUPED (5 PILLARS) -->
-            <nav class="flex gap-4 whitespace-nowrap">
+            <div class="hidden lg:block h-3 w-px bg-gray-800"></div>
+            
+            <!-- DESKTOP VIEW SELECTOR (Hidden on Mobile/Tablet) -->
+            <nav class="hidden lg:flex gap-4 whitespace-nowrap items-center">
               <!-- 1. COMMAND GROUP -->
-              <div class="flex flex-col gap-0.5">
-                <span class="font-hud text-[7px] text-cyan-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">COMMAND</span>
-                <div class="flex gap-1">
-                  <button @click="currentView = 'terminal'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-cyan-500/30 transition-all whitespace-nowrap" :class="currentView === 'terminal' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">
-                    TERMINAL
-                  </button>
-                  <button @click="currentView = 'neural'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-purple-500/30 transition-all whitespace-nowrap" :class="currentView === 'neural' ? 'active text-purple-400 bg-purple-400/5' : 'text-gray-500'">
-                    STREAM
-                  </button>
-                  <button @click="currentView = 'sentinels'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-blue-500/30 transition-all whitespace-nowrap" :class="currentView === 'sentinels' ? 'active text-blue-400 bg-blue-400/5' : 'text-gray-500'">
-                    SENTINELS
-                  </button>
-                  <button @click="currentView = 'proactive'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-cyan-500/30 transition-all whitespace-nowrap" :class="currentView === 'proactive' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">
-                    AUTOPILOT
-                  </button>
+              <div class="flex flex-col">
+                <span class="font-hud text-[6px] text-cyan-500/50 uppercase tracking-[0.2em] px-1">COMMAND</span>
+                <div class="flex gap-0.5">
+                  <button @click="currentView = 'terminal'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'terminal' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">TERMINAL</button>
+                  <button @click="currentView = 'neural'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'neural' ? 'active text-purple-400 bg-purple-400/5' : 'text-gray-500'">STREAM</button>
+                  <button @click="currentView = 'sentinels'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'sentinels' ? 'active text-blue-400 bg-blue-400/5' : 'text-gray-500'">SENTINELS</button>
+                  <button @click="currentView = 'proactive'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'proactive' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">AUTOPILOT</button>
                 </div>
               </div>
 
-              <div class="w-px h-8 bg-gray-800 self-end"></div>
+              <div class="w-px h-6 bg-gray-900"></div>
 
               <!-- 2. OPERATIONS GROUP -->
-              <div class="flex flex-col gap-0.5">
-                <span class="font-hud text-[7px] text-orange-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">OPERATIONS</span>
-                <div class="flex gap-1">
-                  <button @click="currentView = 'leads'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-orange-500/30 transition-all whitespace-nowrap" :class="currentView === 'leads' ? 'active text-orange-400 bg-orange-400/5' : 'text-gray-500'">
-                    LEADS
-                  </button>
-                  <button @click="currentView = 'workstream'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-amber-500/30 transition-all whitespace-nowrap" :class="currentView === 'workstream' ? 'active text-amber-400 bg-amber-400/5' : 'text-gray-500'">
-                    CAMPAIGNS
-                  </button>
-                  <button @click="currentView = 'pulse'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-green-500/30 transition-all whitespace-nowrap" :class="currentView === 'pulse' ? 'active text-green-400 bg-green-400/5' : 'text-gray-500'">
-                    PULSE
-                  </button>
+              <div class="flex flex-col">
+                <span class="font-hud text-[6px] text-orange-500/50 uppercase tracking-[0.2em] px-1">OPERATIONS</span>
+                <div class="flex gap-0.5">
+                  <button @click="currentView = 'leads'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'leads' ? 'active text-orange-400 bg-orange-400/5' : 'text-gray-500'">LEADS</button>
+                  <button @click="currentView = 'workstream'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'workstream' ? 'active text-amber-400 bg-amber-400/5' : 'text-gray-500'">CAMPAIGNS</button>
+                  <button @click="currentView = 'pulse'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'pulse' ? 'active text-green-400 bg-green-400/5' : 'text-gray-500'">PULSE</button>
                 </div>
               </div>
 
-              <div class="w-px h-8 bg-gray-800 self-end"></div>
+              <div class="w-px h-6 bg-gray-900"></div>
 
               <!-- 3. FACTORY GROUP -->
-              <div class="flex flex-col gap-0.5">
-                <span class="font-hud text-[7px] text-pink-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">FACTORY</span>
-                <div class="flex gap-1">
-                  <button @click="currentView = 'creative'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-pink-500/30 transition-all whitespace-nowrap" :class="currentView === 'creative' ? 'active text-pink-400 bg-pink-400/5' : 'text-gray-500'">
-                    CREATIVE
-                  </button>
-                  <button @click="currentView = 'proposals'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-indigo-500/30 transition-all whitespace-nowrap" :class="currentView === 'proposals' ? 'active text-indigo-400 bg-indigo-400/5' : 'text-gray-500'">
-                    PROPOSALS
-                  </button>
-                  <button @click="currentView = 'articles'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-teal-500/30 transition-all whitespace-nowrap" :class="currentView === 'articles' ? 'active text-teal-400 bg-teal-400/5' : 'text-gray-500'">
-                    ARTICLES
-                  </button>
+              <div class="flex flex-col">
+                <span class="font-hud text-[6px] text-pink-500/50 uppercase tracking-[0.2em] px-1">FACTORY</span>
+                <div class="flex gap-0.5">
+                  <button @click="currentView = 'creative'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'creative' ? 'active text-pink-400 bg-pink-400/5' : 'text-gray-500'">CREATIVE</button>
+                  <button @click="currentView = 'proposals'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'proposals' ? 'active text-indigo-400 bg-indigo-400/5' : 'text-gray-500'">PROPOSALS</button>
+                  <button @click="currentView = 'articles'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'articles' ? 'active text-teal-400 bg-teal-400/5' : 'text-gray-500'">ARTICLES</button>
+                  <button @click="currentView = 'analysis'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'analysis' ? 'active text-cyan-400 bg-cyan-400/5' : 'text-gray-500'">ANALYSIS</button>
                 </div>
               </div>
 
-              <div class="w-px h-8 bg-gray-800 self-end"></div>
+              <div class="w-px h-6 bg-gray-900"></div>
 
               <!-- 4. INTELLIGENCE GROUP -->
-              <div class="flex flex-col gap-0.5">
-                <span class="font-hud text-[7px] text-purple-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">INTELLIGENCE</span>
-                <div class="flex gap-1">
-                  <button @click="currentView = 'research'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-purple-500/30 transition-all whitespace-nowrap" :class="currentView === 'research' ? 'active text-purple-400 bg-purple-400/5' : 'text-gray-500'">
-                    RESEARCH
-                  </button>
-                  <button @click="currentView = 'vault'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-indigo-500/30 transition-all whitespace-nowrap" :class="currentView === 'vault' ? 'active text-indigo-400 bg-indigo-400/5' : 'text-gray-500'">
-                    VAULT
-                  </button>
+              <div class="flex flex-col">
+                <span class="font-hud text-[6px] text-purple-500/50 uppercase tracking-[0.2em] px-1">INTELLIGENCE</span>
+                <div class="flex gap-0.5">
+                  <button @click="currentView = 'research'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'research' ? 'active text-purple-400 bg-purple-400/5' : 'text-gray-500'">RESEARCH</button>
+                  <button @click="currentView = 'vault'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'vault' ? 'active text-indigo-400 bg-indigo-400/5' : 'text-gray-500'">VAULT</button>
                 </div>
               </div>
 
-              <div class="w-px h-8 bg-gray-800 self-end"></div>
+              <div class="w-px h-6 bg-gray-900"></div>
 
               <!-- 5. DEVELOPMENT GROUP -->
-              <div class="flex flex-col gap-0.5">
-                <span class="font-hud text-[7px] text-yellow-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">DEVELOPMENT</span>
-                <div class="flex gap-1">
-                  <button @click="currentView = 'coding'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-yellow-500/30 transition-all whitespace-nowrap" :class="currentView === 'coding' ? 'active text-yellow-400 bg-yellow-400/5' : 'text-gray-500'">
-                    CODING
-                  </button>
+              <div class="flex flex-col">
+                <span class="font-hud text-[6px] text-yellow-500/50 uppercase tracking-[0.2em] px-1">DEVELOPMENT</span>
+                <div class="flex gap-0.5">
+                  <button @click="currentView = 'coding'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'coding' ? 'active text-yellow-400 bg-yellow-400/5' : 'text-gray-500'">CODING</button>
                 </div>
               </div>
 
-              <div class="w-px h-8 bg-gray-800 self-end"></div>
+              <div class="w-px h-6 bg-gray-900"></div>
 
               <!-- 6. SYSTEM GROUP -->
-              <div class="flex flex-col gap-0.5">
-                <span class="font-hud text-[7px] text-rose-500/50 uppercase tracking-[0.2em] px-1 whitespace-nowrap">SYSTEM</span>
-                <div class="flex gap-1">
-                  <button @click="currentView = 'settings'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-rose-500/30 transition-all whitespace-nowrap" :class="currentView === 'settings' ? 'active text-rose-400 bg-rose-400/5' : 'text-gray-500'">
-                    CONFIG
-                  </button>
-                  <button @click="currentView = 'finance'" class="font-hud text-[9px] px-3 py-1 nav-tab border border-transparent hover:border-emerald-500/30 transition-all whitespace-nowrap" :class="currentView === 'finance' ? 'active text-emerald-400 bg-emerald-400/5' : 'text-gray-500'">
-                    FINANCE
-                  </button>
+              <div class="flex flex-col">
+                <span class="font-hud text-[6px] text-rose-500/50 uppercase tracking-[0.2em] px-1">SYSTEM</span>
+                <div class="flex gap-0.5">
+                  <button @click="currentView = 'settings'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'settings' ? 'active text-rose-400 bg-rose-400/5' : 'text-gray-500'">CONFIG</button>
+                  <button @click="currentView = 'finance'" class="font-hud text-[8px] px-2 py-0.5 nav-tab" :class="currentView === 'finance' ? 'active text-emerald-400 bg-emerald-400/5' : 'text-gray-500'">FINANCE</button>
                 </div>
               </div>
             </nav>
           </div>
           
-          <div class="flex items-center gap-6">
-            <button @click="toggleSim" class="font-hud text-[9px] px-3 py-1.5 nav-tab whitespace-nowrap" :class="simMode ? 'active text-cyan-400' : 'text-gray-500 hover:text-gray-300'">
-              INTELLIGENCE_MAP
+          <div class="flex items-center gap-2 md:gap-4">
+            <button @click="toggleSim" class="font-hud text-[8px] px-2 py-1 nav-tab border border-cyan-500/20 whitespace-nowrap" :class="simMode ? 'active text-cyan-400' : 'text-gray-500 hover:text-gray-300'">
+              GEO-INTEL
             </button>
-            <div class="font-code text-[10px] text-white whitespace-nowrap">{{ currentTime }}</div>
+            
+            <!-- MOBILE MENU TRIGGER -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 text-gray-400 hover:text-white focus:outline-none transition-all">
+              <svg v-if="!mobileMenuOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+              <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
           </div>
         </header>
+
+        <!-- MOBILE NAVIGATION OVERLAY -->
+        <transition name="slide-down">
+          <div v-if="mobileMenuOpen" class="lg:hidden fixed inset-0 z-[60] bg-black/95 backdrop-blur-2xl flex flex-col p-6 pt-20 overflow-y-auto font-hud">
+            <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+              <div class="text-xl text-white tracking-[0.2em]">COMMAND_CENTER</div>
+              <button @click="mobileMenuOpen = false" class="text-gray-500 hover:text-white">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8 mb-20">
+               <!-- COMMAND -->
+               <div>
+                 <div class="text-[10px] text-cyan-500/50 mb-3 tracking-widest border-l-2 border-cyan-500/50 pl-3">COMMAND_LAYER</div>
+                 <div class="grid grid-cols-2 gap-2">
+                   <button @click="currentView = 'terminal'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'terminal' ? 'border-cyan-500 text-cyan-400' : ''">
+                     <div class="text-xs">TERMINAL</div>
+                     <div class="text-[8px] opacity-40 mt-1">Core Uplink</div>
+                   </button>
+                   <button @click="currentView = 'neural'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'neural' ? 'border-purple-500 text-purple-400' : ''">
+                     <div class="text-xs">STREAM</div>
+                     <div class="text-[8px] opacity-40 mt-1">Intel Flow</div>
+                   </button>
+                   <button @click="currentView = 'sentinels'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'sentinels' ? 'border-blue-500 text-blue-400' : ''">
+                     <div class="text-xs">SENTINELS</div>
+                     <div class="text-[8px] opacity-40 mt-1">Active Guards</div>
+                   </button>
+                 </div>
+               </div>
+
+               <!-- OPERATIONS -->
+               <div>
+                 <div class="text-[10px] text-orange-500/50 mb-3 tracking-widest border-l-2 border-orange-500/50 pl-3">OPERATIONS_LAYER</div>
+                 <div class="grid grid-cols-2 gap-2">
+                   <button @click="currentView = 'leads'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'leads' ? 'border-orange-500 text-orange-400' : ''">
+                     <div class="text-xs">LEADS</div>
+                     <div class="text-[8px] opacity-40 mt-1">CRM Intake</div>
+                   </button>
+                   <button @click="currentView = 'workstream'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'workstream' ? 'border-amber-500 text-amber-400' : ''">
+                     <div class="text-xs">CAMPAIGNS</div>
+                     <div class="text-[8px] opacity-40 mt-1">Live Missions</div>
+                   </button>
+                   <button @click="currentView = 'pulse'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'pulse' ? 'border-green-500 text-green-400' : ''">
+                     <div class="text-xs">PULSE</div>
+                     <div class="text-[8px] opacity-40 mt-1">Geo Analytics</div>
+                   </button>
+                 </div>
+               </div>
+
+               <!-- FACTORY -->
+               <div>
+                 <div class="text-[10px] text-pink-500/50 mb-3 tracking-widest border-l-2 border-pink-500/50 pl-3">FACTORY_LAYER</div>
+                 <div class="grid grid-cols-2 gap-2">
+                   <button @click="currentView = 'creative'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'creative' ? 'border-pink-500 text-pink-400' : ''">
+                     <div class="text-xs">CREATIVE</div>
+                     <div class="text-[8px] opacity-40 mt-1">Assets Gen</div>
+                   </button>
+                   <button @click="currentView = 'proposals'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'proposals' ? 'border-indigo-500 text-indigo-400' : ''">
+                     <div class="text-xs">PROPOSALS</div>
+                     <div class="text-[8px] opacity-40 mt-1">Deal Staging</div>
+                   </button>
+                   <button @click="currentView = 'articles'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'articles' ? 'border-teal-500 text-teal-400' : ''">
+                     <div class="text-xs">ARTICLES</div>
+                     <div class="text-[8px] opacity-40 mt-1">SEO Engine</div>
+                   </button>
+                   <button @click="currentView = 'analysis'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'analysis' ? 'border-cyan-500 text-cyan-400' : ''">
+                     <div class="text-xs">ANALYSIS</div>
+                     <div class="text-[8px] opacity-40 mt-1">Content Quality</div>
+                   </button>
+                 </div>
+               </div>
+
+               <!-- SYSTEM -->
+               <div>
+                 <div class="text-[10px] text-rose-500/50 mb-3 tracking-widest border-l-2 border-rose-500/50 pl-3">SYSTEM_LAYER</div>
+                 <div class="grid grid-cols-2 gap-2">
+                   <button @click="currentView = 'coding'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'coding' ? 'border-yellow-500 text-yellow-400' : ''">
+                     <div class="text-xs">CODING</div>
+                     <div class="text-[8px] opacity-40 mt-1">CI/CD & R&D</div>
+                   </button>
+                   <button @click="currentView = 'settings'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'settings' ? 'border-rose-500 text-rose-400' : ''">
+                     <div class="text-xs">CONFIG</div>
+                     <div class="text-[8px] opacity-40 mt-1">Vault Keys</div>
+                   </button>
+                   <button @click="currentView = 'finance'; mobileMenuOpen = false" class="p-4 bg-white/5 border border-white/10 text-left rounded" :class="currentView === 'finance' ? 'border-emerald-500 text-emerald-400' : ''">
+                     <div class="text-xs">FINANCE</div>
+                     <div class="text-[8px] opacity-40 mt-1">ROI Metrics</div>
+                   </button>
+                 </div>
+               </div>
+            </div>
+
+            <!-- Footer in Mobile Menu -->
+            <div class="mt-auto pt-8 border-t border-white/5 flex justify-between items-center">
+               <button @click="toggleTheme" class="px-6 py-2 border border-gray-800 text-[10px]">SYNC_STYLE</button>
+               <div class="text-[8px] text-gray-700 tracking-[0.5em]">{{ currentTime }}</div>
+            </div>
+          </div>
+        </transition>
 
 
         <!-- MAIN LAYOUT -->
@@ -515,7 +592,7 @@
                 <div class="w-80 flex flex-col bg-black/40 border border-white/5 rounded-lg p-4 overflow-hidden">
                   <div class="font-hud text-[10px] text-cyan-400 tracking-widest border-b border-cyan-900/30 pb-2 mb-4 flex justify-between">
                     <span>CAMPAIGN_KNOWLEDGE_BASE</span>
-                    <span class="animate-pulse">???</span>
+                    <span class="animate-pulse">●</span>
                   </div>
                   
                   <div class="flex-1 overflow-y-auto font-code text-[10px] scrollbar-hide">
@@ -547,6 +624,7 @@
                 </div>
                 
                 <div class="flex-1 flex flex-col gap-2 overflow-hidden">
+                   <!-- ROW 1: TELEMETRY METRICS -->
                    <div class="flex gap-2 min-w-0 overflow-hidden">
                       <button @click="fetchGeoPulseData" class="shrink-0 text-[9px] font-hud text-green-500 border border-green-900/30 px-3 py-2 hover:bg-green-950/20 self-center mr-2">FORCE_SYNC</button>
                       
@@ -576,7 +654,7 @@
                       </div>
                    </div>
 
-                   <!-- MARKET INTELLIGENCE OVERLAY (v4.18.0) -->
+                   <!-- ROW 2: MARKET INTELLIGENCE OVERLAY (v4.18.0) -->
                    <div v-if="geoPulseData.seoOpportunityScore" class="flex gap-2 animate-fade-in">
                       <div class="lux-panel px-3 py-1 border border-indigo-900/50 bg-indigo-950/20 flex items-center gap-4 flex-1">
                          <div class="shrink-0">
@@ -617,7 +695,7 @@
                 </div>
 
                 <!-- DATA BREAKDOWN (RIGHT) -->
-                <div class="w-64 md:w-80 shrink-0 flex flex-col overflow-hidden border-l border-gray-900 pl-6">
+                <div class="w-80 flex flex-col overflow-hidden border-l border-gray-900 pl-6">
                    <div class="flex gap-4 border-b border-gray-900 mb-4 px-2">
                       <button @click="pulseSubTab = 'geo'" class="font-hud text-[9px] pb-2 transition-all" :class="pulseSubTab === 'geo' ? 'text-green-400 border-b-2 border-green-400' : 'text-gray-600 hover:text-gray-300'">LOCATIONS</button>
                       <button @click="pulseSubTab = 'live'" class="font-hud text-[9px] pb-2 transition-all" :class="pulseSubTab === 'live' ? 'text-green-400 border-b-2 border-green-400' : 'text-gray-600 hover:text-gray-300'">CONTENT</button>
@@ -1014,9 +1092,14 @@
                           <label class="block font-hud text-[8px] text-gray-600 mb-1">PUBLISHED_URL</label>
                           <input v-model="newArticle.publishedUrl" type="text" placeholder="https://yoursite.com/article" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-teal-500">
                         </div>
-                        <button @click="executeSaveArticle" class="w-full bg-teal-900/20 border border-teal-800 text-teal-400 font-hud text-[10px] py-2 hover:bg-teal-800 hover:text-white transition-all">
-                          {{ newArticle.id ? 'UPDATE_ARTICLE' : 'SAVE_ARTICLE' }}
-                        </button>
+                        <div class="flex gap-2">
+                          <button @click="executeSaveArticle" class="flex-1 bg-teal-900/20 border border-teal-800 text-teal-400 font-hud text-[10px] py-2 hover:bg-teal-800 hover:text-white transition-all">
+                            {{ newArticle.id ? 'UPDATE_ARTICLE' : 'SAVE_ARTICLE' }}
+                          </button>
+                          <button @click="sendArticleToAnalysis" :disabled="!newArticle.publishedUrl" class="flex-1 bg-cyan-900/20 border border-cyan-800 text-cyan-400 font-hud text-[10px] py-2 hover:bg-cyan-800 hover:text-white transition-all disabled:opacity-30">
+                            ANALYZE_QUALITY
+                          </button>
+                        </div>
                       </div>
 
                       <!-- ARTICLE LIST -->
@@ -1045,7 +1128,7 @@
                                 <td class="py-3 px-3">
                                   <a v-if="art.publishedurl" :href="art.publishedurl" target="_blank" class="no-underline">
                                     <span class="px-1.5 py-0.5 rounded-sm text-[8px] font-hud bg-green-950/30 text-green-500 hover:bg-green-500 hover:text-black transition-all cursor-pointer">
-                                      {{ art.status.toUpperCase() }} ???
+                                      {{ art.status.toUpperCase() }} ↗
                                     </span>
                                   </a>
                                   <span v-else class="px-1.5 py-0.5 rounded-sm text-[8px] font-hud bg-gray-900 text-gray-500">
@@ -1078,6 +1161,116 @@
                         <button @click="selectedArticleForTrack = null" class="text-[8px] text-gray-600 hover:text-white">[ CLOSE ]</button>
                       </div>
                       <div class="h-48 relative"><canvas id="articleTrendChart"></canvas></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW: ANALYSIS -->
+            <div v-if="currentView === 'analysis'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-hud text-lg text-cyan-400 tracking-[0.3em]">CONTENT_ANALYSIS</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Analyze content quality based on 12 distinct dimensions</div>
+                </div>
+              </div>
+
+              <div class="flex-1 flex gap-6 overflow-hidden">
+                <!-- Left Column: Inputs & Summary -->
+                <div class="w-80 flex flex-col gap-6 overflow-y-auto scrollbar-hide">
+                  <!-- Inputs Panel -->
+                  <div class="lux-panel p-4 border border-cyan-900/30 bg-cyan-950/5 flex flex-col gap-4">
+                    <div class="font-hud text-[10px] text-cyan-500 mb-2 border-b border-cyan-900/30 pb-2 uppercase tracking-tighter">Input_Method</div>
+                    <div class="flex gap-2">
+                      <button @click="analysisInputMethod = 'url'" class="flex-1 py-1 text-[9px] font-hud border transition-all" :class="analysisInputMethod === 'url' ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' : 'border-gray-800 text-gray-500'">URL</button>
+                      <button @click="analysisInputMethod = 'text'" class="flex-1 py-1 text-[9px] font-hud border transition-all" :class="analysisInputMethod === 'text' ? 'border-cyan-500 text-cyan-400 bg-cyan-500/10' : 'border-gray-800 text-gray-500'">PASTE_TEXT</button>
+                    </div>
+
+                    <div v-if="analysisInputMethod === 'url'">
+                      <label class="block font-hud text-[8px] text-gray-600 mb-1">TARGET_URL</label>
+                      <input v-model="analysisUrl" type="text" placeholder="https://..." class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                    </div>
+                    <div v-if="analysisInputMethod === 'text'">
+                      <label class="block font-hud text-[8px] text-gray-600 mb-1">RAW_TEXT</label>
+                      <textarea v-model="analysisText" rows="4" placeholder="Paste content..." class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none resize-none"></textarea>
+                    </div>
+
+                    <div>
+                      <label class="block font-hud text-[8px] text-gray-600 mb-1">CONTEXT (Optional)</label>
+                      <div class="space-y-2">
+                        <input v-model="analysisContext.entity" type="text" placeholder="Entity / Business Name" class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                        <input v-model="analysisContext.location" type="text" placeholder="Target Location" class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                        <input v-model="analysisContext.topic" type="text" placeholder="Core Topic" class="w-full bg-black/60 border border-gray-800 p-2 text-[10px] font-code text-white focus:border-cyan-500 outline-none">
+                      </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                      <button @click="triggerContentAnalysis" :disabled="isAnalyzing" class="flex-1 bg-cyan-900/20 border border-cyan-800 text-cyan-400 font-hud text-[10px] py-2 hover:bg-cyan-800/40" :class="{'opacity-50 cursor-not-allowed': isAnalyzing}">
+                        {{ isAnalyzing ? 'ANALYZING...' : 'RUN_ANALYSIS' }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Entropy Score -->
+                  <div v-if="analysisResults" class="lux-panel p-6 border border-gray-900 bg-black/40 text-center flex flex-col items-center">
+                    <div class="font-hud text-[10px] text-gray-500 mb-4 tracking-widest">ENTROPY_SCORE</div>
+                    <div class="text-6xl font-hud mb-4" :class="analysisResults.entropyScore > 70 ? 'text-green-400' : (analysisResults.entropyScore > 40 ? 'text-yellow-400' : 'text-red-400')">
+                      {{ analysisResults.entropyScore }}
+                    </div>
+                    <div class="w-full h-2 bg-gray-900 rounded-full mb-2">
+                      <div class="h-full rounded-full transition-all duration-1000" :class="analysisResults.entropyScore > 70 ? 'bg-green-500' : (analysisResults.entropyScore > 40 ? 'bg-yellow-500' : 'bg-red-500')" :style="{ width: analysisResults.entropyScore + '%' }"></div>
+                    </div>
+                    <div class="font-code text-[9px] uppercase tracking-widest" :class="analysisResults.entropyScore > 70 ? 'text-green-500' : (analysisResults.entropyScore > 40 ? 'text-yellow-500' : 'text-red-500')">
+                      {{ analysisResults.entropyScore > 70 ? 'HIGH_ENTROPY' : (analysisResults.entropyScore > 40 ? 'MODERATE_ENTROPY' : 'LOW_ENTROPY') }}
+                    </div>
+                  </div>
+
+                  <!-- Top Problems -->
+                  <div v-if="analysisResults && analysisResults.topProblems" class="lux-panel p-4 border border-red-900/30 bg-red-950/5">
+                    <div class="font-hud text-[10px] text-red-500 mb-4 border-b border-red-900/30 pb-2">TOP_PROBLEMS</div>
+                    <div class="space-y-4">
+                      <div v-for="(problem, i) in analysisResults.topProblems" :key="i" class="flex gap-3 items-start">
+                        <span class="text-red-500 font-hud text-[10px] mt-0.5">&#x26A0;</span>
+                        <div>
+                          <div class="text-[10px] text-white font-hud tracking-widest mb-1">{{ problem.title }}</div>
+                          <div class="text-[9px] font-code text-gray-400 leading-relaxed">{{ problem.description }}</div>
+                        </div>
+                      </div>
+                      <div v-if="analysisResults.topProblems.length === 0" class="text-[9px] text-gray-500 italic text-center">No major structural problems detected.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Column: Dimensions -->
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded p-6 flex flex-col relative overflow-hidden">
+                  <div v-if="isAnalyzing" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
+                    <div class="flex gap-2 mb-4">
+                      <div class="w-2 h-2 bg-cyan-500 animate-bounce"></div>
+                      <div class="w-2 h-2 bg-cyan-500 animate-bounce [animation-delay:0.2s]"></div>
+                      <div class="w-2 h-2 bg-cyan-500 animate-bounce [animation-delay:0.4s]"></div>
+                    </div>
+                    <div class="font-hud text-xs text-cyan-400 tracking-[0.3em] animate-pulse">SYNTHESIZING_DIMENSIONS...</div>
+                  </div>
+
+                  <div v-if="!analysisResults && !isAnalyzing" class="flex-1 flex flex-col items-center justify-center opacity-30">
+                    <div class="text-6xl text-cyan-500 mb-6">&#x2316;</div>
+                    <div class="font-hud text-sm text-cyan-400 tracking-[0.2em] mb-2">AWAITING_CONTENT_INPUT</div>
+                    <div class="font-code text-[10px] text-gray-500 max-w-sm text-center">Provide a URL or raw text to generate a multi-dimensional quality analysis matrix.</div>
+                  </div>
+
+                  <div v-if="analysisResults" class="flex-1 overflow-y-auto scrollbar-hide">
+                    <div class="font-hud text-xs text-cyan-500 mb-6 tracking-widest border-b border-gray-900 pb-2">DIMENSION_SCORES</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div v-for="(val, key) in analysisResults.dimensions" :key="key" class="bg-black/60 border border-gray-900 p-4 rounded hover:border-cyan-900/50 transition-colors">
+                        <div class="flex justify-between items-center mb-3">
+                          <div class="font-hud text-[10px] text-gray-300 uppercase">{{ key.replace(/([A-Z])/g, ' $1').trim() }}</div>
+                          <div class="font-hud text-xs" :class="val.score > 7 ? 'text-green-400' : (val.score > 4 ? 'text-yellow-400' : 'text-red-400')">
+                            {{ val.score }}/10
+                          </div>
+                        </div>
+                        <div class="text-[9px] font-code text-gray-500 leading-relaxed">{{ val.explanation }}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1402,6 +1595,12 @@
                       <button @click="ingestGoogleDoc" class="bg-purple-900/20 border border-purple-800 text-purple-400 text-[10px] px-4 hover:bg-purple-800/40">INGEST_DOC</button>
                     </div>
 
+                    <!-- API Endpoint Ingestion -->
+                    <div class="flex gap-1">
+                      <input v-model="apiUrl" @keyup.enter="ingestApiData" type="text" placeholder="Enter external API endpoint URL to ingest & clean..." class="flex-1 bg-black/50 border border-purple-900/50 text-[10px] text-gray-300 p-2 focus:border-purple-400 outline-none placeholder-gray-700">
+                      <button @click="ingestApiData" class="bg-purple-900/20 border border-purple-800 text-purple-400 text-[10px] px-4 hover:bg-purple-800/40">INGEST_API</button>
+                    </div>
+
                     <div class="flex gap-1">
                       <input v-model="quickFact" @keyup.enter="ingestFact" type="text" placeholder="Add specific fact to research memory..." class="flex-1 bg-black/50 border border-purple-900/50 text-[10px] text-gray-300 p-2 focus:border-purple-400 outline-none placeholder-gray-700">
                       <button @click="ingestFact" class="bg-purple-900/20 border border-purple-800 text-purple-400 text-[10px] px-4 hover:bg-purple-800/40">INGEST</button>
@@ -1421,30 +1620,35 @@
             <div v-if="currentView === 'coding'" class="flex-1 flex flex-col p-6 overflow-hidden">
               <div class="flex justify-between items-center mb-6">
                 <div>
-                  <h2 class="font-hud text-lg text-yellow-400 tracking-[0.3em]">DEVELOPMENT_ENGINE</h2>
-                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">GitHub Integration & Code Synthesis</div>
+                  <h2 class="font-hud text-lg text-yellow-400 tracking-[0.3em]">HGM_GROWTH_ENGINE</h2>
+                  <div class="text-[9px] text-gray-600 font-code mt-1 tracking-widest uppercase">Holistic Growth Marketing // Agentic Engineering Layer</div>
+                </div>
+                <!-- SUB-TABS -->
+                <div class="flex gap-2">
+                  <button @click="codingSubTab = 'terminal'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'terminal' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">TERMINAL</button>
+                  <button @click="codingSubTab = 'sandbox'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'sandbox' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">SANDBOX</button>
+                  <button @click="codingSubTab = 'monitor'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'monitor' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">MONITOR</button>
+                  <button @click="codingSubTab = 'pipeline'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'pipeline' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">PIPELINE</button>
+                  <button @click="codingSubTab = 'commits'" class="text-[10px] font-hud px-4 py-1.5 border transition-all" :class="codingSubTab === 'commits' ? 'border-yellow-500 text-yellow-400 bg-yellow-500/10' : 'border-gray-800 text-gray-600 hover:text-gray-400'">COMMITS</button>
                 </div>
               </div>
               
-              <div class="flex-1 flex gap-6 overflow-hidden">
+              <!-- TERMINAL SUB-TAB -->
+              <div v-if="codingSubTab === 'terminal'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
                 <!-- Repository Config Sidebar -->
                 <div class="w-80 flex flex-col gap-4 overflow-y-auto scrollbar-hide">
                   <div class="lux-panel p-4 border border-yellow-900/30 bg-yellow-950/5 relative">
                     <div class="font-hud text-[10px] text-yellow-500 mb-3 border-b border-yellow-900/30 pb-2">GITHUB_REPOSITORY_UPLINK</div>
                     <div class="space-y-3">
                       <div>
-                        <label class="block font-hud text-[8px] text-gray-600 mb-1">OWNER/ORG</label>
-                        <input v-model="githubState.owner" type="text" placeholder="e.g. facebook" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
-                      </div>
-                      <div>
-                        <label class="block font-hud text-[8px] text-gray-600 mb-1">REPOSITORY_NAME</label>
-                        <input v-model="githubState.repo" type="text" placeholder="e.g. react" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
+                        <label class="block font-hud text-[8px] text-gray-600 mb-1">REPOSITORY_URL</label>
+                        <input v-model="githubState.repoUrl" type="text" placeholder="e.g. https://github.com/facebook/react" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
                       </div>
                       <div>
                         <label class="block font-hud text-[8px] text-gray-600 mb-1">TARGET_BRANCH</label>
                         <input v-model="githubState.branch" type="text" placeholder="e.g. main" class="w-full bg-black/60 border border-yellow-900/50 p-2 text-[10px] font-code text-white focus:border-yellow-400 outline-none">
                       </div>
-                      
+
                       <!-- RECENT PROJECTS (v4.18.0) -->
                       <div v-if="recentProjects && recentProjects.length > 0">
                         <label class="block font-hud text-[8px] text-gray-600 mb-1">RECENT_PROJECTS</label>
@@ -1471,7 +1675,7 @@
                         </div>
                         <div v-else-if="!githubState.tree || githubState.tree.length === 0" class="italic opacity-30 text-center py-4">No repository indexed.</div>
                         <div v-else v-for="node in githubState.tree" :key="node.path" class="truncate hover:text-yellow-400 cursor-pointer flex gap-2">
-                           <span :class="node.type === 'tree' ? 'text-yellow-500/50' : 'text-cyan-500/50'">{{ node.type === 'tree' ? '????' : '????' }}</span>
+                           <span :class="node.type === 'tree' ? 'text-yellow-500/50' : 'text-cyan-500/50'">{{ node.type === 'tree' ? '&#128193;' : '&#128196;' }}</span>
                            {{ node.path }}
                         </div>
                      </div>
@@ -1479,8 +1683,7 @@
                 </div>
                 
                 <!-- Main Coding Area -->
-                <div class="flex-1 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">
-                   <div class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
+                <div class="flex-1 min-w-0 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">                   <div class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
                      <div class="text-[300px] font-hud text-yellow-500 rotate-12">CODE</div>
                    </div>
                    
@@ -1518,10 +1721,134 @@
                    </div>
                 </div>
               </div>
-            </div>
 
-            <!-- VIEW: FINANCE -->
-            <div v-if="currentView === 'finance'" class="flex-1 flex flex-col p-6 overflow-hidden">
+              <!-- SANDBOX SUB-TAB -->
+              <div v-if="codingSubTab === 'sandbox'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded p-8 flex flex-col relative overflow-y-auto scrollbar-hide">
+                  <div class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
+                    <div class="text-[300px] font-hud text-yellow-500 rotate-12">SANDBOX</div>
+                  </div>
+                  <div class="z-10">
+                    <div class="font-hud text-xs text-yellow-500 mb-2">RAPID_PROTOTYPE_INCUBATOR</div>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-8">Deploy an autonomous builder agent to scaffold a new project architecture.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <button v-for="proj in sandboxProjects" :key="preset" @click="startSandboxProject(proj)" 
+                              class="lux-panel p-6 text-left border border-gray-800 bg-black/60 hover:border-yellow-500/50 hover:bg-yellow-950/10 transition-all group flex flex-col h-full">
+                        <div class="font-hud text-[10px] text-yellow-600 group-hover:text-yellow-400 mb-2 transition-colors">{{ proj.label }}</div>
+                        <div class="font-code text-[9px] text-gray-500 flex-1">{{ proj.desc }}</div>
+                        <div class="mt-4 font-hud text-[8px] text-gray-700 tracking-widest group-hover:text-yellow-500/50">DEPLOY_BLUEPRINT -></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MONITOR SUB-TAB -->
+              <div v-if="codingSubTab === 'monitor'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                <!-- ACTIVE AGENTS (Sidebar) -->
+                <div class="w-80 flex flex-col gap-4 overflow-y-auto scrollbar-hide">
+                  <div class="lux-panel p-4 border border-blue-900/30 bg-blue-950/5 relative">
+                    <div class="font-hud text-[10px] text-blue-500 mb-3 border-b border-blue-900/30 pb-2 flex justify-between">
+                      <span>HGM_AGENTIC_SWARM</span>
+                      <span class="animate-pulse w-2 h-2 rounded-full bg-blue-500 mt-1"></span>
+                    </div>
+                    <div class="space-y-3">
+                      <div v-for="agent in hgmSwarm" :key="agent.name" class="p-3 bg-black/60 border border-blue-900/30 rounded">
+                        <div class="flex justify-between items-center mb-1">
+                          <span class="font-hud text-[10px] text-white">{{ agent.name }}</span>
+                          <span class="text-[8px] font-code px-1.5 py-0.5 rounded" :class="agent.status === 'ACTIVE' ? 'bg-blue-900/50 text-blue-400' : 'bg-gray-900 text-gray-500'">{{ agent.status }}</span>
+                        </div>
+                        <div class="text-[9px] font-code text-gray-400">{{ agent.role.toUpperCase() }} | {{ agent.worktree }}</div>
+                      </div>
+                    </div>
+                    <button @click="spawnAgent()" class="w-full mt-4 bg-blue-900/20 border border-blue-800 text-blue-400 font-hud text-[10px] py-2 hover:bg-blue-800/40">
+                        SPAWN_SWARM_WORKER
+                    </button>
+                  </div>
+                </div>
+
+                <!-- COMMUNICATION STREAM -->
+                <div class="flex-1 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">
+                   <div class="p-4 border-b border-gray-900 flex justify-between items-center bg-black/60">
+                      <div class="font-hud text-[10px] text-gray-400">HGM_SWARM_COMM_PROTOCOL (SYNC_WAL)</div>
+                   </div>
+                   <div class="flex-1 p-6 overflow-y-auto space-y-4 font-code text-[10px] scrollbar-hide" ref="swarmLogBox">
+                      <div v-for="(msg, i) in swarmMessages" :key="i" class="border border-gray-800 bg-black/50 p-3 rounded hover:border-blue-900/50 transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                           <div class="text-cyan-400 font-hud text-[9px]">{{ msg.from }} &rarr; {{ msg.to }}</div>
+                           <div class="text-gray-600 text-[8px]">{{ msg.time }}</div>
+                        </div>
+                        <div class="text-white font-bold mb-1">{{ msg.subject }}</div>
+                        <div class="text-gray-400 whitespace-pre-wrap">{{ msg.body }}</div>
+                      </div>
+                      <div v-if="swarmMessages.length === 0" class="h-full flex flex-col items-center justify-center opacity-30 text-center">
+                        <div class="text-4xl text-blue-500 mb-4">&#x260E;</div>
+                        <div class="font-hud text-[10px] tracking-widest">AWAITING_INTER_AGENT_COMMS</div>
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              <!-- PIPELINE SUB-TAB -->
+              <div v-if="codingSubTab === 'pipeline'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                 <div class="w-80 flex flex-col gap-4 overflow-y-auto scrollbar-hide">
+                    <div class="lux-panel p-4 border border-green-900/30 bg-green-950/5 relative">
+                      <div class="font-hud text-[10px] text-green-500 mb-3 border-b border-green-900/30 pb-2">PIPELINE_STAGES</div>
+                      <div class="space-y-2">
+                        <button v-for="(stage, idx) in pipelineStages" :key="idx" @click="activePipelineStage = idx" class="w-full text-left p-3 border bg-black/60 transition-all font-hud text-[9px] text-white flex justify-between items-center" :class="activePipelineStage === idx ? 'border-green-500/50' : 'border-gray-800'">
+                          <span>{{ stage.name }}</span>
+                          <span :class="stage.status === 'PASS' ? 'text-green-500' : (stage.status === 'RUNNING' ? 'text-yellow-500 animate-pulse' : 'text-gray-600')">{{ stage.status }}</span>
+                        </button>
+                      </div>
+                      <button @click="triggerWorkflow()" class="w-full mt-4 bg-green-900/20 border border-green-800 text-green-400 font-hud text-[10px] py-2 hover:bg-green-800/40">
+                          TRIGGER_WORKFLOW
+                      </button>
+                    </div>
+                 </div>
+                 
+                 <div class="flex-1 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">
+                   <div class="p-4 border-b border-gray-900 bg-black/60 flex justify-between items-center">
+                     <span class="font-hud text-[10px] text-gray-400">WORKFLOW_LOGS // STAGE: {{ activePipelineStage + 1 }}</span>
+                     <span class="font-code text-[8px] text-yellow-500" :class="{ 'animate-pulse': pipelineStages[activePipelineStage].status === 'RUNNING' }">{{ pipelineStages[activePipelineStage].status }}</span>
+                   </div>
+                   <div class="flex-1 p-6 overflow-y-auto font-code text-[10px] text-gray-300 bg-black/80 scrollbar-hide whitespace-pre-wrap leading-relaxed">
+{{ pipelineStages[activePipelineStage].log || 'Waiting for execution...' }}
+                   </div>
+                 </div>
+                 </div>
+
+                 <!-- COMMITS SUB-TAB -->
+                 <div v-if="codingSubTab === 'commits'" class="flex-1 flex gap-6 overflow-hidden animate-fade-in">
+                 <div class="flex-1 bg-black/40 border border-gray-900 rounded flex flex-col relative overflow-hidden">
+                  <div class="p-4 border-b border-gray-900 bg-black/60 flex justify-between items-center">
+                    <span class="font-hud text-[10px] text-gray-400">GITHUB_COMMIT_HISTORY // {{ githubState.branch || 'main' }}</span>
+                    <button @click="fetchRecentCommits" class="text-[8px] font-hud text-yellow-500 hover:text-white border border-yellow-900/30 px-2 py-1">REFRESH_LOGS</button>
+                  </div>
+
+                  <div class="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-hide">
+                    <div v-if="isFetchingCommits" class="flex items-center gap-2 text-[10px] font-code text-yellow-500 animate-pulse justify-center h-full opacity-50">
+                      <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+                      PULLING_GITHUBS_LOGS...
+                    </div>
+                    <div v-else-if="recentCommits.length === 0" class="h-full flex flex-col items-center justify-center opacity-30 text-center">
+                       <div class="text-4xl text-yellow-500 mb-4">&#x2693;</div>
+                       <div class="font-hud text-[10px] tracking-widest">NO_COMMITS_FOUND</div>
+                    </div>
+                    <div v-else v-for="commit in recentCommits" :key="commit.sha" class="border border-gray-800 bg-black/50 p-3 rounded hover:border-yellow-900/50 transition-colors">
+                       <div class="flex justify-between items-start mb-2">
+                          <a :href="commit.url" target="_blank" class="text-yellow-400 font-code text-[10px] hover:underline">{{ commit.sha }}</a>
+                          <div class="text-gray-600 text-[8px] font-hud">{{ new Date(commit.date).toLocaleString() }}</div>
+                       </div>
+                       <div class="text-gray-300 font-code text-[11px] mb-2 whitespace-pre-wrap">{{ commit.message }}</div>
+                       <div class="text-gray-500 font-code text-[9px] uppercase">Author: {{ commit.author }}</div>
+                    </div>
+                  </div>
+                 </div>
+                 </div>
+                 </div>
+
+                 <!-- VIEW: FINANCE -->            <div v-if="currentView === 'finance'" class="flex-1 flex flex-col p-6 overflow-hidden">
               <div class="flex justify-between items-center mb-6">
                 <div>
                   <h2 class="font-hud text-lg text-emerald-400 tracking-[0.3em]">FINANCIAL_INTELLIGENCE</h2>
@@ -1676,7 +2003,7 @@
                       </div>
                       <div>
                         <label class="block font-hud text-[8px] text-gray-600 mb-1">KEY_VALUE</label>
-                        <input v-model="newKeyValue" type="password" placeholder="????????????????????????????????????" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-rose-500">
+                        <input v-model="newKeyValue" type="password" placeholder="••••••••••••" class="w-full bg-black border border-gray-800 p-2 text-[10px] font-code text-white outline-none focus:border-rose-500">
                       </div>
                       <button @click="saveKey" class="w-full bg-rose-900/20 border border-rose-800 text-rose-400 font-hud text-[10px] py-3 hover:bg-rose-800 hover:text-white transition-all">
                         EXECUTE_STORAGE
@@ -1687,64 +2014,76 @@
               </div>
             </div>
 
-            <!-- GLOBAL COMMAND INPUT -->
-            <div class="p-6 border-t border-white/5 bg-gradient-to-b from-black/40 to-black/80 backdrop-blur-xl relative z-40">
-              <!-- QUICK_SLASH_OVERLAY -->
-              <div class="flex flex-wrap gap-2 mb-3">
-                <button v-for="cmd in quickSlashCommands" :key="cmd.label"
-                        @click="sendMessage(cmd.cmd)"
-                        class="px-2 py-1 bg-black/40 border border-gray-900 hover:border-white/20 transition-all group relative"
-                        :title="cmd.desc">
-                  <span class="font-hud text-[8px] text-gray-600 group-hover:text-white transition-colors tracking-widest">{{ cmd.label }}</span>
-                  <div class="absolute bottom-0 left-0 h-px bg-white/10 transition-all duration-300 w-0 group-hover:w-full"></div>
-                </button>
-              </div>
+            <!-- GLOBAL COMMAND INPUT (Fixed Command Center) -->
+            <div class="fixed bottom-0 left-0 lg:left-64 lg:right-80 right-0 p-4 md:p-6 bg-gradient-to-t from-black via-black/90 to-transparent z-50 pointer-events-none">
+              <div class="pointer-events-auto">
+                <!-- QUICK_SLASH_OVERLAY -->
+                <div class="flex flex-wrap gap-2 mb-2 max-w-3xl mx-auto hidden md:flex">
+                  <button v-for="cmd in quickSlashCommands" :key="cmd.label"
+                          @click="sendMessage(cmd.cmd)"
+                          class="px-2 py-1 bg-black/60 border border-gray-800 hover:border-white/30 backdrop-blur-md transition-all group relative rounded"
+                          :title="cmd.desc">
+                    <span class="font-hud text-[8px] text-gray-500 group-hover:text-white transition-colors tracking-widest">{{ cmd.label }}</span>
+                  </button>
+                </div>
 
-              <div v-if="selectedImage" class="mb-3 px-4 py-2 text-[10px] text-cyan-400 bg-cyan-950/30 border border-cyan-500/30 flex justify-between items-center rounded-sm">
-                <span class="flex items-center gap-3 font-hud">
-                  <span class="w-1.5 h-1.5 bg-cyan-400 animate-pulse rounded-full shadow-[0_0_8px_#00f3ff]"></span> 
-                  ATTACH_ASSET: {{ selectedImage.name }}
-                </span>
-                <button @click="clearImage" class="text-red-500 hover:text-white transition-colors font-hud text-[9px]">[ PURGE ]</button>
-              </div>
-              
-              <div class="lux-panel flex items-center gap-4 p-1 pl-5 border-l-2 transition-all duration-500 group focus-within:shadow-[0_0_30px_-10px_rgba(0,243,255,0.2)]" 
-                   :style="{ borderLeftColor: uiColor, backgroundColor: 'rgba(255,255,255,0.02)' }">
-                
-                <button @click="openFilePicker" class="text-gray-600 hover:text-white transition-all transform hover:scale-110" title="Upload Asset">
-                  <span class="text-xl font-light">+</span>
-                </button>
-                <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">
-                
-                <div class="flex items-center gap-2">
-                  <span class="font-hud text-[10px] tracking-tighter opacity-40">MISSION</span>
-                  <span class="font-hud text-xs animate-pulse" :style="{color: uiColor}">>></span>
+                <div v-if="selectedImage" class="mb-2 px-4 py-2 max-w-3xl mx-auto text-[10px] text-cyan-400 bg-cyan-950/80 border border-cyan-500/50 backdrop-blur flex justify-between items-center rounded shadow-lg">
+                  <span class="flex items-center gap-3 font-hud">
+                    <span class="w-1.5 h-1.5 bg-cyan-400 animate-pulse rounded-full shadow-[0_0_8px_#00f3ff]"></span> 
+                    ATTACH_ASSET: {{ selectedImage.name }}
+                  </span>
+                  <button @click="clearImage" class="text-red-500 hover:text-white transition-colors font-hud text-[9px]">[ PURGE ]</button>
                 </div>
                 
-                <input type="text" v-model="userInput" @keyup.enter="sendMessage()" 
-                       class="flex-1 bg-transparent border-none outline-none text-white font-code text-xs py-3 placeholder-gray-800 tracking-wider"
-                       :placeholder="isRecording ? 'CAPTURING_AUDIO_INTEL...' : 'ENTER_MISSION_DIRECTIVE...'">
+                <div class="lux-panel max-w-3xl mx-auto flex items-center gap-2 md:gap-4 p-1 pl-4 border-l-2 bg-black/90 backdrop-blur-xl shadow-2xl transition-all duration-500 group focus-within:shadow-[0_0_30px_-10px_rgba(0,243,255,0.2)] rounded" 
+                     :style="{ borderLeftColor: uiColor }">
+                  
+                  <button @click="openFilePicker" class="text-gray-500 hover:text-white transition-all transform hover:scale-110 p-2" title="Upload Asset">
+                    <span class="text-xl font-light">+</span>
+                  </button>
+                  <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/*" class="hidden">
+                  
+                  <div class="flex items-center gap-2 hidden md:flex">
+                    <span class="font-hud text-[10px] tracking-tighter opacity-40">MISSION</span>
+                    <span class="font-hud text-xs animate-pulse" :style="{color: uiColor}">>></span>
+                  </div>
+                  
+                  <input type="text" v-model="userInput" @keyup.enter="sendMessage()" 
+                         class="flex-1 bg-transparent border-none outline-none text-white font-code text-[14px] md:text-xs py-3 placeholder-gray-600 tracking-wide"
+                         :placeholder="isRecording ? 'CAPTURING_AUDIO_INTEL...' : 'Command the Swarm...'">
+                  
+                  <button @click="sendMessage()" :disabled="isProcessing" 
+                          class="font-hud text-[10px] px-6 md:px-8 py-3 transition-all duration-300 relative overflow-hidden rounded-r"
+                          :class="isProcessing ? 'text-gray-500 bg-gray-900 cursor-wait' : 'text-black font-bold cursor-pointer hover:opacity-90'"
+                          :style="{ backgroundColor: isProcessing ? '#333' : uiColor }">
+                    <span class="relative z-10">{{ isProcessing ? 'BUSY' : 'LAUNCH' }}</span>
+                  </button>
+                </div>
                 
-                <button @click="sendMessage()" :disabled="isProcessing" 
-                        class="font-hud text-[10px] px-8 py-3 transition-all duration-300 relative overflow-hidden group/btn"
-                        :class="isProcessing ? 'text-gray-600 cursor-wait' : 'text-black font-bold cursor-pointer hover:tracking-[0.2em]'"
-                        :style="{ backgroundColor: isProcessing ? '#111' : uiColor }">
-                  <span class="relative z-10">{{ isProcessing ? 'BUSY' : 'LAUNCH' }}</span>
-                  <div v-if="!isProcessing" class="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
-                </button>
-              </div>
-              
-              <div class="mt-2 flex justify-between px-1">
-                <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Intel_Link: Stable</div>
-                <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Access: admin@agency</div>
+                <div class="flex items-center gap-4">
+                   <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Intel_Link: Stable</div>
+                   <div class="font-code text-[8px] tracking-widest uppercase flex items-center gap-1.5" :class="deploymentStatus === 'PASS' ? 'text-green-900' : (deploymentStatus === 'FAIL' ? 'text-red-900' : 'text-gray-700')">
+                      CI/CD_LINK: 
+                      <span class="w-1 h-1 rounded-full animate-pulse" :class="deploymentStatus === 'PASS' ? 'bg-green-500 shadow-[0_0_5px_#22c55e]' : (deploymentStatus === 'FAIL' ? 'bg-red-500 shadow-[0_0_5px_#ef4444]' : 'bg-gray-700')"></span>
+                      {{ deploymentStatus }}
+                   </div>
+                   <div class="font-code text-[8px] text-gray-700 tracking-widest uppercase">Access: {{ userEmail }}</div>
+                </div>
               </div>
             </div>
+            
+            <!-- Padding to prevent content from hiding behind the fixed command center -->
+            <div class="h-32 md:h-40 w-full shrink-0"></div>
+
           </main>
 
           <!-- RIGHT PANEL: ADVANCED CONTEXT & ANALYSIS -->
           <aside class="w-full md:w-80 border-l border-gray-900 flex flex-col bg-black/40">
             <div class="p-4 border-b border-gray-900">
-              <div class="text-[9px] text-gray-600 font-hud mb-2 tracking-[0.2em]">STRATEGIC_CONTEXT</div>
+              <div class="flex justify-between items-center mb-2">
+                <div class="text-[9px] text-gray-600 font-hud tracking-[0.2em]">STRATEGIC_CONTEXT</div>
+                <div class="font-code text-[10px] text-white whitespace-nowrap">{{ currentTime }}</div>
+              </div>
               <div class="bg-blue-950/10 border border-blue-900/30 p-4 rounded">
                 <div class="font-hud text-[10px] text-blue-400 mb-2">INTELLIGENCE_PARAMETERS</div>
                 <div class="font-code text-[10px] text-gray-300 space-y-2">
@@ -1795,7 +2134,7 @@
                   </a>
                   <a :href="knowledgeMeta.memory.url" target="_blank" class="p-2 border border-gray-800 bg-green-950/20 hover:bg-green-900/30 flex items-center justify-between group no-underline">
                     <div class="font-code text-[10px] text-green-400">INTEL_STORE</div>
-                    <div class="text-[9px] text-gray-500 group-hover:text-green-200">OPEN ???</div>
+                    <div class="text-[9px] text-gray-500 group-hover:text-green-200">OPEN ↗</div>
                   </a>
                 </div>
                 <div v-else class="text-[9px] text-gray-600 italic">Loading Nexus uplink...</div>
@@ -1901,4 +2240,3 @@
     </script>
   </body>
 </html>
-
