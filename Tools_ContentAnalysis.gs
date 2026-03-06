@@ -82,25 +82,26 @@ var ContentAnalysis = (function() {
            contextStr + "\n" +
            "Return ONLY a valid JSON object matching the exact structure below. Be critical and objective in your scoring (1-10, where 10 is excellent/high, and 1 is terrible/low). " +
            "For Entropy Score, provide a value from 1 to 100 (100 being highly unique and unpredictable, 1 being generic and robotic).\n\n" +
-           "JSON Structure:\n" +
+           "CRITICAL INSTRUCTION: DO NOT COPY THE EXAMPLE JSON VALUES. YOU MUST GENERATE REAL SCORES AND EXPLANATIONS BASED ON THE TEXT PROVIDED.\n\n" +
+           "JSON Structure Example (Use this schema but REPLACE the values with your actual analysis):\n" +
            "{\n" +
-           "  \"entropyScore\": 25,\n" +
+           "  \"entropyScore\": 55,\n" +
            "  \"topProblems\": [\n" +
-           "    { \"title\": \"Pervasive Cliche Usage\", \"description\": \"The page relies heavily on generic marketing phrases.\" }\n" +
+           "    { \"title\": \"Problem Name\", \"description\": \"Detailed explanation of the problem found.\" }\n" +
            "  ],\n" +
            "  \"dimensions\": {\n" +
-           "    \"lexicalDiversity\": { \"score\": 2, \"explanation\": \"Heavily repeats generic terms.\" },\n" +
-           "    \"syntacticBurstiness\": { \"score\": 3, \"explanation\": \"Sentences are simple, declarative, similar length.\" },\n" +
-           "    \"semanticDrift\": { \"score\": 2, \"explanation\": \"Stays rigidly on topic, repeating same sales points.\" },\n" +
-           "    \"informationGain\": { \"score\": 2, \"explanation\": \"Offers little new information beyond stating the obvious.\" },\n" +
-           "    \"clicheDensity\": { \"score\": 1, \"explanation\": \"Saturated with low-entropy phrases.\" },\n" +
-           "    \"idiomaticRegionalism\": { \"score\": 3, \"explanation\": \"Beyond naming the city, it lacks local nuance.\" },\n" +
-           "    \"properNounDensity\": { \"score\": 5, \"explanation\": \"Names locations and a few partners, slight positive.\" },\n" +
-           "    \"technicalPrecision\": { \"score\": 2, \"explanation\": \"Service lists are generic with no details.\" },\n" +
-           "    \"emotionalVariance\": { \"score\": 2, \"explanation\": \"Flat, consistent corporate pitch.\" },\n" +
-           "    \"nuancePreservation\": { \"score\": 1, \"explanation\": \"Relies on absolutes and guarantees lacking specific conditions.\" },\n" +
-           "    \"firstPartyEvidence\": { \"score\": 2, \"explanation\": \"Claims reviews but provides no specific cases.\" },\n" +
-           "    \"entityCoherence\": { \"score\": 7, \"explanation\": \"Business identity is consistent and clear.\" }\n" +
+           "    \"lexicalDiversity\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"syntacticBurstiness\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"semanticDrift\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"informationGain\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"clicheDensity\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"idiomaticRegionalism\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"properNounDensity\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"technicalPrecision\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"emotionalVariance\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"nuancePreservation\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"firstPartyEvidence\": { \"score\": 0, \"explanation\": \"...\" },\n" +
+           "    \"entityCoherence\": { \"score\": 0, \"explanation\": \"...\" }\n" +
            "  }\n" +
            "}\n\n" +
            "Text to analyze:\n" + text;
