@@ -112,73 +112,42 @@ var ContentAnalysis = (function() {
             if (context.topic) contextStr += "- Core Topic: " + context.topic + "\n";
         }
         var statsStr = "HARD METRICS (Use these to inform your scores):\n" +
-            "- Word Count: " + stats.wordCount + 
- "
-" +
-            "- Sentence Count: " + stats.sentenceCount + "
-" +
-            "- Avg Sentence Length: " + stats.avgSentenceLength + " words
-" +
-            "- Type-Token Ratio (Lexical Diversity): " + stats.typeTokenRatio + " (higher means more unique vocabulary)
-" +
-            "- Sentence Length Standard Deviation (Syntactic Burstiness): " + stats.burstinessVariance + " (higher means more varied sentence structures)
+            "- Word Count: " + stats.wordCount + "\n" +
+            "- Sentence Count: " + stats.sentenceCount + "\n" +
+            "- Avg Sentence Length: " + stats.avgSentenceLength + " words\n" +
+            "- Type-Token Ratio (Lexical Diversity): " + stats.typeTokenRatio + " (higher means more unique vocabulary)\n" +
+            "- Sentence Length Standard Deviation (Syntactic Burstiness): " + stats.burstinessVariance + " (higher means more varied sentence structures)\n\n";
+        
+        return `You are an expert SEO and Content Quality Evaluator. Analyze the provided text according to strict dimensions. ${contextStr}
+${statsStr}
+Return ONLY a valid JSON object matching the exact structure below. Be critical and objective in your scoring (1-10, where 10 is excellent/high, and 1 is terrible/low). For Entropy Score, provide a value from 1 to 100 (100 being highly unique and unpredictable, 1 being generic and robotic).
 
-";
-        return "You are an expert SEO and Content Quality Evaluator. Analyze the provided text according to strict dimensions. " +
-            contextStr + "
-" + statsStr +
-            "Return ONLY a valid JSON object matching the exact structure below. Be critical and objective in your scoring (1-10, where 10 is excellent/high, and 1 is terrible/low). " +
-            "For Entropy Score, provide a value from 1 to 100 (100 being highly unique and unpredictable, 1 being generic and robotic).
+CRITICAL INSTRUCTION: DO NOT COPY THE EXAMPLE JSON VALUES. YOU MUST GENERATE REAL SCORES AND EXPLANATIONS BASED ON THE TEXT PROVIDED. USE THE HARD METRICS TO OBJECTIVELY SCORE LEXICAL DIVERSITY AND SYNTACTIC BURSTINESS.
 
-" +
-            "CRITICAL INSTRUCTION: DO NOT COPY THE EXAMPLE JSON VALUES. YOU MUST GENERATE REAL SCORES AND EXPLANATIONS BASED ON THE TEXT PROVIDED. USE THE HARD METRICS TO OBJECTIVELY SCORE LEXICAL DIVERSITY AND SYNTACTIC BURSTINESS.
+JSON Structure Example (Use this schema but REPLACE the values with your actual analysis):
+{
+  "entropyScore": 55,
+  "topProblems": [
+    { "title": "Problem Name", "description": "Detailed explanation of the problem found." }
+  ],
+  "dimensions": {
+    "lexicalDiversity": { "score": 0, "explanation": "..." },
+    "syntacticBurstiness": { "score": 0, "explanation": "..." },
+    "semanticDrift": { "score": 0, "explanation": "..." },
+    "informationGain": { "score": 0, "explanation": "..." },
+    "clicheDensity": { "score": 0, "explanation": "..." },
+    "idiomaticRegionalism": { "score": 0, "explanation": "..." },
+    "properNounDensity": { "score": 0, "explanation": "..." },
+    "technicalPrecision": { "score": 0, "explanation": "..." },
+    "emotionalVariance": { "score": 0, "explanation": "..." },
+    "nuancePreservation": { "score": 0, "explanation": "..." },
+    "firstPartyEvidence": { "score": 0, "explanation": "..." },
+    "entityCoherence": { "score": 0, "explanation": "..." }
+  }
+}
 
-" +
-            "JSON Structure Example (Use this schema but REPLACE the values with your actual analysis):
-" +
-            "{
-" +
-            "  "entropyScore": 55,
-" +
-            "  "topProblems": [
-" +
-            "    { "title": "Problem Name", "description": "Detailed explanation of the problem found." }
-" +
-            "  ],
-" +
-            "  "dimensions": {
-" +
-            "    "lexicalDiversity": { "score": 0, "explanation": "..." },
-" +
-            "    "syntacticBurstiness": { "score": 0, "explanation": "..." },
-" +
-            "    "semanticDrift": { "score": 0, "explanation": "..." },
-" +
-            "    "informationGain": { "score": 0, "explanation": "..." },
-" +
-            "    "clicheDensity": { "score": 0, "explanation": "..." },
-" +
-            "    "idiomaticRegionalism": { "score": 0, "explanation": "..." },
-" +
-            "    "properNounDensity": { "score": 0, "explanation": "..." },
-" +
-            "    "technicalPrecision": { "score": 0, "explanation": "..." },
-" +
-            "    "emotionalVariance": { "score": 0, "explanation": "..." },
-" +
-            "    "nuancePreservation": { "score": 0, "explanation": "..." },
-" +
-            "    "firstPartyEvidence": { "score": 0, "explanation": "..." },
-" +
-            "    "entityCoherence": { "score": 0, "explanation": "..." }
-" +
-            "  }
-" +
-            "}
-
-" +
-            "Text to analyze:
-" + text;
+Text to analyze:
+${text}`;
     }
 
     function forecastAndRewrite(payload) {
@@ -261,76 +230,46 @@ var ContentAnalysis = (function() {
     }
 
     function generateForecastPrompt(analysis, gscData, gaData, dataError) {
-        var prompt = "You are a Data Scientist and SEO Expert.
+        var problemsStr = (analysis.topProblems || []).map(p => `  - ${p.title}: ${p.description}`).join('\n');
+        var dataStr = dataError ? `- Data Fetch Error: ${dataError}` : `- GSC Data: ${JSON.stringify(gscData, null, 2)}\n- GA4 Data: ${JSON.stringify(gaData, null, 2)}`;
 
-" +
-            "**TASK:** Analyze the provided content quality report and historical performance data to forecast the potential uplift after an expert content refresh. The refresh will specifically fix all identified 'Top Problems'.
+        return `You are a Data Scientist and SEO Expert.
 
-" +
-            "**CONTENT QUALITY REPORT:**
-" +
-            "- Entropy Score: " + analysis.entropyScore + "/100
-" +
-            "- Top Problems:
-";
-        (analysis.topProblems || []).forEach(function(p) {
-            prompt += "  - " + p.title + ": " + p.description + "
-";
-        });
-        prompt += "
+**TASK:** Analyze the provided content quality report and historical performance data to forecast the potential uplift after an expert content refresh. The refresh will specifically fix all identified 'Top Problems'.
+
+**CONTENT QUALITY REPORT:**
+- Entropy Score: ${analysis.entropyScore}/100
+- Top Problems:
+${problemsStr}
+
 **PERFORMANCE DATA (Last 90 Days):**
-";
-        if (dataError) {
-            prompt += "- Data Fetch Error: " + dataError + "
-";
-        } else {
-            prompt += "- GSC Data: " + JSON.stringify(gscData, null, 2) + "
-";
-            prompt += "- GA4 Data: " + JSON.stringify(gaData, null, 2) + "
-";
-        }
-        prompt += "
-**OUTPUT:**
-" +
-            "Return ONLY a valid JSON object in the following structure. Provide realistic, conservative percentage uplift predictions based on fixing the content issues. If there is not enough data, return 0 for uplift and confidence.
+${dataStr}
 
-" +
-            "{
-" +
-            "  "uplift_clicks": { "value": 15, "reasoning": "Improving cliche density and technical precision for this topic typically boosts CTR by 10-20%." },
-" +
-            "  "uplift_engagement": { "value": 25, "reasoning": "Increasing emotional variance and adding first-party evidence will likely improve average session duration." },
-" +
-            "  "confidence": 85
-" +
-            "}";
-        return prompt;
+**OUTPUT:**
+Return ONLY a valid JSON object in the following structure. Provide realistic, conservative percentage uplift predictions based on fixing the content issues. If there is not enough data, return 0 for uplift and confidence.
+
+{
+  "uplift_clicks": { "value": 15, "reasoning": "Improving cliche density and technical precision for this topic typically boosts CTR by 10-20%." },
+  "uplift_engagement": { "value": 25, "reasoning": "Increasing emotional variance and adding first-party evidence will likely improve average session duration." },
+  "confidence": 85
+}`;
     }
 
     function generateRewritePrompt(originalText, analysis) {
-        return "You are an expert technical writer and SEO copywriter with a talent for transforming mediocre content into exceptional, high-ranking articles.
+        return `You are an expert technical writer and SEO copywriter with a talent for transforming mediocre content into exceptional, high-ranking articles.
 
-" +
-            "**TASK:** Rewrite the following 'Original Text' to achieve a perfect or near-perfect score (9-10) on the provided 'Content Analysis Report'. Your rewrite must fix every problem identified in the report.
+**TASK:** Rewrite the following 'Original Text' to achieve a perfect or near-perfect score (9-10) on the provided 'Content Analysis Report'. Your rewrite must fix every problem identified in the report.
 
-" +
-            "**CONTENT ANALYSIS REPORT (Weaknesses to Fix):**
-" +
-            JSON.stringify(analysis, null, 2) + "
+**CONTENT ANALYSIS REPORT (Weaknesses to Fix):**
+${JSON.stringify(analysis, null, 2)}
 
-" +
-            "**CRITICAL INSTRUCTIONS:**
-" +
-            "- **Preserve Core Message:** Do not change the fundamental topic or intent of the original text.
-" +
-            "- **Fix All Flaws:** Directly address the low scores in the report. Increase lexical diversity, vary sentence structures, remove cliches, inject specific data or evidence, and improve the overall tone and quality.
-" +
-            "- **Output Raw Text:** Return ONLY the full, rewritten article text. Do not include any commentary, preambles, or markdown formatting.
+**CRITICAL INSTRUCTIONS:**
+- **Preserve Core Message:** Do not change the fundamental topic or intent of the original text.
+- **Fix All Flaws:** Directly address the low scores in the report. Increase lexical diversity, vary sentence structures, remove cliches, inject specific data or evidence, and improve the overall tone and quality.
+- **Output Raw Text:** Return ONLY the full, rewritten article text. Do not include any commentary, preambles, or markdown formatting.
 
-" +
-            "**ORIGINAL TEXT:**
-" +
-            originalText;
+**ORIGINAL TEXT:**
+${originalText}`;
     }
     return {
         analyzeContent: analyzeContent,
