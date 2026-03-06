@@ -30,7 +30,8 @@ var ContentAnalysis = (function() {
         textToAnalyze = textToAnalyze.substring(0, 25000) + "... [Truncated]";
       }
 
-      var prompt = generateAnalysisPrompt(textToAnalyze, payload.context);
+      var stats = calculateStats(textToAnalyze);
+      var prompt = generateAnalysisPrompt(textToAnalyze, payload.context, stats);
       
       // Call Gemini using the global callGemini function
       var history = [{ role: "user", parts: [{ text: prompt }] }];
@@ -53,6 +54,46 @@ var ContentAnalysis = (function() {
     }
   }
 
+  function calculateStats(text) {
+    // 1. Basic Cleaning
+    var cleanText = text.replace(/[^a-zA-Z0-9\s\.\!\?]/g, "").toLowerCase();
+    
+    // 2. Words
+    var words = cleanText.split(/\s+/).filter(function(w) { return w.length > 0; });
+    var wordCount = words.length || 1;
+    
+    // 3. Sentences
+    var sentences = text.split(/[\.\!\?]+/).filter(function(s) { return s.trim().length > 0; });
+    var sentenceCount = sentences.length || 1;
+    var avgSentenceLength = wordCount / sentenceCount;
+    
+    // 4. Type-Token Ratio (Unique Words / Total Words)
+    var uniqueWords = {};
+    words.forEach(function(w) { uniqueWords[w] = true; });
+    var uniqueWordCount = Object.keys(uniqueWords).length;
+    var ttr = uniqueWordCount / wordCount;
+    
+    // 5. Syntactic Burstiness Approximation (Standard Deviation of sentence lengths)
+    var sentenceLengths = sentences.map(function(s) { 
+      return s.trim().split(/\s+/).filter(function(w) { return w.length > 0; }).length; 
+    });
+    
+    var variance = sentenceLengths.reduce(function(sum, len) { 
+      var diff = len - avgSentenceLength;
+      return sum + (diff * diff);
+    }, 0) / sentenceCount;
+    
+    var burstiness = Math.sqrt(variance); // Standard deviation
+
+    return {
+      wordCount: wordCount,
+      sentenceCount: sentenceCount,
+      avgSentenceLength: avgSentenceLength.toFixed(2),
+      typeTokenRatio: ttr.toFixed(3),
+      burstinessVariance: burstiness.toFixed(2)
+    };
+  }
+
   function extractTextFromUrl(url) {
     var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     if (response.getResponseCode() !== 200) {
@@ -69,7 +110,7 @@ var ContentAnalysis = (function() {
     return text.replace(/\s+/g, " ").trim();
   }
 
-  function generateAnalysisPrompt(text, context) {
+  function generateAnalysisPrompt(text, context, stats) {
     var contextStr = "";
     if (context) {
        contextStr = "Consider the following context for this content:\n";
@@ -78,11 +119,18 @@ var ContentAnalysis = (function() {
        if (context.topic) contextStr += "- Core Topic: " + context.topic + "\n";
     }
 
+    var statsStr = "HARD METRICS (Use these to inform your scores):\n" +
+                   "- Word Count: " + stats.wordCount + "\n" +
+                   "- Sentence Count: " + stats.sentenceCount + "\n" +
+                   "- Avg Sentence Length: " + stats.avgSentenceLength + " words\n" +
+                   "- Type-Token Ratio (Lexical Diversity): " + stats.typeTokenRatio + " (higher means more unique vocabulary)\n" +
+                   "- Sentence Length Standard Deviation (Syntactic Burstiness): " + stats.burstinessVariance + " (higher means more varied sentence structures)\n\n";
+
     return "You are an expert SEO and Content Quality Evaluator. Analyze the provided text according to strict dimensions. " +
-           contextStr + "\n" +
+           contextStr + "\n" + statsStr +
            "Return ONLY a valid JSON object matching the exact structure below. Be critical and objective in your scoring (1-10, where 10 is excellent/high, and 1 is terrible/low). " +
            "For Entropy Score, provide a value from 1 to 100 (100 being highly unique and unpredictable, 1 being generic and robotic).\n\n" +
-           "CRITICAL INSTRUCTION: DO NOT COPY THE EXAMPLE JSON VALUES. YOU MUST GENERATE REAL SCORES AND EXPLANATIONS BASED ON THE TEXT PROVIDED.\n\n" +
+           "CRITICAL INSTRUCTION: DO NOT COPY THE EXAMPLE JSON VALUES. YOU MUST GENERATE REAL SCORES AND EXPLANATIONS BASED ON THE TEXT PROVIDED. USE THE HARD METRICS TO OBJECTIVELY SCORE LEXICAL DIVERSITY AND SYNTACTIC BURSTINESS.\n\n" +
            "JSON Structure Example (Use this schema but REPLACE the values with your actual analysis):\n" +
            "{\n" +
            "  \"entropyScore\": 55,\n" +
