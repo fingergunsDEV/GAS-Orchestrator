@@ -71,8 +71,7 @@ jobs:
             echo "$CLASPRC_JSON" > ~/.clasprc.json
 
             # Create .clasp.json
-            printf '{"scriptId":"%s","rootDir":"."}
-' "$CLEAN_SCRIPT_ID" > .clasp.json
+            printf '{"scriptId":"%s","rootDir":"."}' "$CLEAN_SCRIPT_ID" > .clasp.json
 
             echo "Pushing code to Apps Script..."
             set +e
